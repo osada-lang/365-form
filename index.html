@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GBP MEO最適化診断レポート & 営業提案書生成ツール</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Top Navigation Bar -->
+    <header class="app-header">
+        <div class="header-container">
+            <div class="brand">
+                <span class="brand-badge">PRO</span>
+                <h1>GBP MEO Diagnostic Tool</h1>
+            </div>
+            <div class="header-actions">
+                <button id="btn-show-bookmarklet-modal" class="btn btn-secondary btn-sm">📌 ブックマークレット登録</button>
+                <button id="btn-show-ai-modal" class="btn btn-secondary btn-sm">🤖 AI設定</button>
+                <button id="btn-open-guide" class="btn btn-secondary btn-sm">📖 使い方ガイド</button>
+                <button id="btn-print" class="btn btn-primary btn-sm">🖨️ レポートを印刷 / PDF保存</button>
+                <button id="btn-clear-report" class="btn btn-outline btn-sm" style="color: var(--danger-color); border-color: #fca5a5;">🧹 レポートをクリア</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="main-layout">
+
+        <!-- 1. Initial Welcome State (Un-diagnosed View) -->
+        <div id="welcome-placeholder" class="welcome-card">
+            <div class="welcome-icon">🚀</div>
+            <h2>GBP MEO最適化診断をはじめましょう</h2>
+            <p>Googleマップの店舗画面を開き、ブックマークをクリックするだけで1秒で詳細な診断レポートと営業提案書を生成します。</p>
+            <div class="welcome-actions">
+                <button id="btn-welcome-demo" class="btn btn-primary btn-lg">✨ サンプルデータで試す</button>
+                <button id="btn-welcome-guide" class="btn btn-secondary btn-lg">📌 ブックマークレットを登録する</button>
+            </div>
+        </div>
+
+        <!-- 2. Diagnostic Report View (Hidden on Initial Visit) -->
+        <section id="report-paper" class="report-paper hidden">
+            
+            <!-- Report Header Meta -->
+            <div class="report-header">
+                <div class="report-title-area">
+                    <span class="meta-label">MEO OPTIMIZATION DIAGNOSIS</span>
+                    <h3 id="display-company-name" class="company-name-tag"></h3>
+                    <h2 id="display-store-name" class="store-name-title">店舗名</h2>
+                    <div id="display-store-meta" class="store-meta-bar">
+                        カテゴリ: <span id="meta-category">未設定</span> | 診断日: <span id="meta-date">----/--/--</span>
+                    </div>
+                </div>
+                <div class="report-badge-area">
+                    <span class="confidential-badge">営業提案書 / 診断レポート</span>
+                </div>
+            </div>
+
+            <!-- Top Executive Summary Block (Score + Radar Chart) -->
+            <div class="summary-grid">
+                
+                <!-- Left: Overall Score Card -->
+                <div class="score-card">
+                    <h3>総合MEO最適化スコア</h3>
+                    <div class="score-display">
+                        <span id="total-score" class="score-num">0</span>
+                        <span id="total-max-score" class="score-max">/ 100点満点</span>
+                        <div id="score-rank" class="score-rank-badge">---</div>
+                    </div>
+                    <p id="score-comment" class="score-comment-text">診断データを解析中です...</p>
+
+                    <div class="category-breakdown">
+                        <div class="cat-item">
+                            <span>基本情報整備</span>
+                            <strong id="score-basic">0点</strong>
+                        </div>
+                        <div class="cat-item">
+                            <span>クチコミ獲得・運用</span>
+                            <strong id="score-reviews">0点</strong>
+                        </div>
+                        <div class="cat-item">
+                            <span>写真・視覚訴求</span>
+                            <strong id="score-photos">0点</strong>
+                        </div>
+                        <div class="cat-item">
+                            <span>情報発信・更新度</span>
+                            <strong id="score-posts">0点</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: SVG Radar Chart Card -->
+                <div class="chart-card">
+                    <h3>カテゴリ別分析チャート</h3>
+                    <div class="radar-wrapper">
+                        <svg id="radar-chart" viewBox="0 0 300 300" width="100%" height="100%"></svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Advisory Section (Gemini 3.6 Flash Engine) -->
+            <div id="ai-advice-card" class="ai-advice-card">
+                <div class="ai-card-header">
+                    <div class="ai-title-group">
+                        <span class="ai-badge">Gemini 3.6 Flash 搭載</span>
+                        <h4>🤖 AIコンサルタントによる改善アドバイス</h4>
+                    </div>
+                    <button id="btn-generate-ai-advice" class="btn btn-ai btn-sm">🤖 AI解説文を自動生成</button>
+                </div>
+                <div id="ai-advice-content" class="ai-card-body">
+                    <p class="ai-placeholder">「AI解説文を自動生成」ボタンを押すと、診断データに基づいたプロコンサルタント視点の解説と営業トーク案が即時作成されます。</p>
+                </div>
+            </div>
+
+            <!-- Detailed Category Analysis Lists -->
+            <div class="details-section">
+                <h3>診断項目別の詳細分析</h3>
+                
+                <div class="details-grid">
+                    <!-- Category 1: Basic Info -->
+                    <div class="detail-card">
+                        <div class="detail-card-header">
+                            <h4>📌 基本情報</h4>
+                            <span id="group-score-basic" class="group-score-tag">0/30</span>
+                        </div>
+                        <ul id="list-basic" class="check-list"></ul>
+                    </div>
+
+                    <!-- Category 2: Reviews -->
+                    <div class="detail-card">
+                        <div class="detail-card-header">
+                            <h4>⭐ クチコミ状況</h4>
+                            <span id="group-score-reviews" class="group-score-tag">0/30</span>
+                        </div>
+                        <ul id="list-reviews" class="check-list"></ul>
+                    </div>
+
+                    <!-- Category 3: Photos -->
+                    <div class="detail-card">
+                        <div class="detail-card-header">
+                            <h4>📷 写真・動画</h4>
+                            <span id="group-score-photos" class="group-score-tag">0/20</span>
+                        </div>
+                        <ul id="list-photos" class="check-list"></ul>
+                    </div>
+
+                    <!-- Category 4: Posts -->
+                    <div class="detail-card">
+                        <div class="detail-card-header">
+                            <h4>📣 情報発信</h4>
+                            <span id="group-score-posts" class="group-score-tag">0/20</span>
+                        </div>
+                        <ul id="list-posts" class="check-list"></ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Priority Action Recommendations -->
+            <div class="action-section">
+                <h3>🚀 優先改善アクションプラン（MEO集客を高める提案）</h3>
+                <p class="section-desc">現状のGBP運用において、優先的に取り組むべき改善策です。</p>
+                <div id="action-recommendations" class="action-list"></div>
+            </div>
+
+            <!-- Solution Proposal Card: 365VOICE (Sales Toss-Up Section) -->
+            <section id="solution-proposal-section" class="report-card solution-card">
+                <div class="solution-header">
+                    <span class="solution-tag">新規獲得 × リピート育成 の集客両輪システム</span>
+                    <h3>【365ボイス】MEOで「新規獲得」× LINEで「リピート獲得」を同時に実現</h3>
+                    <p class="solution-subtitle">MEO対策による新規顧客の獲得と、LINE連携によるファン化（リピート獲得）。店舗集客の「両輪」を同時に対策できる投資型集客システムです。</p>
+                </div>
+
+                <div class="solution-grid">
+                    <div class="solution-feature">
+                        <div class="feature-icon">📱</div>
+                        <div class="feature-content">
+                            <h5>1. システマチックなクチコミ獲得</h5>
+                            <p>1分の簡単なアンケート＆抽選体験から、お客様が自然に高品質なクチコミをGoogleマップへ投稿。</p>
+                        </div>
+                    </div>
+
+                    <div class="solution-feature">
+                        <div class="feature-icon">💬</div>
+                        <div class="feature-content">
+                            <h5>2. MEO最適化クチコミ返信</h5>
+                            <p>集まったクチコミに対して、MEO評価に効果的な検索キーワードを含めた丁寧な返信を作成。</p>
+                        </div>
+                    </div>
+
+                    <div class="solution-feature">
+                        <div class="feature-icon">📲</div>
+                        <div class="feature-content">
+                            <h5>3. LINE連携で長期ファン化</h5>
+                            <p>クチコミ投稿と連動して公式LINEへ登録。一過性で終わらせず、リピーター・長期的なファンへ育成。</p>
+                        </div>
+                    </div>
+
+                    <div class="solution-feature">
+                        <div class="feature-icon">🏆</div>
+                        <div class="feature-content">
+                            <h5>4. スタッフ評価・ファン向上</h5>
+                            <p>スタッフごとのクチコミ獲得数を可視化。店舗のファンだけでなく「スタッフのファン」を増やす評価制度へ。</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="solution-pricing">
+                    <div class="price-box">
+                        <span class="price-label">初期費用</span>
+                        <span class="price-value">40,000円 <small>(税別)</small></span>
+                    </div>
+                    <div class="price-divider"></div>
+                    <div class="price-box">
+                        <span class="price-label">月額費用</span>
+                        <span class="price-value">30,000円 <small>(税別)</small></span>
+                    </div>
+                </div>
+
+                <div class="solution-tossup-footer">
+                    <p class="tossup-note">💡 <strong>貴店での具体的な導入イメージや詳細な仕組みにつきましては、本日の営業担当より詳しくご説明させていただきます。</strong></p>
+                </div>
+            </section>
+
+            <!-- Report Footer -->
+            <div class="report-footer">
+                <p>© <span id="current-year"></span> GBP MEO Diagnostic Tool | Confidentially Generated for Client Proposal</p>
+            </div>
+        </section>
+
+        <!-- 3. Manual Control Panel (Hidden on Initial Visit) -->
+        <aside id="control-panel-section" class="control-panel-section hidden">
+            <div class="panel-header">
+                <h3>⚙️ 診断データ手動調整</h3>
+                <button id="btn-load-demo" class="btn btn-text btn-sm">デモ読み込み</button>
+            </div>
+            
+            <form class="diag-form" onsubmit="return false;">
+                <div class="form-group">
+                    <label>対象事業者名 (企業・屋号)</label>
+                    <input type="text" id="input-company-name" placeholder="例: 株式会社〇〇">
+                </div>
+
+                <div class="form-group">
+                    <label>店舗名 / ビジネス名</label>
+                    <input type="text" id="input-store-name">
+                </div>
+
+                <div class="form-group">
+                    <label>カテゴリ（業種）</label>
+                    <input type="text" id="input-category">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>クチコミ件数</label>
+                        <input type="number" id="input-review-count" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>平均評価 (★)</label>
+                        <input type="number" id="input-rating" step="0.1" min="1.0" max="5.0">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>最新投稿経過日数</label>
+                        <select id="input-last-post">
+                            <option value="7">7日以内 (活発)</option>
+                            <option value="30">30日以内 (標準)</option>
+                            <option value="90">90日以内 (更新低下)</option>
+                            <option value="999">90日以上 / 未利用</option>
+                            <option value="error">エラー（手動要確認）</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>写真・動画枚数</label>
+                        <select id="input-photo-count">
+                            <option value="50">50枚以上 (豊富)</option>
+                            <option value="20">20〜49枚 (標準)</option>
+                            <option value="1">20枚未満 (不足)</option>
+                            <option value="error">エラー（手動要確認）</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-divider">基本設定のON/OFF</div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Webサイトリンク</label>
+                        <select id="select-website">
+                            <option value="pass">あり (設定済み)</option>
+                            <option value="fail">なし (未設定)</option>
+                            <option value="error">未確認</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>営業時間設定</label>
+                        <select id="select-hours">
+                            <option value="pass">あり (設定済み)</option>
+                            <option value="fail">なし (未設定)</option>
+                            <option value="error">未確認</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>ビジネス説明文</label>
+                        <select id="select-description">
+                            <option value="pass">あり (登録済み)</option>
+                            <option value="fail">なし (未設定)</option>
+                            <option value="error">未確認</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>カバー・ロゴ画像</label>
+                        <select id="select-cover">
+                            <option value="pass">あり (設定済み)</option>
+                            <option value="fail">なし (未設定)</option>
+                            <option value="error">未確認</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>クチコミ返信</label>
+                        <select id="select-reply">
+                            <option value="pass">返信あり</option>
+                            <option value="fail">未返信 (未対応)</option>
+                            <option value="error">未確認</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>属性 (詳細情報)</label>
+                        <select id="select-attributes">
+                            <option value="pass">設定済み</option>
+                            <option value="fail">未設定</option>
+                            <option value="error">未確認</option>
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </aside>
+    </main>
+
+    <!-- Modal 1: Bookmarklet Setup Guide -->
+    <div id="modal-bookmarklet" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📌 ブックマークレット登録方法</h3>
+                <button class="btn-close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>以下のボタンをブラウザのブックマークバーへドラッグ＆ドロップしてください。</p>
+                <div class="bookmarklet-drop-zone">
+                    <a id="bookmarklet-link" class="bookmarklet-btn" href="#">🔍 GBP分析を実行</a>
+                </div>
+                <ol class="setup-steps">
+                    <li>ブックマークバーが表示されていることを確認します（Ctrl+Shift+B または Cmd+Shift+B）。</li>
+                    <li>上の「🔍 GBP分析を実行」ボタンをブックマークバーへドラッグします。</li>
+                    <li>Googleマップで診断したい店舗の画面を開き、追加したブックマークをクリックするだけで1秒診断されます！</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 2: AI Config Modal -->
+    <div id="modal-ai-config" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🤖 Gemini API 設定</h3>
+                <button class="btn-close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>AI解説文を自動生成するための Google Gemini API キーを保存します。（プリセット済みです）</p>
+                <div class="form-group">
+                    <label>Gemini API Key</label>
+                    <input type="password" id="input-api-key" placeholder="AIzaSy... または AQ.Ab8RN...">
+                </div>
+                <button id="btn-save-api-key" class="btn btn-primary btn-block">設定を保存する</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interactive Loading Overlay (3 Seconds) -->
+    <div id="loading-overlay" class="loading-overlay hidden">
+        <div class="loading-card">
+            <div class="spinner"></div>
+            <h3 id="loading-status-text">Googleマップから店舗データを抽出中...</h3>
+            <p id="loading-sub-text">基本情報・クチコミ・更新日時を集計しています</p>
+            <div class="progress-bar-container">
+                <div id="progress-bar-fill" class="progress-bar-fill"></div>
+            </div>
+            <span id="loading-percent" class="loading-percent">0%</span>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-notification" class="toast hidden">
+        <div class="toast-content">
+            <strong id="toast-title">通知</strong>
+            <span id="toast-desc">処理が完了しました</span>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
