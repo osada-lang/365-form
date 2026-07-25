@@ -852,7 +852,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (item.isNote) {
                 return `<li class="check-item note-item" style="font-size:0.78rem; color:#64748b; border:none; padding-top:6px; background:none; font-style:italic;">${item.rawText}</li>`;
             }
-            const statusLabel = item.status === 'pass' ? '良好' : item.status === 'warn' ? '要改善' : '未対応';
+            const statusLabel = item.status === 'pass' ? '良好' : item.status === 'warn' ? '要改善' : '要対応';
             const emptyClass = !item.rawText || item.rawText.indexOf('未設定') !== -1 || item.rawText.indexOf('未対応') !== -1 ? 'empty-content' : '';
             return `
             <li class="check-item-block">
