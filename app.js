@@ -548,26 +548,27 @@ document.addEventListener('DOMContentLoaded', () => {
         selectHours.value = storeData.statusHours || 'error';
         selectDescription.value = storeData.statusDescription || 'error';
         selectCover.value = storeData.statusCover || 'pass';
-        selectReply.value = storeData.statu        const prompt = `あなたは頼れるGoogleマップ集客（MEO）の専門コンサルタントです。
-以下のGBP診断レポート結果に基づき、店舗のオーナー様・店長様が直接読まれて「自分の店の強みと、明日からできる改善ポイントがよく分かる」親身で分かりやすいアドバイス文章を作成してください。
+        selectReply.value = storeData.statusReply || 'error';
+        selectAttributes.value = storeData.statusAttributes || 'error';
 
-【対象店舗】${diagData.name}
-【業種・カテゴリ】${diagData.category}
-【総合最適化スコア】${diagData.totalGained}点 / ${diagData.totalPossible}点満点 (${diagData.normalizedScore}%達成)
-【評価】★${diagData.rating.toFixed(1)} (${diagData.reviewCount}件のクチコミ)
-【クチコミ返信率】${diagData.replyRatio !== undefined ? diagData.replyRatio + '%' : '未確認'}
+        calculateAndRender();
+    }
 
-【執筆のルール】
-- 店舗オーナー様や店長様に見せるための【店舗様向けレポート文章】として書いてください。
-- 難しい専門用語は避け、直感的に分かりやすい言葉を使ってください。
-- 「〜しましょう」「〜するとさらにお客様が増えます！」と、前向きで励みになるトーンで伝えてください。
-- MEO対策による「新規顧客の獲得」と、LINE連携によるファン化「リピート客の獲得」という店舗集客の『両輪』を同時に対策できる投資型集客システム『365ボイス』の導入を、語りすぎず簡潔に（パスを出すトスアップとして）提案してください。
-- 文章の最後には必ず「※貴店での具体的な活用方法や他店舗様での成功事例につきましては、本日ご案内の営業担当より詳しくお伝えさせていただきます。」と添えて、営業担当者様へ自然に会話を引き継げる形で締めくくってください。
+    function readFormValues() {
+        if (inputCompanyName) storeData.companyName = inputCompanyName.value;
+        storeData.name = inputStoreName.value;
+        storeData.category = inputCategory.value;
+        storeData.reviewCount = parseInt(inputReviewCount.value) || 0;
+        storeData.rating = parseFloat(inputRating.value) || 0.0;
+        storeData.daysSinceLastPost = inputLastPost.value;
+        storeData.photoTier = inputPhotoCount.value;
 
-以下の3つの構成で出力してください：
-1. 💡 店舗様の現状と強み（診断総評）
-2. 🚀 集客向上に向けた改善アクション（※『新規獲得×リピート獲得』の両輪対策としての365ボイスを簡潔に提示）
-3. ✨ 今後期待できる成果とご案内メッセージ（※営業担当者へ自然に繋ぐ締めくくり）`;        storeData.statusAttributes = selectAttributes.value;
+        storeData.statusWebsite = selectWebsite.value;
+        storeData.statusHours = selectHours.value;
+        storeData.statusDescription = selectDescription.value;
+        storeData.statusCover = selectCover.value;
+        storeData.statusReply = selectReply.value;
+        storeData.statusAttributes = selectAttributes.value;
 
         calculateAndRender();
     }
