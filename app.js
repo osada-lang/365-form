@@ -138,8 +138,14 @@ document.addEventListener('DOMContentLoaded', () => {
     metaDate.textContent = `${today.getFullYear()}/${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}`;
     document.getElementById('current-year').textContent = today.getFullYear();
 
-    localStorage.setItem('gemini_api_key', DEFAULT_GEMINI_KEY);
-    if (inputApiKey) inputApiKey.value = DEFAULT_GEMINI_KEY;
+    // Initialize API Key from localStorage or Default
+    const savedApiKey = localStorage.getItem('gemini_api_key');
+    if (!savedApiKey && DEFAULT_GEMINI_KEY) {
+        localStorage.setItem('gemini_api_key', DEFAULT_GEMINI_KEY);
+    }
+    if (inputApiKey) {
+        inputApiKey.value = localStorage.getItem('gemini_api_key') || DEFAULT_GEMINI_KEY || "";
+    }
 
     // ==========================================
     // 3. UNIFIED BOOKMARKLET GENERATOR ENGINE (COMPREHENSIVE ATTRIBUTES EXTRACTION)
