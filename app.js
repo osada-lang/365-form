@@ -250,13 +250,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             "/* Raw Website URL */" +
             "let rawWebsite = '';" +
-            "let webAnchors = Array.from(document.body.querySelectorAll('a[href*=\"http\"], button[aria-label*=\"ウェブサイト\"], a[aria-label*=\"ウェブサイト\"], a[aria-label*=\"サイト\"]'));" +
-            "if(webAnchors.length > 0){" +
-            "  let target = webAnchors.find(a => {" +
-            "    let h = a.getAttribute('href') || '';" +
-            "    return h.indexOf('google.') === -1 && h.indexOf('http') !== -1;" +
-            "  }) || webAnchors[0];" +
-            "  rawWebsite = target.getAttribute('href') || target.innerText || '';" +
+            "let webEl = document.body.querySelector('a[data-item-id=\"authority\"], [data-item-id=\"authority\"] a, a[aria-label*=\"ウェブサイト\"], a[aria-label*=\"公式サイト\"], a[aria-label*=\"Website\"], a[aria-label*=\"website\"]');" +
+            "if(webEl){" +
+            "  let h = webEl.getAttribute('href') || '';" +
+            "  if(h && h.indexOf('google.') === -1 && h.indexOf('http') !== -1){" +
+            "    rawWebsite = h.trim();" +
+            "  }" +
             "}" +
 
             "/* Raw Business Hours & Full Weekly Schedule Text */" +
