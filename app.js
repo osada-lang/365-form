@@ -4,9 +4,9 @@
  * Key Features & Architecture:
  * 1. Single Source of Truth for Bookmarklet Window Target ("GBP_DIAGNOSTIC_REPORT_WINDOW").
  * 2. Pure Live Data Engine: Zero rating/score carry-overs between stores; resets automatically on store change.
- * 3. GRADED EVALUATION ENGINES:
- *    - ATTRIBUTES GRADED SCORE (Max 4pt): 5+ items = 4pt (Pass), 1-4 items = 2pt (Warn), 0 items = 0pt (Fail).
- *    - DESCRIPTION GRADED SCORE (Max 4pt): 250+ chars = 4pt (Pass), 1-249 chars = 2pt (Warn), 0 chars = 0pt (Fail).
+ * 3. STRICT GRADED EVALUATION ENGINES:
+ *    - ATTRIBUTES GRADED SCORE (Max 4pt): Exactly 5+ items = 4pt (Pass / Green), 1-4 items = 2pt (Warn / Yellow), 0 items = 0pt (Fail / Red).
+ *    - DESCRIPTION GRADED SCORE (Max 4pt): 250+ chars = 4pt (Pass / Green), 1-249 chars = 2pt (Warn / Yellow), 0 chars = 0pt (Fail / Red).
  * 4. STRICT PHOTO TAB ISOLATE PROTECTION (isPhotoAllTab: true): When diagnosed from Photo "ALL" tab, ONLY photoCount & statusPhotos are updated.
  * 5. INDUSTRY-AGNOSTIC PRESETS: Fully universal across all business sectors.
  */
@@ -306,7 +306,7 @@ document.addEventListener('DOMContentLoaded', () => {
             "  }" +
             "}" +
 
-            "/* Raw Business Description (Full Extract up to 750 chars) */" +
+            "/* Raw Business Description */" +
             "let rawDescription = '';" +
             "let descIdx = bTxt.indexOf('提供元: オーナー');" +
             "if(descIdx !== -1){" +
@@ -356,15 +356,10 @@ document.addEventListener('DOMContentLoaded', () => {
             "    }" +
             "  });" +
             "  attrCount = validAttrItems.length;" +
-            "  if(attrCount >= 5){" +
-            "    rawAttributes = validAttrItems.join(' ・ ') + ' 等';" +
-            "    statusAttributes = 'pass';" +
-            "  }else if(attrCount >= 1){" +
-            "    rawAttributes = validAttrItems.join(' ・ ') + ' 等';" +
-            "    statusAttributes = 'warn';" +
-            "  }else{" +
-            "    statusAttributes = 'fail';" +
-            "  }" +
+            "  rawAttributes = validAttrItems.join(' ・ ') + ' 等';" +
+            "  if(attrCount >= 5){ statusAttributes = 'pass'; }" +
+            "  else if(attrCount >= 1){ statusAttributes = 'warn'; }" +
+            "  else { statusAttributes = 'fail'; }" +
             "}" +
 
             "/* H. PACK & SEND DATA */" +
@@ -709,7 +704,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 8. SCORING & RADAR CHART ENGINE (GRADED DESCRIPTION & ATTRIBUTES)
+    // 8. SCORING & RADAR CHART ENGINE (STRICT ATTR & DESC GRADED EVALUATION)
     // ==========================================
     function calculateAndRender() {
         let displayRating = storeData.rating > 0 ? storeData.rating : 5.0;
@@ -768,11 +763,10 @@ document.addEventListener('DOMContentLoaded', () => {
         basicPossible += 4;
         let descText = storeData.rawDescription || "";
         let descLen = descText.length;
-        if (storeData.statusDescription === 'pass' || descLen >= 250) { 
+        if (descLen >= 250) { 
             basicGained += 4; 
-            let descVal = descText || "提供元: オーナー: 今月限定キャンペーン開催中✨ サービスご利用の皆様へ【特別クーポン】を進呈中🎁 ご家族・ご友人とのご来店・ご利用にぜひ‼️ ■詳しくはお問い合わせまたはWebサイトをご覧ください...";
-            itemsBasic.push({ title: "ビジネス説明文", status: "pass", rawText: `${descVal} (${descLen > 0 ? descLen : '250+'}文字・良好)` }); 
-        } else if (storeData.statusDescription === 'warn' || (descLen > 0 && descLen < 250)) {
+            itemsBasic.push({ title: "ビジネス説明文", status: "pass", rawText: `${descText} (${descLen}文字・良好)` }); 
+        } else if (descLen > 0) {
             basicGained += 2;
             itemsBasic.push({ title: "ビジネス説明文", status: "warn", rawText: `${descText} (${descLen}文字・文字数が不足しています。検索キーワードを含めて250文字以上への拡充を推奨)` });
         } else { 
@@ -783,21 +777,24 @@ document.addEventListener('DOMContentLoaded', () => {
         basicPossible += 4;
         let attrText = storeData.rawAttributes || "";
         let attrCount = storeData.attrCount;
-        if (attrCount === undefined && attrText) {
-            attrCount = attrText.split('・').length;
-        }
         
-        if (storeData.statusAttributes === 'pass' || (attrCount !== undefined && attrCount >= 5)) { 
+        // Parse exact item count from rawAttributes string if not passed
+        if (attrText && (attrCount === undefined || attrCount === 0)) {
+            let cleanText = attrText.replace(/\s*等\s*/g, '').replace(/\s*\([\s\S]*?\)/g, '');
+            let items = cleanText.split('・').map(s => s.trim()).filter(s => s.length > 0);
+            attrCount = items.length;
+        }
+
+        if (attrCount >= 5) { 
             basicGained += 4; 
-            let attrVal = attrText || "バリアフリー対応 ・ クレジットカード可 ・ 無料Wi-Fi ・ 駐車場あり ・ 事前予約可能 等";
-            let cntLabel = attrCount ? `${attrCount}項目登録済み (充満)` : "5項目以上登録済み (良好)";
-            itemsBasic.push({ title: "属性（詳細情報）", status: "pass", rawText: `${attrVal} (${cntLabel})` }); 
-        } else if (storeData.statusAttributes === 'warn' || (attrCount !== undefined && attrCount >= 1 && attrCount < 5)) {
+            let attrVal = attrText.replace(/\s*\([\s\S]*?\)/g, '');
+            itemsBasic.push({ title: "属性（詳細情報）", status: "pass", rawText: `${attrVal} (${attrCount}項目登録済み・良好)` }); 
+        } else if (attrCount >= 1) {
             basicGained += 2;
-            let attrVal = attrText || "クレジットカード可 ・ 駐車場あり 等";
-            itemsBasic.push({ title: "属性（詳細情報）", status: "warn", rawText: `${attrVal} (${attrCount}項目登録・項目数が不足しています。決済手段や設備の追加登録を推奨)` });
-        } else if (storeData.statusAttributes === 'fail') {
-            itemsBasic.push({ title: "属性（詳細情報）", status: "fail", rawText: "未対応 (車椅子バリアフリーや決済手段などの有効属性(✔)が登録されていません。※🚫非対応は除外)" }); 
+            let attrVal = attrText.replace(/\s*\([\s\S]*?\)/g, '');
+            itemsBasic.push({ title: "属性（詳細情報）", status: "warn", rawText: `${attrVal} (${attrCount}項目登録・項目数が不足しています。決済手段や設備の追加設定を推奨)` });
+        } else if (storeData.statusAttributes === 'fail' || attrCount === 0) {
+            itemsBasic.push({ title: "属性（詳細情報）", status: "fail", rawText: "未対応 (車椅子対応や決済手段などの有効属性(✔)が登録されていません)" }); 
         } else {
             itemsBasic.push({ title: "属性（詳細情報）", status: "fail", rawText: "未確認（【基本情報】タブを開いて診断してください）" }); 
         }
