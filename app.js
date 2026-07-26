@@ -745,8 +745,13 @@ document.addEventListener('DOMContentLoaded', () => {
         displayRating = Math.min(Math.max(displayRating, 1.0), 5.0);
 
         if (displayCompanyName) {
-            displayCompanyName.textContent = storeData.companyName ? `対象事業者: ${storeData.companyName}` : '';
-            displayCompanyName.style.display = storeData.companyName ? 'block' : 'none';
+            if (storeData.companyName && storeData.companyName !== storeData.name && storeData.companyName !== "店舗名未設定") {
+                displayCompanyName.textContent = `対象事業者: ${storeData.companyName}`;
+                displayCompanyName.style.display = 'block';
+            } else {
+                displayCompanyName.textContent = '';
+                displayCompanyName.style.display = 'none';
+            }
         }
         displayStoreName.textContent = storeData.name;
         metaCategory.textContent = storeData.category;
