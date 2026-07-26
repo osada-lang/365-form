@@ -10,8 +10,8 @@
  *    - ATTRIBUTES GRADED SCORE (Max 4pt): 5+ items = 4pt, 1-4 items = 2pt, 0 items = 0pt.
  *    - DESCRIPTION GRADED SCORE (Max 4pt): 250+ chars = 4pt, 1-249 chars = 2pt, 0 chars = 0pt.
  * 4. STRICT AI REPORT PROMPT & STRUCTURE: Exactly 3 Sections with 3 Sub-items each (1-1 to 3-3) formatted precisely.
- * 5. ULTRA-ACCURATE PHOTO GALLERY TILE COUNTER (SECTION E ONLY FIX): 
- *    Directly counts actual photo tiles displayed under "すべて/外観" tabs while completely ignoring left sidebar noise (e.g. "横浜市 14").
+ * 5. PINPOINT WEBSITE EXTRACTION & FILTER: 
+ *    Ignores Google system URLs (google.co.jp/intl/ja/about/products) and extracts real store URLs or marks Fail.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -267,7 +267,7 @@ document.addEventListener('DOMContentLoaded', () => {
             "  }" +
             "}" +
 
-            "/* F. CATEGORY & AUTO-CLICK FULL WEEKLY HOURS EXTRACTION */" +
+            "/* F. CATEGORY & WEBSITE URL PINPOINT EXTRACTION */" +
             "let category = '未設定';" +
             "let catNode = document.body.querySelector('button[jsaction*=\"category\"], div.fontBodyMedium button, span.DkEaL');" +
             "if(catNode && catNode.innerText){" +
@@ -279,15 +279,32 @@ document.addEventListener('DOMContentLoaded', () => {
             "let hBtn = document.body.querySelector('button[aria-label*=\"営業時間\"], button[aria-label*=\"営業中\"], button[aria-label*=\"営業終了\"], button[aria-label*=\"まもなく営業終了\"], div.t3bWnc button, button[data-item-id=\"oh\"]');" +
             "if(hBtn){ try{ hBtn.click(); }catch(e){} }" +
 
-            "/* Raw Website URL */" +
+            "/* Raw Website URL (Strict Store Authority Link Filter) */" +
             "let rawWebsite = '';" +
-            "let webAnchors = Array.from(document.body.querySelectorAll('a[href*=\"http\"], button[aria-label*=\"ウェブサイト\"], a[aria-label*=\"ウェブサイト\"], a[aria-label*=\"サイト\"]'));" +
-            "if(webAnchors.length > 0){" +
-            "  let target = webAnchors.find(a => {" +
-            "    let h = a.getAttribute('href') || '';" +
-            "    return h.indexOf('google.') === -1 && h.indexOf('http') !== -1;" +
-            "  }) || webAnchors[0];" +
-            "  rawWebsite = target.getAttribute('href') || target.innerText || '';" +
+            "let webBtn = document.body.querySelector('a[data-item-id=\"authority\"], a[aria-label*=\"ウェブサイト\"], a[aria-label*=\"サイト\"]');" +
+            "if(webBtn){" +
+            "  let h = webBtn.getAttribute('href') || '';" +
+            "  if(h.indexOf('google.com/url?') !== -1){" +
+            "    let qM = h.match(/[?&]q=([^&]+)/);" +
+            "    if(qM) h = decodeURIComponent(qM[1]);" +
+            "  }" +
+            "  if(h && h.indexOf('google.') === -1 && h.indexOf('gstatic.') === -1){ rawWebsite = h; }" +
+            "}" +
+            "if(!rawWebsite){" +
+            "  let anchors = Array.from(document.body.querySelectorAll('a[href*=\"http\"]'));" +
+            "  for(let a of anchors){" +
+            "    let href = a.getAttribute('href') || '';" +
+            "    let label = (a.getAttribute('aria-label') || '') + ' ' + (a.innerText || '');" +
+            "    if(href.indexOf('google.com/url?') !== -1){" +
+            "      let qM = href.match(/[?&]q=([^&]+)/);" +
+            "      if(qM) href = decodeURIComponent(qM[1]);" +
+            "    }" +
+            "    if(href && href.indexOf('google.') === -1 && href.indexOf('gstatic.') === -1 && href.indexOf('ggpht.') === -1){" +
+            "      if(label.indexOf('ウェブサイト') !== -1 || label.indexOf('サイト') !== -1 || a.getAttribute('data-item-id') === 'authority'){" +
+            "        rawWebsite = href; break;" +
+            "      }" +
+            "    }" +
+            "  }" +
             "}" +
 
             "/* Raw Business Hours */" +
@@ -780,10 +797,13 @@ document.addEventListener('DOMContentLoaded', () => {
             itemsBasic.push({ title: "カテゴリ設定", status: "fail", desc: "未設定 (メインカテゴリ未選択)" });
         }
 
+        // STRICT WEBSITE EVALUATION & FILTER
         basicPossible += 6;
-        if (storeData.statusWebsite === 'pass' || storeData.rawWebsite) { 
+        let webVal = storeData.rawWebsite || "";
+        let isSystemUrl = Boolean(webVal && (webVal.indexOf('google.co.jp/intl') !== -1 || webVal.indexOf('google.com/intl') !== -1 || webVal.indexOf('about/products') !== -1));
+        
+        if ((storeData.statusWebsite === 'pass' || webVal) && !isSystemUrl) { 
             basicGained += 6; 
-            let webVal = storeData.rawWebsite || "http://ichigo-auto.jp/";
             itemsBasic.push({ title: "Webサイトリンク", status: "pass", rawText: webVal }); 
         } else { 
             itemsBasic.push({ title: "Webサイトリンク", status: "fail", rawText: "未設定 (WebサイトのURLリンクが登録されていません)" }); 
