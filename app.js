@@ -303,15 +303,16 @@ document.addEventListener('DOMContentLoaded', () => {
             "  }" +
             "});" +
 
-            "/* Method 2: Comprehensive Keyword Scan (Fallback & Merge) */" +
+            "/* Method 2: Universal Attribute Keyword Scan (Attribute Containers Only) */" +
+            "let attrContainer = document.querySelector('div[aria-label*=\"属性\"], div[aria-label*=\"詳細\"], div.m6QEfe, div.E021e') || document.body;" +
+            "let attrTxt = attrContainer.innerText || '';" +
             "let kwCandidates = [" +
-            "  'イートイン', 'テイクアウト', '一人での食事', 'アルコール飲料', 'ビール', 'ワイン', 'カクテル', '小皿料理', 'テーブル サービス', " +
             "  '車椅子対応の座席', '車椅子対応の入り口', '車椅子対応の駐車場', '車椅子対応のトイレ', '無料Wi-Fi', 'Wi-Fi完備', " +
             "  '無料駐車場完備', '駐車場あり', 'キャッシュレス決済対応', 'クレジットカード可', '電子マネー可', 'QRコード決済', '個室あり', '全席禁煙'" +
             "];" +
             "kwCandidates.forEach(kw => {" +
-            "  let isDisabled = bTxt.indexOf('🚫 ' + kw) !== -1 || bTxt.indexOf('🚫' + kw) !== -1;" +
-            "  if(bTxt.indexOf(kw) !== -1 && !isDisabled && validAttrItems.indexOf(kw) === -1){" +
+            "  let isDisabled = attrTxt.indexOf('🚫 ' + kw) !== -1 || attrTxt.indexOf('🚫' + kw) !== -1;" +
+            "  if(attrTxt.indexOf(kw) !== -1 && !isDisabled && validAttrItems.indexOf(kw) === -1){" +
             "    validAttrItems.push(kw);" +
             "  }" +
             "});" +
@@ -463,7 +464,7 @@ document.addEventListener('DOMContentLoaded', () => {
             loadingSubText.textContent = '新しい店舗データを抽出してレポートを更新しています';
         } else if (isMergeUpdate) {
             loadingStatusText.textContent = '✨ データ集約＆全有効属性リスト(✔)を算定抽出中...';
-            loadingSubText.textContent = 'イートイン・一人での食事・アルコール・小皿料理等の全有効項目を全網羅集計しています';
+            loadingSubText.textContent = 'バリアフリー・決済方法・駐車場等の全有効属性(✔)を全網羅集計しています';
         } else {
             loadingStatusText.textContent = 'Googleマップから店舗データを抽出中...';
             loadingSubText.textContent = '基本情報・全曜日営業時間・全有効属性(✔/等)・クチコミを集計しています';
@@ -853,39 +854,35 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         basicPossible += 6;
-        if (storeData.statusWebsite === 'pass' || storeData.rawWebsite) { 
+        if (storeData.rawWebsite && storeData.rawWebsite.trim().length > 0) { 
             basicGained += 6; 
-            let webVal = storeData.rawWebsite || "http://www.horutanya.jp/horumon.html";
-            itemsBasic.push({ title: "Webサイトリンク", status: "pass", rawText: webVal }); 
+            itemsBasic.push({ title: "Webサイトリンク", status: "pass", rawText: storeData.rawWebsite }); 
         } else { 
             itemsBasic.push({ title: "Webサイトリンク", status: "fail", rawText: "未設定 (WebサイトのURLリンクが登録されていません)" }); 
         }
 
         basicPossible += 6;
-        if (storeData.statusHours === 'pass' || storeData.rawHours) { 
+        if (storeData.rawHours && storeData.rawHours.trim().length > 0) { 
             basicGained += 6; 
-            let hoursVal = storeData.rawHours || "月曜 17:00〜0:00 / 火曜 17:00〜0:00 / 水曜 17:00〜0:00 / 木曜 17:00〜0:00 / 金曜 17:00〜0:00 / 土曜 16:00〜0:00 / 日曜 16:00〜0:00 (定休日なし)";
-            itemsBasic.push({ title: "営業時間設定", status: "pass", rawText: hoursVal }); 
+            itemsBasic.push({ title: "営業時間設定", status: "pass", rawText: storeData.rawHours }); 
         } else { 
             itemsBasic.push({ title: "営業時間設定", status: "fail", rawText: "未設定 (全曜日営業時間や定休日が登録されていません)" }); 
         }
 
         basicPossible += 4;
-        if (storeData.statusDescription === 'pass' || storeData.rawDescription) { 
+        if (storeData.rawDescription && storeData.rawDescription.trim().length > 0) { 
             basicGained += 4; 
-            let descVal = storeData.rawDescription || "提供元: オーナー: 6/1(月)〜6/30(火)限定✨ お会計税込3,000円ごとに 次回使える【1,000円クーポン】進呈🎁 食べれば食べるほど超おトク🔥 ご家族・ご友人との焼肉にぜひ‼️ ■配布内容 税込3,000円ごとのお会計につき「1,000円クーポン」を1枚配布...";
-            itemsBasic.push({ title: "ビジネス説明文", status: "pass", rawText: descVal }); 
+            itemsBasic.push({ title: "ビジネス説明文", status: "pass", rawText: storeData.rawDescription }); 
         } else { 
             itemsBasic.push({ title: "ビジネス説明文", status: "fail", rawText: "未対応 (店舗のビジネス説明文・PRメッセージが未掲載です)" }); 
         }
 
         basicPossible += 4;
-        let attrVal = storeData.rawAttributes || "イートイン ・ 一人での食事 ・ アルコール飲料 ・ ビール ・ 小皿料理 ・ テーブル サービス 等";
-        if (attrVal && attrVal.length > 0) { 
+        if (storeData.rawAttributes && storeData.rawAttributes.trim().length > 0) { 
             basicGained += 4; 
-            itemsBasic.push({ title: "属性（詳細情報）", status: "pass", rawText: attrVal }); 
+            itemsBasic.push({ title: "属性（詳細情報）", status: "pass", rawText: storeData.rawAttributes }); 
         } else { 
-            itemsBasic.push({ title: "属性（詳細情報）", status: "fail", rawText: "未対応 (車椅子バリアフリーや決済手段などの有効属性(✔)が登録されていません。※🚫非対応は除外判定)" }); 
+            itemsBasic.push({ title: "属性（詳細情報）", status: "fail", rawText: "未対応 (車椅子バリアフリーや決済手段などの有効属性(✔)が登録されていません)" }); 
         }
 
         // Category 2: Reviews (Max 30)
