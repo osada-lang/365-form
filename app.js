@@ -338,15 +338,15 @@ document.addEventListener('DOMContentLoaded', () => {
             "  }" +
             "}" +
 
-            "/* Days Since Last Post - Strict 3-Step Verification */" +
+            "/* Days Since Last Post - Tab Presence & Internal Scan Only */" +
             "let daysSinceLastPost = '999';" +
-            "let allElements = Array.from(document.body.querySelectorAll('button, div, h2, h3, span'));" +
-            "let updateSectionHeader = allElements.find(el => {" +
+            "let allElements = Array.from(document.body.querySelectorAll('button, div[role=\"tab\"], div, h2, h3, span'));" +
+            "let hasUpdatesTab = allElements.find(el => {" +
             "  let t = (el.innerText || '').trim();" +
-            "  return (t === '最新情報' || t === '最新の投稿' || t.indexOf('提供元: オーナー') !== -1 || t === 'Updates' || t === 'Updates from owner');" +
+            "  return (t === '最新情報' || t === '最新の投稿' || t === 'Updates' || t === 'Updates from owner');" +
             "});" +
-            "if(updateSectionHeader){" +
-            "  let updateContainer = updateSectionHeader.closest('div.m6QEfe, div.section-layout, div.Mlm32, div.jT21A, div[role=\"region\"], div[jsaction*=\"updates\"]') || updateSectionHeader.parentElement.parentElement;" +
+            "if(hasUpdatesTab){" +
+            "  let updateContainer = hasUpdatesTab.closest('div.m6QEfe, div.section-layout, div[role=\"region\"], div[jsaction*=\"updates\"]') || hasUpdatesTab.parentElement.parentElement;" +
             "  if(updateContainer){" +
             "    let dateNodes = Array.from(updateContainer.querySelectorAll('span, div'));" +
             "    let postDates = [];" +
@@ -376,7 +376,11 @@ document.addEventListener('DOMContentLoaded', () => {
             "      else if (m = mostRecentText.match(/(\\d+)\\s*month/i)) { days = parseInt(m[1], 10) * 30; }" +
             "      else if (m = mostRecentText.match(/(\\d+)\\s*year/i)) { days = parseInt(m[1], 10) * 365; }" +
             "      daysSinceLastPost = String(days);" +
+            "    } else {" +
+            "      daysSinceLastPost = '30';" +
             "    }" +
+            "  } else {" +
+            "    daysSinceLastPost = '30';" +
             "  }" +
             "}" +
 
@@ -903,7 +907,7 @@ document.addEventListener('DOMContentLoaded', () => {
             itemsPosts.push({ title: "最新投稿状況", status: "warn", rawText: `最終投稿から ${daysPost}日経過 (更新頻度が低下しています。新鮮な情報を顧客に届けるため、再開を推奨します)` });
         } else if (daysPost === 999) {
             postsGained += 0;
-            itemsPosts.push({ title: "最新投稿状況", status: "fail", rawText: "投稿の掲載なし (最新情報(投稿機能)が一度も使用されていないか、投稿がありません)" });
+            itemsPosts.push({ title: "最新投稿状況", status: "fail", rawText: "「最新情報」タブ非表示 (過去180日以上投稿がないか、投稿機能が未利用です)" });
         } else {
             postsGained += 3;
             itemsPosts.push({ title: "最新投稿状況", status: "fail", rawText: `最終投稿から ${daysPost}日以上経過 (更新が完全に停止しています。活気のない印象を与えかねないため、更新が必要です)` });
