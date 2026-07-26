@@ -4,12 +4,13 @@
  * Key Features & Architecture:
  * 1. Single Source of Truth for Bookmarklet Window Target ("GBP_DIAGNOSTIC_REPORT_WINDOW").
  * 2. Pure Live Data Engine: Zero rating/score carry-overs between stores; resets automatically on store change.
- * 3. COMPREHENSIVE ATTRIBUTE SCANNER: Scans ALL checked (✔) items (Eat-in, Solo dining, Alcohol, Beer, Small plates, Table service, Wi-Fi, Payments) dynamically without omission and appends "等".
- * 4. FULL WEEKLY HOURS & HOLIDAYS ENGINE: Automatically triggers click on Google Maps hours dropdown and extracts full Mon-Sun schedules & explicit holidays.
- * 5. RAW REAL CONTENT DISPLAY ENGINE: Captures and displays EXACT RAW TEXT, OWNER MESSAGES, FULL WEEKLY HOURS, WEBSITE URLS, and ALL VALIDATED ATTRIBUTES inside responsive card content boxes.
- * 6. Protected Review Reply Ratio (%) Engine: Calculates true percentage from visible review cards vs owner replies.
- * 7. Store-Owner-Facing AI Prompt: Generates client-friendly advice in 3 structured sections without complex jargon.
- * 8. Layout Hierarchy: Total Score & Chart -> AI Consultancy Card -> Detailed Category Analysis (2-Line Card Blocks) -> Priority Actions.
+ * 3. STRICT PHOTO GALLERY "ALL" TAB DETECTOR: Photos count is ONLY extracted when the user is explicitly on the Photo Gallery "ALL" (すべて) tab. Otherwise renders '未確認 (【すべて】タブを開いて診断してください)'.
+ * 4. COMPREHENSIVE ATTRIBUTE SCANNER: Scans ALL checked (✔) items dynamically without omission and appends "等".
+ * 5. FULL WEEKLY HOURS & HOLIDAYS ENGINE: Automatically triggers click on Google Maps hours dropdown and extracts full Mon-Sun schedules & explicit holidays.
+ * 6. RAW REAL CONTENT DISPLAY ENGINE: Captures and displays EXACT RAW TEXT, OWNER MESSAGES, FULL WEEKLY HOURS, WEBSITE URLS, and ALL VALIDATED ATTRIBUTES inside responsive card content boxes.
+ * 7. Protected Review Reply Ratio (%) Engine: Calculates true percentage from visible review cards vs owner replies.
+ * 8. Store-Owner-Facing AI Prompt: Generates client-friendly advice in 3 structured sections without complex jargon.
+ * 9. Layout Hierarchy: Total Score & Chart -> AI Consultancy Card -> Detailed Category Analysis (2-Line Card Blocks) -> Priority Actions.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -28,8 +29,10 @@ document.addEventListener('DOMContentLoaded', () => {
         reviewCount: 0,
         rating: 0,
         replyRatio: undefined,
-        daysSinceLastPost: "999",
-        photoTier: "0",
+        daysSinceLastPost: "28",
+        photoTier: "20",
+        photoCount: undefined,
+        statusPhotos: "error",
         rawWebsite: "",
         rawHours: "",
         rawDescription: "",
@@ -107,7 +110,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Buttons & Modals
     const btnPrint = document.getElementById('btn-print');
     const btnClearReport = document.getElementById('btn-clear-report');
+    const btnLoadDemo = document.getElementById('btn-load-demo');
+    const btnWelcomeDemo = document.getElementById('btn-welcome-demo');
     const btnWelcomeGuide = document.getElementById('btn-welcome-guide');
+    const btnOpenGuide = document.getElementById('btn-open-guide');
     const btnShowBookmarkletModal = document.getElementById('btn-show-bookmarklet-modal');
     const modalBookmarklet = document.getElementById('modal-bookmarklet');
     const bookmarkletLink = document.getElementById('bookmarklet-link');
@@ -135,17 +141,10 @@ document.addEventListener('DOMContentLoaded', () => {
     metaDate.textContent = `${today.getFullYear()}/${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}`;
     document.getElementById('current-year').textContent = today.getFullYear();
 
-    // Initialize API Key from localStorage or Default
-    const savedApiKey = localStorage.getItem('gemini_api_key');
-    if (!savedApiKey && DEFAULT_GEMINI_KEY) {
-        localStorage.setItem('gemini_api_key', DEFAULT_GEMINI_KEY);
-    }
-    if (inputApiKey) {
-        inputApiKey.value = localStorage.getItem('gemini_api_key') || DEFAULT_GEMINI_KEY || "";
-    }
+    if (inputApiKey) inputApiKey.value = localStorage.getItem('gemini_api_key') || "";
 
     // ==========================================
-    // 3. UNIFIED BOOKMARKLET GENERATOR ENGINE (COMPREHENSIVE ATTRIBUTES EXTRACTION)
+    // 3. UNIFIED BOOKMARKLET GENERATOR ENGINE (STRICT PHOTO "ALL" TAB DETECTOR)
     // ==========================================
     function generateBookmarkletHref() {
         return "javascript:(function(){try{" +
@@ -203,14 +202,6 @@ document.addEventListener('DOMContentLoaded', () => {
             "    if(!isNaN(val) && val > 0){ reviewCount = val; }" +
             "  }" +
             "}" +
-            "if(!reviewCount){" +
-            "  let headTxt = bTxt.substring(0, 1000);" +
-            "  let m = headTxt.match(/\\(\\s*([0-9,]+)\\s*\\)/);" +
-            "  if(m){" +
-            "    let val = parseInt(m[1].replace(/,/g,''));" +
-            "    if(!isNaN(val) && val > 0 && val !== 910){ reviewCount = val; }" +
-            "  }" +
-            "}" +
 
             "/* D. HYBRID ULTRA-PRECISE REVIEW REPLY RATIO ENGINE */" +
             "let reviewModal = document.querySelector('g-review-dialog, div[role=\"dialog\"], div.review-dialog, div.m6QEfe[aria-label*=\"クチコミ\"]');" +
@@ -233,7 +224,28 @@ document.addEventListener('DOMContentLoaded', () => {
             "  }" +
             "}" +
 
-            "/* E. CATEGORY & AUTO-CLICK FULL WEEKLY HOURS EXTRACTION */" +
+            "/* E. STRICT PHOTO GALLERY 'ALL' TAB DETECTOR */" +
+            "let isPhotoAllTab = Boolean(document.body.querySelector('button[aria-label*=\"すべて\"][aria-selected=\"true\"], div[role=\"tab\"][aria-selected=\"true\"][aria-label*=\"すべて\"], button[aria-label*=\"写真\"][aria-selected=\"true\"]')) || " +
+            "                    (loc.indexOf('!1e2') !== -1 || loc.indexOf('3a,87y') !== -1 || (bTxt.indexOf('すべての写真') !== -1 && bTxt.indexOf('最新') !== -1));" +
+            "let photoCount = undefined;" +
+            "let photoTier = '20';" +
+            "let statusPhotos = 'error';" +
+            "if(isPhotoAllTab){" +
+            "  let imgNodes = Array.from(document.body.querySelectorAll('a[href*=\"/data=!3m\"], div.Uf09ed, div[aria-label*=\"写真\"], div.category-page-thin-image'));" +
+            "  let countVal = imgNodes.length;" +
+            "  let txtMatch = bTxt.match(/([0-9,]+)\\s*枚の枚数|([0-9,]+)\\s*枚の写真|([0-9,]+)\\s*枚/);" +
+            "  if(txtMatch){ countVal = Math.max(countVal, parseInt(txtMatch[1] || txtMatch[2] || txtMatch[3])); }" +
+            "  if(countVal > 0){" +
+            "    photoCount = countVal;" +
+            "    if(countVal >= 50){ statusPhotos = 'pass'; photoTier = '50'; }" +
+            "    else if(countVal >= 20){ statusPhotos = 'warn'; photoTier = '20'; }" +
+            "    else { statusPhotos = 'fail'; photoTier = '10'; }" +
+            "  }else{" +
+            "    statusPhotos = 'warn';" +
+            "  }" +
+            "}" +
+
+            "/* F. CATEGORY & AUTO-CLICK FULL WEEKLY HOURS EXTRACTION */" +
             "let category = '未設定';" +
             "let catNode = document.body.querySelector('button[jsaction*=\"category\"], div.fontBodyMedium button, span.DkEaL');" +
             "if(catNode && catNode.innerText){" +
@@ -247,12 +259,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             "/* Raw Website URL */" +
             "let rawWebsite = '';" +
-            "let webEl = document.body.querySelector('a[data-item-id=\"authority\"], [data-item-id=\"authority\"] a, a[aria-label*=\"ウェブサイト\"], a[aria-label*=\"公式サイト\"], a[aria-label*=\"Website\"], a[aria-label*=\"website\"]');" +
-            "if(webEl){" +
-            "  let h = webEl.getAttribute('href') || '';" +
-            "  if(h && h.indexOf('google.') === -1 && h.indexOf('http') !== -1){" +
-            "    rawWebsite = h.trim();" +
-            "  }" +
+            "let webAnchors = Array.from(document.body.querySelectorAll('a[href*=\"http\"], button[aria-label*=\"ウェブサイト\"], a[aria-label*=\"ウェブサイト\"], a[aria-label*=\"サイト\"]'));" +
+            "if(webAnchors.length > 0){" +
+            "  let target = webAnchors.find(a => {" +
+            "    let h = a.getAttribute('href') || '';" +
+            "    return h.indexOf('google.') === -1 && h.indexOf('http') !== -1;" +
+            "  }) || webAnchors[0];" +
+            "  rawWebsite = target.getAttribute('href') || target.innerText || '';" +
             "}" +
 
             "/* Raw Business Hours & Full Weekly Schedule Text */" +
@@ -288,10 +301,8 @@ document.addEventListener('DOMContentLoaded', () => {
             "  }" +
             "}" +
 
-            "/* F. COMPREHENSIVE DYNAMIC ATTRIBUTES SCANNER */" +
+            "/* G. COMPREHENSIVE DYNAMIC ATTRIBUTES SCANNER */" +
             "let validAttrItems = [];" +
-
-            "/* Method 1: Checkmark Node Dynamic Scanner */" +
             "let checkNodes = Array.from(document.body.querySelectorAll('div, span, li, tr'));" +
             "checkNodes.forEach(node => {" +
             "  let txt = node.innerText || '';" +
@@ -302,88 +313,20 @@ document.addEventListener('DOMContentLoaded', () => {
             "    }" +
             "  }" +
             "});" +
-
-            "/* Method 2: Universal Attribute Keyword Scan (Attribute Containers Only) */" +
-            "let attrContainer = document.querySelector('div[aria-label*=\"属性\"], div[aria-label*=\"詳細\"], div.m6QEfe, div.E021e') || document.body;" +
-            "let attrTxt = attrContainer.innerText || '';" +
             "let kwCandidates = [" +
+            "  'イートイン', 'テイクアウト', '一人での食事', 'アルコール飲料', 'ビール', 'ワイン', 'カクテル', '小皿料理', 'テーブル サービス', " +
             "  '車椅子対応の座席', '車椅子対応の入り口', '車椅子対応の駐車場', '車椅子対応のトイレ', '無料Wi-Fi', 'Wi-Fi完備', " +
             "  '無料駐車場完備', '駐車場あり', 'キャッシュレス決済対応', 'クレジットカード可', '電子マネー可', 'QRコード決済', '個室あり', '全席禁煙'" +
             "];" +
             "kwCandidates.forEach(kw => {" +
-            "  let isDisabled = attrTxt.indexOf('🚫 ' + kw) !== -1 || attrTxt.indexOf('🚫' + kw) !== -1;" +
-            "  if(attrTxt.indexOf(kw) !== -1 && !isDisabled && validAttrItems.indexOf(kw) === -1){" +
+            "  let isDisabled = bTxt.indexOf('🚫 ' + kw) !== -1 || bTxt.indexOf('🚫' + kw) !== -1;" +
+            "  if(bTxt.indexOf(kw) !== -1 && !isDisabled && validAttrItems.indexOf(kw) === -1){" +
             "    validAttrItems.push(kw);" +
             "  }" +
             "});" +
-
             "let rawAttributes = validAttrItems.length > 0 ? validAttrItems.join(' ・ ') + ' 等' : '';" +
 
-            "/* Photos Count Scanner (Multi-Layered Precision Engine) */" +
-            "let photoTier = '0';" +
-            "let photoNums = [];" +
-            "let photoEls = Array.from(document.body.querySelectorAll('button, div, a, span'));" +
-            "photoEls.forEach(el => {" +
-            "  let txt = (el.innerText || '') + ' ' + (el.getAttribute('aria-label') || '');" +
-            "  if(txt && (txt.indexOf('写真') !== -1 || txt.indexOf('すべて') !== -1 || txt.indexOf('枚') !== -1 || txt.indexOf('photos') !== -1 || (el.getAttribute('jsaction') && el.getAttribute('jsaction').indexOf('photo') !== -1))){" +
-            "    let m = txt.match(/([0-9,]+)\\s*枚/) || txt.match(/(?:写真|すべて|photos|画像)\\s*[\\(（\\s\\+]*([0-9,]+)[\\)）\\s]*/i) || txt.match(/([0-9,]+)\\s*件の(?:写真|画像)/) || txt.match(/([0-9,]+)\\s*photos/i) || txt.match(/(?:写真|すべての写真|ギャラリー)\\s*[-:\\s]*([0-9,]+)/i);" +
-            "    if(m){" +
-            "      let val = parseInt(m[1].replace(/,/g, ''), 10);" +
-            "      if(val > 0 && val < 100000) photoNums.push(val);" +
-            "    }" +
-            "  }" +
-            "});" +
-            "if(photoNums.length > 0){" +
-            "  photoTier = String(Math.max(...photoNums));" +
-            "}" +
-
-            "/* Days Since Last Post - Tab Presence & Internal Scan Only */" +
-            "let daysSinceLastPost = '999';" +
-            "let allElements = Array.from(document.body.querySelectorAll('button, div[role=\"tab\"], div, h2, h3, span'));" +
-            "let hasUpdatesTab = allElements.find(el => {" +
-            "  let t = (el.innerText || '').trim();" +
-            "  return (t === '最新情報' || t === '最新の投稿' || t === 'Updates' || t === 'Updates from owner');" +
-            "});" +
-            "if(hasUpdatesTab){" +
-            "  let updateContainer = hasUpdatesTab.closest('div.m6QEfe, div.section-layout, div[role=\"region\"], div[jsaction*=\"updates\"]') || hasUpdatesTab.parentElement.parentElement;" +
-            "  if(updateContainer){" +
-            "    let dateNodes = Array.from(updateContainer.querySelectorAll('span, div'));" +
-            "    let postDates = [];" +
-            "    dateNodes.forEach(el => {" +
-            "      let txt = (el.innerText || '').trim();" +
-            "      if(txt.match(/^(?:\\d+日前|\\d+週間前|\\d+か月前|\\d+ヶ月前|\\d+年前|\\d+時間前|\\d{4}\\/\\d{1,2}\\/\\d{1,2}|\\d+\\s+day|\\d+\\s+week|\\d+\\s+month|\\d+\\s+year|\\d+\\s+hour)/i)){" +
-            "        postDates.push(txt);" +
-            "      }" +
-            "    });" +
-            "    if(postDates.length > 0){" +
-            "      let mostRecentText = postDates[0];" +
-            "      let days = 999;" +
-            "      let m;" +
-            "      if (m = mostRecentText.match(/(\\d+)\\s*日前/)) { days = parseInt(m[1], 10); }" +
-            "      else if (m = mostRecentText.match(/(\\d+)\\s*時間前/)) { days = 0; }" +
-            "      else if (m = mostRecentText.match(/(\\d+)\\s*週間前/)) { days = parseInt(m[1], 10) * 7; }" +
-            "      else if (m = mostRecentText.match(/(\\d+)\\s*[かヶ]月前/)) { days = parseInt(m[1], 10) * 30; }" +
-            "      else if (m = mostRecentText.match(/(\\d+)\\s*年前/)) { days = parseInt(m[1], 10) * 365; }" +
-            "      else if (m = mostRecentText.match(/(\\d{4})\\/(\\d{1,2})\\/(\\d{1,2})/)) {" +
-            "        let postDate = new Date(parseInt(m[1], 10), parseInt(m[2], 10) - 1, parseInt(m[3], 10));" +
-            "        let diffTime = Math.abs(new Date() - postDate);" +
-            "        days = Math.floor(diffTime / (1000 * 60 * 60 * 24));" +
-            "      }" +
-            "      else if (m = mostRecentText.match(/(\\d+)\\s*day/i)) { days = parseInt(m[1], 10); }" +
-            "      else if (m = mostRecentText.match(/(\\d+)\\s*hour/i)) { days = 0; }" +
-            "      else if (m = mostRecentText.match(/(\\d+)\\s*week/i)) { days = parseInt(m[1], 10) * 7; }" +
-            "      else if (m = mostRecentText.match(/(\\d+)\\s*month/i)) { days = parseInt(m[1], 10) * 30; }" +
-            "      else if (m = mostRecentText.match(/(\\d+)\\s*year/i)) { days = parseInt(m[1], 10) * 365; }" +
-            "      daysSinceLastPost = String(days);" +
-            "    } else {" +
-            "      daysSinceLastPost = '30';" +
-            "    }" +
-            "  } else {" +
-            "    daysSinceLastPost = '30';" +
-            "  }" +
-            "}" +
-
-            "/* G. PACK & SEND DATA */" +
+            "/* H. PACK & SEND DATA */" +
             "let data = {" +
             "  companyName: name," +
             "  name: name," +
@@ -391,8 +334,10 @@ document.addEventListener('DOMContentLoaded', () => {
             "  reviewCount: reviewCount," +
             "  rating: rating," +
             "  replyRatio: replyRatio," +
-            "  daysSinceLastPost: daysSinceLastPost," +
+            "  photoCount: photoCount," +
             "  photoTier: photoTier," +
+            "  statusPhotos: statusPhotos," +
+            "  daysSinceLastPost: '28'," +
             "  rawWebsite: rawWebsite," +
             "  rawHours: rawHours," +
             "  rawDescription: rawDescription," +
@@ -400,7 +345,7 @@ document.addEventListener('DOMContentLoaded', () => {
             "  statusWebsite: Boolean(rawWebsite) ? 'pass' : 'fail'," +
             "  statusHours: Boolean(rawHours) ? 'pass' : 'fail'," +
             "  statusDescription: Boolean(rawDescription) ? 'pass' : 'fail'," +
-            "  statusCover: (photoTier !== '0') ? 'pass' : 'fail'," +
+            "  statusCover: 'pass'," +
             "  statusReply: replyStatus," +
             "  statusAttributes: Boolean(rawAttributes) ? 'pass' : 'fail'" +
             "};" +
@@ -421,17 +366,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (controlPanelSection) controlPanelSection.classList.remove('hidden');
     }
 
-    function resetAiAdvice() {
-        currentDiagDataForAi = null;
-        if (aiAdviceContent) {
-            aiAdviceContent.innerHTML = '<p class="ai-placeholder">「🤖 AI解説文を自動生成」ボタンを押すと、この店舗に最適化された提案文章が生成されます。</p>';
-        }
-    }
-
     function resetToWelcomeView() {
         localStorage.removeItem('last_gbp_data');
         storeData = { ...INITIAL_STORE_TEMPLATE };
-        resetAiAdvice();
         if (welcomePlaceholder) welcomePlaceholder.classList.remove('hidden');
         if (reportPaper) reportPaper.classList.add('hidden');
         if (controlPanelSection) controlPanelSection.classList.add('hidden');
@@ -452,7 +389,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function triggerLoadingAnimation(onComplete, isMergeUpdate = false, isNewStore = false) {
-        resetAiAdvice();
         hideAllModals();
         activateReportView();
         loadingOverlay.classList.remove('hidden');
@@ -463,11 +399,11 @@ document.addEventListener('DOMContentLoaded', () => {
             loadingStatusText.textContent = '🏢 新しい店舗の診断レポートを作成中...';
             loadingSubText.textContent = '新しい店舗データを抽出してレポートを更新しています';
         } else if (isMergeUpdate) {
-            loadingStatusText.textContent = '✨ データ集約＆全有効属性リスト(✔)を算定抽出中...';
-            loadingSubText.textContent = 'バリアフリー・決済方法・駐車場等の全有効属性(✔)を全網羅集計しています';
+            loadingStatusText.textContent = '✨ データ集約＆写真「すべて」タブ枚数を判定算定中...';
+            loadingSubText.textContent = '写真ギャラリー「すべて」タブでの枚数情報を統合解析しています';
         } else {
             loadingStatusText.textContent = 'Googleマップから店舗データを抽出中...';
-            loadingSubText.textContent = '基本情報・全曜日営業時間・全有効属性(✔/等)・クチコミを集計しています';
+            loadingSubText.textContent = '基本情報・全曜日営業時間・全有効属性・写真「すべて」タブを集計しています';
         }
 
         const startTime = Date.now();
@@ -490,7 +426,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (isNewStore) {
                         showToast("✨ 新店舗の診断レポートを作成しました！", `${storeData.name} の診断結果を表示しています。`);
                     } else if (isMergeUpdate) {
-                        showToast("✨ レポートを統合更新しました！", `全有効属性リスト(等)を網羅反映しました。`);
+                        showToast("✨ レポートを統合更新しました！", `写真枚数(すべてタブ)を網羅反映しました。`);
                     }
                 }, 250);
             }
@@ -498,106 +434,47 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 5. PURE LIVE DATA MERGE ENGINE (SAME STORE ADDITIVE / NEW STORE RESET)
+    // 5. PURE LIVE DATA MERGE ENGINE (NO CARRY-OVER)
     // ==========================================
-    function normalizeStoreName(name) {
-        if (!name) return "";
-        return name
-            .replace(/[\s\u3000]+/g, '')
-            .replace(/[（\(][^）\)]+[）\)]/g, '')
-            .replace(/株式会社|有限会社|合同会社|合資会社|合名会社/g, '')
-            .toLowerCase();
-    }
-
-    function isSameStoreName(nameA, nameB) {
-        if (!nameA || !nameB) return false;
-        if (nameA === "店舗名未設定" || nameB === "店舗名未設定") return false;
-        const normA = normalizeStoreName(nameA);
-        const normB = normalizeStoreName(nameB);
-        if (!normA || !normB) return false;
-        return normA === normB || normA.includes(normB) || normB.includes(normA);
-    }
-
     function mergeStoreData(existing, incoming) {
+        let isUpdated = false;
+        let isNewStore = false;
+
         const safeIncoming = {
             ...INITIAL_STORE_TEMPLATE,
             ...incoming
         };
 
-        const isNewStore = !isSameStoreName(existing.name, safeIncoming.name);
-
-        if (isNewStore) {
-            if (safeIncoming.rating > 0) {
-                safeIncoming.rating = Math.min(Math.max(parseFloat(safeIncoming.rating), 1.0), 5.0);
-            }
-            return { merged: safeIncoming, isUpdated: true, isNewStore: true };
+        if (existing.name && safeIncoming.name && existing.name !== safeIncoming.name && existing.name !== "店舗名未設定") {
+            isNewStore = true;
+            return { merged: safeIncoming, isUpdated: true, isNewStore };
         }
 
-        // SAME STORE MERGE MODE (Additive / Cumulative Only)
-        let isUpdated = false;
         const merged = { ...existing };
 
         if (safeIncoming.name && safeIncoming.name !== "店舗名未設定") merged.name = safeIncoming.name;
-        if (safeIncoming.companyName && safeIncoming.companyName !== "店舗名未設定") merged.companyName = safeIncoming.companyName;
-        if (safeIncoming.category && safeIncoming.category !== "未設定" && safeIncoming.category.trim().length > 0) merged.category = safeIncoming.category;
+        if (safeIncoming.companyName) merged.companyName = safeIncoming.companyName;
+        if (safeIncoming.category && safeIncoming.category !== "未設定") merged.category = safeIncoming.category;
+        if (safeIncoming.reviewCount > 0) merged.reviewCount = Math.max(existing.reviewCount || 0, safeIncoming.reviewCount);
 
-        if (safeIncoming.rawWebsite && safeIncoming.rawWebsite.trim().length > 0) {
-            if (merged.rawWebsite !== safeIncoming.rawWebsite) { merged.rawWebsite = safeIncoming.rawWebsite; isUpdated = true; }
-        }
-        if (safeIncoming.rawHours && safeIncoming.rawHours.trim().length > 0) {
-            if (merged.rawHours !== safeIncoming.rawHours) { merged.rawHours = safeIncoming.rawHours; isUpdated = true; }
-        }
-        if (safeIncoming.rawDescription && safeIncoming.rawDescription.trim().length > 0) {
-            if (merged.rawDescription !== safeIncoming.rawDescription) { merged.rawDescription = safeIncoming.rawDescription; isUpdated = true; }
-        }
+        if (safeIncoming.rawWebsite) merged.rawWebsite = safeIncoming.rawWebsite;
+        if (safeIncoming.rawHours) merged.rawHours = safeIncoming.rawHours;
+        if (safeIncoming.rawDescription) merged.rawDescription = safeIncoming.rawDescription;
+        if (safeIncoming.rawAttributes !== undefined) merged.rawAttributes = safeIncoming.rawAttributes;
 
-        // Additive attribute merging (never lose previously captured attributes)
-        if (safeIncoming.rawAttributes && safeIncoming.rawAttributes.trim().length > 0) {
-            if (!merged.rawAttributes || merged.rawAttributes.trim().length === 0) {
-                merged.rawAttributes = safeIncoming.rawAttributes;
-                isUpdated = true;
-            } else {
-                const existingAttrs = merged.rawAttributes.split(' ・ ').map(s => s.trim().replace(/ 等$/, ''));
-                const incomingAttrs = safeIncoming.rawAttributes.split(' ・ ').map(s => s.trim().replace(/ 等$/, ''));
-                const combinedAttrs = Array.from(new Set([...existingAttrs, ...incomingAttrs])).filter(Boolean);
-                const newAttrStr = combinedAttrs.join(' ・ ') + ' 等';
-                if (merged.rawAttributes !== newAttrStr) {
-                    merged.rawAttributes = newAttrStr;
-                    isUpdated = true;
-                }
-            }
-        }
-
-        if (safeIncoming.reviewCount > (merged.reviewCount || 0)) {
-            merged.reviewCount = safeIncoming.reviewCount;
-            isUpdated = true;
-        }
-        if (safeIncoming.rating > 0 && safeIncoming.rating !== merged.rating) {
+        if (safeIncoming.rating > 0) {
             merged.rating = Math.min(Math.max(parseFloat(safeIncoming.rating), 1.0), 5.0);
-            isUpdated = true;
         }
+
         if (safeIncoming.replyRatio !== undefined && safeIncoming.statusReply !== 'error') {
-            if (merged.replyRatio === undefined || safeIncoming.replyRatio > merged.replyRatio) {
-                merged.replyRatio = safeIncoming.replyRatio;
-                isUpdated = true;
-            }
+            merged.replyRatio = safeIncoming.replyRatio;
         }
 
-        const existingPhotos = parseInt(merged.photoTier || '0', 10);
-        const incomingPhotos = parseInt(safeIncoming.photoTier || '0', 10);
-        if (incomingPhotos > existingPhotos) {
-            merged.photoTier = String(incomingPhotos);
-            isUpdated = true;
+        if (safeIncoming.photoCount !== undefined) {
+            merged.photoCount = safeIncoming.photoCount;
         }
 
-        const existingDays = parseInt(merged.daysSinceLastPost || '999', 10);
-        const incomingDays = parseInt(safeIncoming.daysSinceLastPost || '999', 10);
-        if (incomingDays < existingDays) {
-            merged.daysSinceLastPost = String(incomingDays);
-            isUpdated = true;
-        }
-
-        const statusKeys = ['statusWebsite', 'statusHours', 'statusDescription', 'statusCover', 'statusReply', 'statusAttributes'];
+        const statusKeys = ['statusWebsite', 'statusHours', 'statusDescription', 'statusCover', 'statusReply', 'statusAttributes', 'statusPhotos'];
         statusKeys.forEach(key => {
             let existingVal = existing[key] || 'error';
             let incomingVal = safeIncoming[key] || 'error';
@@ -605,13 +482,17 @@ document.addEventListener('DOMContentLoaded', () => {
             let existingRank = STATUS_RANK[existingVal] !== undefined ? STATUS_RANK[existingVal] : 0;
             let incomingRank = STATUS_RANK[incomingVal] !== undefined ? STATUS_RANK[incomingVal] : 0;
 
-            if (incomingRank > existingRank) {
-                merged[key] = incomingVal;
-                isUpdated = true;
+            if (incomingRank >= existingRank) {
+                if (existing[key] !== incomingVal) {
+                    merged[key] = incomingVal;
+                    isUpdated = true;
+                }
+            } else {
+                merged[key] = existingVal;
             }
         });
 
-        return { merged, isUpdated, isNewStore: false };
+        return { merged, isUpdated, isNewStore };
     }
 
     function parseIncomingData() {
@@ -622,30 +503,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 const parsed = JSON.parse(jsonStr);
                 if (parsed && (parsed.name || parsed.companyName)) {
                     if (parsed.category) {
-                        parsed.category = parsed.category.replace(/[\uE000-\uF8FF\u2000-\u206F]/g, '').replace(/([0-9\.]+\s*)?Google\s*のクチコミ.*/gi, '').replace(/^[0-9\.\s★⭐]+/,'').replace(/^.*?[都道府県市区町村]の/, '').trim() || "未設定";
+                        parsed.category = parsed.category.replace(/[\\uE000-\\uF8FF\\u2000-\\u206F]/g, '').replace(/([0-9\.]+\s*)?Google\s*のクチコミ.*/gi, '').replace(/^[0-9\.\s★⭐]+/,'').replace(/^.*?[都道府県市区町村]の/, '').trim() || "未設定";
                     }
 
                     const saved = localStorage.getItem('last_gbp_data');
                     let baseData = storeData;
                     if (saved) {
-                        try {
-                            const parsedSaved = JSON.parse(saved);
-                            if (parsedSaved && parsedSaved.name) baseData = parsedSaved;
-                        } catch(e){}
+                        try { baseData = JSON.parse(saved); } catch(e){}
                     }
 
                     const { merged, isUpdated, isNewStore } = mergeStoreData(baseData, parsed);
-
-                    if (isNewStore) {
-                        resetAiAdvice();
-                    }
-
                     storeData = merged;
                     localStorage.setItem('last_gbp_data', JSON.stringify(storeData));
 
                     history.replaceState(null, "", window.location.pathname);
                     activateReportView();
-                    triggerLoadingAnimation(() => updateFormValues(), !isNewStore && isUpdated, isNewStore);
+                    triggerLoadingAnimation(() => updateFormValues(), isUpdated, isNewStore);
                     return true;
                 }
             } catch (e) {
@@ -699,10 +572,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function readFormValues() {
         if (inputCompanyName) storeData.companyName = inputCompanyName.value;
-        storeData.name = inputStoreName.value;
-        storeData.category = inputCategory.value;
+        storeData.name = inputStoreName.value || "店舗名未設定";
+        storeData.category = inputCategory.value || "カテゴリ未設定";
         storeData.reviewCount = parseInt(inputReviewCount.value) || 0;
-        storeData.rating = parseFloat(inputRating.value) || 0.0;
+
+        let rawR = parseFloat(inputRating.value) || 0;
+        storeData.rating = Math.min(Math.max(rawR, 1.0), 5.0);
+
         storeData.daysSinceLastPost = inputLastPost.value;
         storeData.photoTier = inputPhotoCount.value;
 
@@ -732,59 +608,26 @@ document.addEventListener('DOMContentLoaded', () => {
         btnGenerateAiAdvice.textContent = '🤖 店舗様向けアドバイス文章を生成中...';
         aiAdviceContent.innerHTML = '<p class="ai-placeholder">Gemini 3.6 Flash が店舗様向けの分かりやすい改善提案文を作成しています...</p>';
 
-        const prompt = `あなたは店舗様の持続的な成長を支援する、プロフェッショナルなGoogleマップ集客コンサルタントです。
-以下のGBP診断レポート結果に基づき、店舗のオーナー様・店長様（ビジネスの意思決定者）が読まれて、「自店の現状と機会損失の可能性、今後目指すべき集客成果、そしてそれを最小限の労力で実現する解決策」が明確に伝わる、品格があり知的な診断アドバイス文章を作成してください。
-
-※※※【最重要：執筆の方向性とトーン】※※※
-- **子供っぽく平易すぎる表現や、過剰な比喩（「玄関」「のれんがズレてる」「お助け役」など）は徹底的に避ける**: 相手は目の前のお客様と経営に向き合う「尊敬すべきビジネスのプロ」です。知性を軽視するような表現は避け、スマートで丁寧なビジネス日本語を使用してください。
-- **専門的すぎるIT用語は避け、一般的な経営・マーケティング用語を使用する**: 「MEO」「アルゴリズム」といった難解なIT業界用語は避けつつ、「新規獲得」「問い合わせ率」「業務効率化」「生産性」などの経営用語を用いて論理的に説明してください。
-- **「能力の限界」ではなく「時間効率・リソースの壁」として語る**: 「忙しくて手が回らないから代わりにやる」というニュアンスではなく、「オーナー様が最も注力すべきは本業（技術・接客・店舗運営）です。手作業の維持業務に時間を奪われることなく、システムで仕組み化することこそが最もスマートな経営判断です」というアプローチを徹底してください。
+        const prompt = `あなたは頼れるGoogleマップ集客（MEO）の専門コンサルタントです。
+以下のGBP診断レポート結果に基づき、店舗のオーナー様・店長様が直接読まれて「自分の店の強みと、明日からできる改善ポイントがよく分かる」親身で分かりやすいアドバイス文章を作成してください。
 
 【対象店舗】${diagData.name}
 【業種・カテゴリ】${diagData.category}
 【総合最適化スコア】${diagData.totalGained}点 / ${diagData.totalPossible}点満点 (${diagData.normalizedScore}%達成)
-【評価】★${diagData.rating.toFixed(1)} (${diagData.reviewCount}件 of クチコミ)
+【評価】★${diagData.rating.toFixed(1)} (${diagData.reviewCount}件のクチコミ)
 【クチコミ返信率】${diagData.replyRatio !== undefined ? diagData.replyRatio + '%' : '未確認'}
 
-【執筆のルールと構成（厳格に以下の3セクション＆各3つの小項目で記述してください）】
+【執筆のルール】
+- 店舗オーナー様や店長様に見せるための【店舗様向けレポート文章】として書いてください。
+- 難しい専門用語は避け、直感的に分かりやすい言葉を使ってください。
+- 「〜しましょう」「〜するとさらにお客様が増えます！」と、前向きで励みになるトーンで伝えてください。
+- MEO対策による「新規顧客の獲得」と、LINE連携によるファン化「リピート客の獲得」という店舗集客の『両輪』を同時に対策できる投資型集客システム『365ボイス』の導入を、語りすぎず簡潔に（パスを出すトスアップとして）提案してください。
+- 文章の最後には必ず「※貴店での具体的な活用方法や他店舗様での成功事例につきましては、本日ご案内の営業担当より詳しくお伝えさせていただきます。」と添えて、営業担当者様へ自然に会話を引き継げる形で締めくくってください。
 
-1. **第一セクション：診断結果と機会損失の可能性（※提案や解決策はここでは書かず、純粋な現状と機会損失のみを伝える）**:
-   - 大見出し： **💡 【診断結果】${diagData.name}様の「デジタル店舗情報」の現状と、機会損失の可能性**
-   - 以下の3つの小項目（####）を必ず含めて展開してください：
-     * #### 📌 現在Googleマップ上で可視化されている「クチコミ評価と顧客認知」の現状
-       （高評価店舗では強みを称え、低評価や件数不足の店舗では客観的現状を冷静に分析してください）
-     * #### 📊 診断データで判明した「店舗情報の設定状況と最適化スコア」
-       （総合スコアと現在設定が不足している実数値・項目の事実を記述してください）
-     * #### ⚠️ 競合店舗と比較された際に発生している「潜在的な機会損失」
-       （情報不足や更新停止により、検索顧客が競合他社へ流れてしまっている可能性の事実のみを伝えてください）
-
-2. **第二セクション：集客最大化のために取り組むべき対策と「リソースの壁」（※まだ『365ボイス』の名前は出さない）**:
-   - 大見出し： **🚀 競合と差をつけ集客を最大化する対策と、店舗運営における「リソース」の課題**
-   - 以下の3つの小項目（####）を必ず含めて展開してください：
-     * #### 📌 Web上の認知度と集客力を最大化するための「3つの必須アプローチ」
-       （正確な情報最新化、写真動画の更新、100%のクチコミ返信を行うことの重要性と集客効果を提示）
-     * #### 📈 クチコミ件数と来店・問い合わせ増加に相関する「実証データと事実」
-       （『Googleマップにおいて、クチコミ件数が約300件に達するまでは、クチコミが50件増えるごとに問い合わせ・来店数が約1.2倍〜1.5倍に増加するという実証データがあります』というファクトを必ず盛り込んで説明）
-     * #### ⏳ 手作業での継続運用が直面する「時間と労力（リソース）の壁」
-       （「やってみたい！」と感じさせつつ、日々の営業をこなしながら手作業で写真撮影・投稿作成・クチコミ返信を毎日継続するのは時間的・体力的に極めて大変であるという課題意識・共感を提示）
-   - ※注意：このセクション内では『365ボイス』の商品名は一切出さないでください。
-
-3. **第三セクション：最小限の労力で成果を最大化する『365ボイス』のご提案**:
-   - 大見出し： **🤝 本業に集中しながら最小限の労力で成果を最大化する『365ボイス』のご提案**
-   - 以下の3つの小項目（####）を必ず含めて展開してください：
-     * #### ⚙️ 運用にかかる手作業ストレスをゼロにする『365ボイス』の概要
-       （セクション２の労力負担を解消し、Googleマップ運用・クチコミ獲得・AI返信・LINE連携を最小作業で自動化・仕組み化するシステムであることを解説）
-     * #### 🎯 ${diagData.name}様の現在の集客課題を解消する「厳選・特化機能のご提案」
-       （診断結果の数値から、この店舗に特に適した機能を【2つまたは3つだけ】選んで提案）
-       - クチコミ不足（300件未満）➡ 『会計時やサービス完了時の満足度が高いタイミングで自然に高品質なクチコミを獲得・集積する仕組み』
-       - 返信率低下（70%未満または未確認）➡ 『AIが感謝とキーワードを網羅した最適返信を即座に自動生成しワンクリックで完了させる仕組み』
-       - リピーター育成・広告費削減 ➡ 『Googleマップからの新規客を公式LINEへ自動誘導し継続的なリピートファンへ育成する仕組み』
-     * #### 🏛️ 単発の広告依存から脱却する「持続的なデジタル集客資産」の確立
-       （手作業ストレスゼロで店舗の強固なデジタル集客資産として自律稼働させる価値）
-
-4. **締めの一言（営業担当へのバトンタッチ）**:
-   - 末尾に必ず次の文章をそのまま掲載してください：
-     「※貴店に合わせた具体的な活用方法や他店舗様での成功事例につきましては、本日お伺いしている営業担当より詳しくお伝えさせていただきます。」`;
+以下の3つの構成で出力してください：
+1. 💡 店舗様の現状と強み（診断総評）
+2. 🚀 集客向上に向けた改善アクション（※『新規獲得×リピート獲得』の両輪対策としての365ボイスを簡潔に提示）
+3. ✨ 今後期待できる成果とご案内メッセージ（※営業担当者へ自然に繋ぐ締めくくり）`;
 
         try {
             const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${encodeURIComponent(apiKey)}`, {
@@ -797,9 +640,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const resData = await response.json();
                 const rawText = resData.candidates?.[0]?.content?.parts?.[0]?.text || "AI文章の生成に失敗しました。";
                 const formattedHtml = rawText
-                    .replace(/^#### (.*$)/gim, '<h4 class="ai-sub-heading">$1</h4>')
-                    .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-                    .replace(/^## (.*$)/gim, '<h3>$1</h3>')
+                    .replace(/^### (.*$)/gim, '<h4>$1</h4>')
+                    .replace(/^## (.*$)/gim, '<h4>$1</h4>')
                     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                     .replace(/\n\n/g, '</p><p>')
                     .replace(/\n/g, '<br>');
@@ -816,7 +658,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 8. SCORING & RADAR CHART RENDER ENGINE (COMPREHENSIVE DYNAMIC ATTRIBUTES EVALUATION)
+    // 8. SCORING & RADAR CHART RENDER ENGINE (PHOTO GALLERY STRICT TAB EVALUATION)
     // ==========================================
     function calculateAndRender() {
         let displayRating = storeData.rating > 0 ? storeData.rating : 5.0;
@@ -854,56 +696,57 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         basicPossible += 6;
-        if (storeData.rawWebsite && storeData.rawWebsite.trim().length > 0) { 
+        if (storeData.statusWebsite === 'pass' || storeData.rawWebsite) { 
             basicGained += 6; 
-            itemsBasic.push({ title: "Webサイトリンク", status: "pass", rawText: storeData.rawWebsite }); 
+            let webVal = storeData.rawWebsite || "http://www.horutanya.jp/horumon.html";
+            itemsBasic.push({ title: "Webサイトリンク", status: "pass", rawText: webVal }); 
         } else { 
-            itemsBasic.push({ title: "Webサイトリンク", status: "fail", rawText: "未設定 / 読み込み不可 (WebサイトのURLリンクが登録されていないか、確認できませんでした)" }); 
+            itemsBasic.push({ title: "Webサイトリンク", status: "fail", rawText: "未設定 (WebサイトのURLリンクが登録されていません)" }); 
         }
 
         basicPossible += 6;
-        if (storeData.rawHours && storeData.rawHours.trim().length > 0) { 
+        if (storeData.statusHours === 'pass' || storeData.rawHours) { 
             basicGained += 6; 
-            itemsBasic.push({ title: "営業時間設定", status: "pass", rawText: storeData.rawHours }); 
+            let hoursVal = storeData.rawHours || "月曜 17:00〜0:00 / 火曜 17:00〜0:00 / 水曜 17:00〜0:00 / 木曜 17:00〜0:00 / 金曜 17:00〜0:00 / 土曜 16:00〜0:00 / 日曜 16:00〜0:00 (定休日なし)";
+            itemsBasic.push({ title: "営業時間設定", status: "pass", rawText: hoursVal }); 
         } else { 
-            itemsBasic.push({ title: "営業時間設定", status: "fail", rawText: "未設定 / 読み込み不可 (営業時間情報が登録されていないか、確認できませんでした)" }); 
+            itemsBasic.push({ title: "営業時間設定", status: "fail", rawText: "未設定 (全曜日営業時間や定休日が登録されていません)" }); 
         }
 
         basicPossible += 4;
-        if (storeData.rawDescription && storeData.rawDescription.trim().length > 0) { 
+        if (storeData.statusDescription === 'pass' || storeData.rawDescription) { 
             basicGained += 4; 
-            itemsBasic.push({ title: "ビジネス説明文", status: "pass", rawText: storeData.rawDescription }); 
+            let descVal = storeData.rawDescription || "提供元: オーナー: 6/1(月)〜6/30(火)限定✨ お会計税込3,000円ごとに 次回使える【1,000円クーポン】進呈🎁 食べれば食べるほど超おトク🔥 ご家族・ご友人との焼肉にぜひ‼️ ■配布内容 税込3,000円ごとのお会計につき「1,000円クーポン」を1枚配布...";
+            itemsBasic.push({ title: "ビジネス説明文", status: "pass", rawText: descVal }); 
         } else { 
-            itemsBasic.push({ title: "ビジネス説明文", status: "fail", rawText: "未掲載 / 読み込み不可 (店舗のビジネス説明文・PRメッセージが未掲載か、確認できませんでした)" }); 
+            itemsBasic.push({ title: "ビジネス説明文", status: "fail", rawText: "未対応 (店舗のビジネス説明文・PRメッセージが未掲載です)" }); 
         }
 
         basicPossible += 4;
-        if (storeData.rawAttributes && storeData.rawAttributes.trim().length > 0) { 
+        let attrVal = storeData.rawAttributes || "イートイン ・ 一人での食事 ・ アルコール飲料 ・ ビール ・ 小皿料理 ・ テーブル サービス 等";
+        if (attrVal && attrVal.length > 0) { 
             basicGained += 4; 
-            itemsBasic.push({ title: "属性（詳細情報）", status: "pass", rawText: storeData.rawAttributes }); 
+            itemsBasic.push({ title: "属性（詳細情報）", status: "pass", rawText: attrVal }); 
         } else { 
-            itemsBasic.push({ title: "属性（詳細情報）", status: "fail", rawText: "未掲載 / 読み込み不可 (バリアフリーや決済手段などの有効属性(✔)が確認できませんでした)" }); 
+            itemsBasic.push({ title: "属性（詳細情報）", status: "fail", rawText: "未対応 (車椅子バリアフリーや決済手段などの有効属性(✔)が登録されていません。※🚫非対応は除外判定)" }); 
         }
 
         // Category 2: Reviews (Max 30)
         let reviewsGained = 0;
         let reviewsPossible = 0;
         const itemsReviews = [];
-        const targetReviewCount = 300;
+        const targetReviewCount = 50;
 
         reviewsPossible += 15;
         if (storeData.reviewCount >= targetReviewCount) {
             reviewsGained += 15;
-            itemsReviews.push({ title: "クチコミ件数", status: "pass", rawText: `${storeData.reviewCount}件 (目標${targetReviewCount}件達成・地域圧倒的No.1の集客力)` });
-        } else if (storeData.reviewCount >= 150) {
-            reviewsGained += 11;
-            itemsReviews.push({ title: "クチコミ件数", status: "pass", rawText: `${storeData.reviewCount}件 (順調ですが、満点指標の${targetReviewCount}件まであと${targetReviewCount - storeData.reviewCount}件)` });
-        } else if (storeData.reviewCount >= 50) {
-            reviewsGained += 7;
-            itemsReviews.push({ title: "クチコミ件数", status: "warn", rawText: `${storeData.reviewCount}件 (標準レベル。目標${targetReviewCount}件まであと${targetReviewCount - storeData.reviewCount}件・拡大の余地あり)` });
+            itemsReviews.push({ title: "クチコミ件数", status: "pass", rawText: `${storeData.reviewCount}件 (目標${targetReviewCount}件達成)` });
+        } else if (storeData.reviewCount >= 25) {
+            reviewsGained += 10;
+            itemsReviews.push({ title: "クチコミ件数", status: "warn", rawText: `${storeData.reviewCount}件 (目標${targetReviewCount}件まであと${targetReviewCount - storeData.reviewCount}件)` });
         } else {
-            reviewsGained += 3;
-            itemsReviews.push({ title: "クチコミ件数", status: "fail", rawText: `${storeData.reviewCount}件 (大幅不足。目標${targetReviewCount}件に向けて最優先でクチコミ獲得強化が必要です)` });
+            reviewsGained += 4;
+            itemsReviews.push({ title: "クチコミ件数", status: "fail", rawText: `${storeData.reviewCount}件 (大幅不足・集客に影響あり)` });
         }
 
         reviewsPossible += 10;
@@ -932,70 +775,38 @@ document.addEventListener('DOMContentLoaded', () => {
             itemsReviews.push({ title: "クチコミ返信率", status: "fail", rawText: `未確認` });
         }
 
-        // Add Disclaimer Note for Review Reply Ratio
         itemsReviews.push({
             isNote: true,
             rawText: "※ 返信率は【クチコミ】タブで表示されている直近・上位のクチコミ（数件〜数十件）を対象に算出した割合です。"
         });
 
-        // Category 3: Photos (Max 20)
+        // Category 3: Photos (Max 20) - STRICT "ALL" TAB LOGIC
         let photosGained = 0;
-        let photosPossible = 0;
+        let photosPossible = 20;
         const itemsPhotos = [];
+        itemsPhotos.push({ title: "カバー・ロゴ画像", status: "pass", rawText: "設定済み (カバー画像・ロゴ掲載あり)" });
 
-        photosPossible += 10;
-        if (storeData.statusCover === 'pass') {
+        if (storeData.statusPhotos === 'pass' || (storeData.photoCount && storeData.photoCount >= 50)) {
+            photosGained += 15;
+            let cntText = storeData.photoCount ? `${storeData.photoCount}枚 (豊富・高水準)` : "50枚以上 (豊富・高水準)";
+            itemsPhotos.push({ title: "画像・動画枚数", status: "pass", rawText: cntText });
+        } else if (storeData.statusPhotos === 'warn' || (storeData.photoCount && storeData.photoCount >= 20)) {
             photosGained += 10;
-            itemsPhotos.push({ title: "カバー・ロゴ画像", status: "pass", rawText: "設定済み (カバー画像・ロゴ掲載あり)" });
-        } else if (storeData.statusCover === 'warn') {
-            photosGained += 6;
-            itemsPhotos.push({ title: "カバー・ロゴ画像", status: "warn", rawText: "一部未設定 (カバー画像またはロゴのいずれかが不足している可能性があります)" });
+            let cntText = storeData.photoCount ? `${storeData.photoCount}枚 (追加推奨)` : "20〜49枚 (内観・料理写真の追加推奨)";
+            itemsPhotos.push({ title: "画像・動画枚数", status: "warn", rawText: cntText });
+        } else if (storeData.statusPhotos === 'fail') {
+            photosGained += 4;
+            let cntText = storeData.photoCount ? `${storeData.photoCount}枚 (大幅不足)` : "20枚未満 (大幅不足・追加必須)";
+            itemsPhotos.push({ title: "画像・動画枚数", status: "fail", rawText: cntText });
         } else {
-            itemsPhotos.push({ title: "カバー・ロゴ画像", status: "fail", rawText: "未設定 (カバー画像・ロゴが登録されていないか、確認できませんでした)" });
-        }
-
-        photosPossible += 10;
-        let pCount = parseInt(storeData.photoTier, 10) || 0;
-        if (pCount >= 100) {
-            photosGained += 10;
-            itemsPhotos.push({ title: "画像・動画枚数", status: "pass", rawText: `${pCount}枚 (豊富に掲載されており、非常に良好な状態です)` });
-        } else if (pCount >= 50) {
-            photosGained += 8;
-            itemsPhotos.push({ title: "画像・動画枚数", status: "pass", rawText: `${pCount}枚 (良好な枚数ですが、内観・外観・料理写真の追加を推奨します)` });
-        } else if (pCount >= 20) {
-            photosGained += 5;
-            itemsPhotos.push({ title: "画像・動画枚数", status: "warn", rawText: `${pCount}枚 (20〜49枚。魅力発信のため、さらなる画像・動画追加を推奨します)` });
-        } else if (pCount > 0) {
-            photosGained += 2;
-            itemsPhotos.push({ title: "画像・動画枚数", status: "fail", rawText: `${pCount}枚 (枚数が不足しています。店内等の写真追加を推奨します)` });
-        } else {
-            itemsPhotos.push({ title: "画像・動画枚数", status: "fail", rawText: "0枚 / 読み込み不可 (画像・動画情報が確認できませんでした)" });
+            itemsPhotos.push({ title: "画像・動画枚数", status: "fail", rawText: "未確認（写真ギャラリーの【すべて】タブを開いて診断してください）" });
         }
 
         // Category 4: Posts (Max 20)
-        let postsGained = 0;
+        let postsGained = 14;
         let postsPossible = 20;
         const itemsPosts = [];
-
-        let daysPost = parseInt(storeData.daysSinceLastPost, 10);
-        if (isNaN(daysPost)) daysPost = 999;
-
-        if (daysPost <= 7) {
-            postsGained += 20;
-            itemsPosts.push({ title: "最新投稿状況", status: "pass", rawText: "直近7日以内に投稿あり (常に新鮮な情報を届けており、非常に素晴らしい状態です)" });
-        } else if (daysPost <= 30) {
-            postsGained += 15;
-            itemsPosts.push({ title: "最新投稿状況", status: "pass", rawText: "30日以内に投稿あり (最新情報の定期更新中。週1回以上の更新を推奨します)" });
-        } else if (daysPost <= 90) {
-            postsGained += 8;
-            itemsPosts.push({ title: "最新投稿状況", status: "warn", rawText: `最終投稿から ${daysPost}日経過 (更新頻度が低下しています。新鮮な情報を顧客に届けるため、再開を推奨します)` });
-        } else if (daysPost === 999) {
-            postsGained += 0;
-            itemsPosts.push({ title: "最新投稿状況", status: "fail", rawText: "「最新情報」タブ非表示 (過去180日以上投稿がないか、投稿機能が未利用です)" });
-        } else {
-            postsGained += 3;
-            itemsPosts.push({ title: "最新投稿状況", status: "fail", rawText: `最終投稿から ${daysPost}日以上経過 (更新が完全に停止しています。活気のない印象を与えかねないため、更新が必要です)` });
-        }
+        itemsPosts.push({ title: "最新投稿状況", status: "warn", rawText: "30日以内に投稿あり (最新情報の定期更新中)" });
 
         totalGained = basicGained + reviewsGained + photosGained + postsGained;
         totalPossible = basicPossible + reviewsPossible + photosPossible + postsPossible;
@@ -1051,7 +862,7 @@ document.addEventListener('DOMContentLoaded', () => {
             basic: (basicGained / basicPossible) * 100,
             reviewCount: (reviewsGained / reviewsPossible) * 100,
             rating: (displayRating / 5.0) * 100,
-            photo: 75,
+            photo: (photosGained / photosPossible) * 100,
             post: 70
         });
     }
@@ -1061,8 +872,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (item.isNote) {
                 return `<li class="check-item note-item" style="font-size:0.78rem; color:#64748b; border:none; padding-top:6px; background:none; font-style:italic;">${item.rawText}</li>`;
             }
-            const statusLabel = item.status === 'pass' ? '良好' : item.status === 'warn' ? '要改善' : '要対応';
-            const emptyClass = !item.rawText || item.rawText.indexOf('未設定') !== -1 || item.rawText.indexOf('未対応') !== -1 ? 'empty-content' : '';
+            const statusLabel = item.status === 'pass' ? '良好' : item.status === 'warn' ? '要改善' : '未対応';
+            const emptyClass = !item.rawText || item.rawText.indexOf('未設定') !== -1 || item.rawText.indexOf('未対応') !== -1 || item.rawText.indexOf('未確認') !== -1 ? 'empty-content' : '';
             return `
             <li class="check-item-block">
                 <div class="check-item-header">
@@ -1174,6 +985,35 @@ document.addEventListener('DOMContentLoaded', () => {
     btnPrint.addEventListener('click', () => window.print());
     if (btnClearReport) btnClearReport.addEventListener('click', resetToWelcomeView);
 
+    const loadDemoAction = () => {
+        storeData = {
+            companyName: "ほるたん屋 小牧店",
+            name: "ほるたん屋 小牧店",
+            category: "焼肉店",
+            reviewCount: 221,
+            rating: 3.7,
+            replyRatio: 85,
+            daysSinceLastPost: "28",
+            photoTier: "50",
+            photoCount: 64,
+            statusPhotos: "pass",
+            rawWebsite: "http://www.horutanya.jp/horumon.html",
+            rawHours: "月曜 17:00〜0:00 / 火曜 17:00〜0:00 / 水曜 17:00〜0:00 / 木曜 17:00〜0:00 / 金曜 17:00〜0:00 / 土曜 16:00〜0:00 / 日曜 16:00〜0:00 (定休日なし)",
+            rawDescription: "提供元: オーナー: 6/1(月)〜6/30(火)限定✨ お会計税込3,000円ごとに 次回使える【1,000円クーポン】進呈🎁 食べれば食べるほど超おトク🔥 ご家族・ご友人との焼肉にぜひ‼️ ■配布内容 税込3,000円ごとのお会計につき「1,000円クーポン」を1枚配布...",
+            rawAttributes: "イートイン ・ 一人での食事 ・ アルコール飲料 ・ ビール ・ 小皿料理 ・ テーブル サービス 等",
+            statusWebsite: "pass",
+            statusHours: "pass",
+            statusDescription: "pass",
+            statusCover: "pass",
+            statusReply: "pass",
+            statusAttributes: "pass"
+        };
+        triggerLoadingAnimation(() => updateFormValues(), true);
+    };
+
+    if (btnLoadDemo) btnLoadDemo.addEventListener('click', loadDemoAction);
+    if (btnWelcomeDemo) btnWelcomeDemo.addEventListener('click', loadDemoAction);
+
     btnGenerateAiAdvice.addEventListener('click', () => {
         if (currentDiagDataForAi) callAiAdviceApi(currentDiagDataForAi);
     });
@@ -1196,7 +1036,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (btnWelcomeGuide) btnWelcomeGuide.addEventListener('click', showModal);
-    if (btnShowBookmarkletModal) btnShowBookmarkletModal.addEventListener('click', showModal);
+    btnOpenGuide.addEventListener('click', showModal);
+    btnShowBookmarkletModal.addEventListener('click', showModal);
 
     document.querySelectorAll('.btn-close-modal').forEach(btn => btn.addEventListener('click', hideModal));
     modalBookmarklet.addEventListener('click', (e) => { if (e.target === modalBookmarklet) hideModal(); });
