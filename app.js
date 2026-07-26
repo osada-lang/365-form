@@ -1046,19 +1046,37 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    function showModal() { modalBookmarklet.classList.remove('hidden'); }
+    function showModal() { 
+        if (modalBookmarklet) modalBookmarklet.classList.remove('hidden'); 
+    }
+
     function hideModal() { 
-        modalBookmarklet.classList.add('hidden'); 
-        modalAiConfig.classList.add('hidden');
+        if (modalBookmarklet) modalBookmarklet.classList.add('hidden'); 
+        if (modalAiConfig) modalAiConfig.classList.add('hidden');
+        document.querySelectorAll('.modal-overlay, .modal').forEach(m => m.classList.add('hidden'));
     }
 
     if (btnWelcomeGuide) btnWelcomeGuide.addEventListener('click', showModal);
-    btnOpenGuide.addEventListener('click', showModal);
-    btnShowBookmarkletModal.addEventListener('click', showModal);
+    if (btnOpenGuide) btnOpenGuide.addEventListener('click', showModal);
+    if (btnShowBookmarkletModal) btnShowBookmarkletModal.addEventListener('click', showModal);
 
-    document.querySelectorAll('.btn-close-modal').forEach(btn => btn.addEventListener('click', hideModal));
-    modalBookmarklet.addEventListener('click', (e) => { if (e.target === modalBookmarklet) hideModal(); });
-    modalAiConfig.addEventListener('click', (e) => { if (e.target === modalAiConfig) hideModal(); });
+    // Global Event Delegation for Close Buttons & Overlay Clicks
+    document.addEventListener('click', (e) => {
+        if (e.target.closest('.btn-close-modal')) {
+            e.preventDefault();
+            e.stopPropagation();
+            hideModal();
+        } else if (e.target.classList.contains('modal-overlay')) {
+            hideModal();
+        }
+    });
+
+    // ESC Key to Close Modals
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' || e.key === 'Esc') {
+            hideModal();
+        }
+    });
 
     // ==========================================
     // 11. INITIALIZATION LAUNCH
