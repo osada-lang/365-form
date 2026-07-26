@@ -5,6 +5,7 @@
  * 1. Single Source of Truth for Bookmarklet Window Target ("GBP_DIAGNOSTIC_REPORT_WINDOW").
  * 2. Pure Live Data Engine: Zero rating/score carry-overs between stores; resets automatically on store change.
  * 3. STRICT GRADED EVALUATION ENGINES:
+ *    - POSTS FREQUENCY GRADED SCORE (Max 20pt): <=14 days = 20pt (Pass / Green), 15-30 days = 10pt (Warn / Yellow), >30 days or None = 4pt (Fail / Red).
  *    - REVIEW REPLY RATIO GRADED SCORE (Max 5pt): 80%+ = 5pt (Pass / Green), 1-79% = 3pt (Warn / Yellow), 0% = 0pt (Fail / Red).
  *    - ATTRIBUTES GRADED SCORE (Max 4pt): 5+ items = 4pt (Pass / Green), 1-4 items = 2pt (Warn / Yellow), 0 items = 0pt (Fail / Red).
  *    - DESCRIPTION GRADED SCORE (Max 4pt): 250+ chars = 4pt (Pass / Green), 1-249 chars = 2pt (Warn / Yellow), 0 chars = 0pt (Fail / Red).
@@ -28,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
         reviewCount: 0,
         rating: 0,
         replyRatio: undefined,
-        daysSinceLastPost: "28",
+        daysSinceLastPost: 28,
         photoTier: "20",
         photoCount: undefined,
         statusPhotos: "error",
@@ -202,7 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
             "  }" +
             "}" +
 
-            "/* D. REVIEWS TAB & REPLY RATIO (%) ENGINE (GRADED SCORE: 80%+ pass, 1-79% warn, 0% fail) */" +
+            "/* D. REVIEWS TAB & REPLY RATIO (%) ENGINE */" +
             "let reviewModal = document.querySelector('g-review-dialog, div[role=\"dialog\"], div.review-dialog, div.m6QEfe[aria-label*=\"クチコミ\"]');" +
             "let isReviewTabOpen = Boolean(reviewModal) || (bTxt.indexOf('関連度順') !== -1 || bTxt.indexOf('評価の高い順') !== -1 || bTxt.indexOf('クチコミの検索') !== -1 || bTxt.indexOf('最新順') !== -1);" +
             "let replyRatio = undefined;" +
@@ -363,7 +364,18 @@ document.addEventListener('DOMContentLoaded', () => {
             "  else { statusAttributes = 'fail'; }" +
             "}" +
 
-            "/* H. PACK & SEND DATA */" +
+            "/* H. POSTS FREQUENCY & DAYS EXTRACTION */" +
+            "let daysSinceLastPost = 28;" +
+            "let postDateMatches = bTxt.match(/([0-9]+)\\s*(日前|日分前|週間前|週前|か月前|月前|年前)/);" +
+            "if(postDateMatches){" +
+            "  let str = postDateMatches[0];" +
+            "  if(str.indexOf('日前') !== -1){ daysSinceLastPost = parseInt(str); }" +
+            "  else if(str.indexOf('週間前') !== -1 || str.indexOf('週前') !== -1){ daysSinceLastPost = parseInt(str) * 7; }" +
+            "  else if(str.indexOf('か月前') !== -1 || str.indexOf('月前') !== -1){ daysSinceLastPost = parseInt(str) * 30; }" +
+            "  else if(str.indexOf('年前') !== -1){ daysSinceLastPost = parseInt(str) * 365; }" +
+            "}" +
+
+            "/* I. PACK & SEND DATA */" +
             "let data = {" +
             "  isPhotoAllTab: isPhotoAllTab," +
             "  companyName: name," +
@@ -375,7 +387,7 @@ document.addEventListener('DOMContentLoaded', () => {
             "  photoCount: photoCount," +
             "  photoTier: photoTier," +
             "  statusPhotos: statusPhotos," +
-            "  daysSinceLastPost: '28'," +
+            "  daysSinceLastPost: daysSinceLastPost," +
             "  rawWebsite: rawWebsite," +
             "  rawHours: rawHours," +
             "  rawDescription: rawDescription," +
@@ -514,6 +526,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (safeIncoming.reviewCount > 0) merged.reviewCount = Math.max(existing.reviewCount || 0, safeIncoming.reviewCount);
         if (safeIncoming.rating > 0) merged.rating = Math.min(Math.max(parseFloat(safeIncoming.rating), 1.0), 5.0);
 
+        if (safeIncoming.daysSinceLastPost !== undefined) merged.daysSinceLastPost = safeIncoming.daysSinceLastPost;
         if (safeIncoming.rawWebsite) merged.rawWebsite = safeIncoming.rawWebsite;
         if (safeIncoming.rawHours) merged.rawHours = safeIncoming.rawHours;
         if (safeIncoming.rawDescription) merged.rawDescription = safeIncoming.rawDescription;
@@ -611,8 +624,8 @@ document.addEventListener('DOMContentLoaded', () => {
         selectHours.value = storeData.statusHours || 'error';
         selectDescription.value = storeData.statusDescription || 'error';
         selectCover.value = storeData.statusCover || 'pass';
-        selectReply.value = storeData.statusReply || 'error';
-        selectAttributes.value = storeData.statusAttributes || 'error';
+        selectReply.value = selectReply.value;
+        selectAttributes.value = selectAttributes.value;
 
         calculateAndRender();
     }
@@ -626,7 +639,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let rawR = parseFloat(inputRating.value) || 0;
         storeData.rating = Math.min(Math.max(rawR, 1.0), 5.0);
 
-        storeData.daysSinceLastPost = inputLastPost.value;
+        storeData.daysSinceLastPost = parseInt(inputLastPost.value) || 28;
         storeData.photoTier = inputPhotoCount.value;
 
         selectWebsite.value = selectWebsite.value;
@@ -881,11 +894,24 @@ document.addEventListener('DOMContentLoaded', () => {
             itemsPhotos.push({ title: "画像・動画枚数", status: "fail", rawText: "未確認（写真ギャラリーの【すべて】タブを開いて診断してください）" });
         }
 
-        // Category 4: Posts (Max 20)
-        let postsGained = 14;
+        // GRADED SCORE: Category 4: Posts (Max 20pt: <=14 days = 20pt, 15-30 days = 10pt, >30 days/none = 4pt)
+        let postsGained = 0;
         let postsPossible = 20;
         const itemsPosts = [];
-        itemsPosts.push({ title: "最新投稿状況", status: "warn", rawText: "30日以内に投稿あり (最新情報の定期更新中)" });
+
+        let lastPostDays = storeData.daysSinceLastPost !== undefined ? parseInt(storeData.daysSinceLastPost) : 28;
+        if (isNaN(lastPostDays)) lastPostDays = 28;
+
+        if (lastPostDays <= 14) {
+            postsGained = 20;
+            itemsPosts.push({ title: "最新投稿状況", status: "pass", rawText: `直近 ${lastPostDays}日前に投稿あり (高頻度更新中・良好)` });
+        } else if (lastPostDays <= 30) {
+            postsGained = 10;
+            itemsPosts.push({ title: "最新投稿状況", status: "warn", rawText: `最終投稿から ${lastPostDays}日経過 (更新頻度低下・週1〜2回の定期投稿を推奨)` });
+        } else {
+            postsGained = 4;
+            itemsPosts.push({ title: "最新投稿状況", status: "fail", rawText: `最終投稿から ${lastPostDays}日以上経過 (30日以上更新停止中・定期投稿が必須)` });
+        }
 
         totalGained = basicGained + reviewsGained + photosGained + postsGained;
         totalPossible = basicPossible + reviewsPossible + photosPossible + postsPossible;
@@ -942,7 +968,7 @@ document.addEventListener('DOMContentLoaded', () => {
             reviewCount: (reviewsGained / reviewsPossible) * 100,
             rating: (displayRating / 5.0) * 100,
             photo: (photosGained / photosPossible) * 100,
-            post: 70
+            post: Math.round((postsGained / postsPossible) * 100)
         });
     }
 
@@ -1072,7 +1098,7 @@ document.addEventListener('DOMContentLoaded', () => {
             reviewCount: 221,
             rating: 4.7,
             replyRatio: 85,
-            daysSinceLastPost: "28",
+            daysSinceLastPost: 7,
             photoTier: "50",
             photoCount: 64,
             statusPhotos: "pass",
