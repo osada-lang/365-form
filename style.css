@@ -845,6 +845,32 @@ body {
     color: var(--primary-color);
 }
 
+.ai-generated-text {
+    line-height: 1.75;
+    color: #334155;
+}
+
+.ai-section-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #1e1b4b;
+    background: linear-gradient(135deg, #f1f5f9 0%, #e0e7ff 100%);
+    border-left: 5px solid var(--primary-color);
+    padding: 0.65rem 1rem;
+    margin: 1.5rem 0 1rem 0;
+    border-radius: 0 8px 8px 0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.ai-sub-title {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #312e81;
+    margin: 1.25rem 0 0.5rem 0;
+    padding-bottom: 0.35rem;
+    border-bottom: 2px solid #c7d2fe;
+}
+
 .solution-intro {
     font-size: 0.9rem;
     color: #334155;

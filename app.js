@@ -5,12 +5,12 @@
  * 1. Single Source of Truth for Bookmarklet Window Target ("GBP_DIAGNOSTIC_REPORT_WINDOW").
  * 2. Pure Live Data Engine: Zero rating/score carry-overs between stores; resets automatically on store change.
  * 3. STRICT GRADED EVALUATION ENGINES:
- *    - POSTS FREQUENCY GRADED SCORE (Max 20pt): <=14 days = 20pt (Pass / Green), 15-30 days = 10pt (Warn / Yellow), >30 days or None = 4pt (Fail / Red).
- *    - REVIEW REPLY RATIO GRADED SCORE (Max 5pt): 80%+ = 5pt (Pass / Green), 1-79% = 3pt (Warn / Yellow), 0% = 0pt (Fail / Red).
- *    - ATTRIBUTES GRADED SCORE (Max 4pt): 5+ items = 4pt (Pass / Green), 1-4 items = 2pt (Warn / Yellow), 0 items = 0pt (Fail / Red).
- *    - DESCRIPTION GRADED SCORE (Max 4pt): 250+ chars = 4pt (Pass / Green), 1-249 chars = 2pt (Warn / Yellow), 0 chars = 0pt (Fail / Red).
- * 4. STRICT PHOTO TAB ISOLATE PROTECTION (isPhotoAllTab: true): When diagnosed from Photo "ALL" tab, ONLY photoCount & statusPhotos are updated.
- * 5. INDUSTRY-AGNOSTIC PRESETS: Fully universal across all business sectors.
+ *    - POSTS FREQUENCY GRADED SCORE (Max 20pt): <=14 days = 20pt, 15-30 days = 10pt, >30 days = 4pt.
+ *    - REVIEW REPLY RATIO GRADED SCORE (Max 5pt): 80%+ = 5pt, 1-79% = 3pt, 0% = 0pt.
+ *    - ATTRIBUTES GRADED SCORE (Max 4pt): 5+ items = 4pt, 1-4 items = 2pt, 0 items = 0pt.
+ *    - DESCRIPTION GRADED SCORE (Max 4pt): 250+ chars = 4pt, 1-249 chars = 2pt, 0 chars = 0pt.
+ * 4. STRICT AI REPORT PROMPT & STRUCTURE: Exactly 3 Sections with 3 Sub-items each (1-1 to 3-3) formatted precisely.
+ * 5. STRICT PHOTO TAB ISOLATE PROTECTION (isPhotoAllTab: true): Photo "ALL" tab updates ONLY photo metrics without resetting store info.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -653,7 +653,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 7. GEMINI 3.6 FLASH AI ADVISOR 2.0
+    // 7. GEMINI 3.6 FLASH AI ADVISOR 3.0 (STRICT STRUCTURED OUTPUT)
     // ==========================================
     async function callAiAdviceApi(diagData) {
         const apiKey = localStorage.getItem('gemini_api_key') || DEFAULT_GEMINI_KEY || "";
@@ -669,7 +669,7 @@ document.addEventListener('DOMContentLoaded', () => {
         aiAdviceContent.innerHTML = '<p class="ai-placeholder">Gemini 3.6 Flash が店舗様向けの分かりやすい改善提案文を作成しています...</p>';
 
         const prompt = `あなたは頼れるGoogleマップ集客（MEO）の専門コンサルタントです。
-以下のGBP診断レポート結果に基づき、店舗のオーナー様・店長様が直接読まれて「自分の店の強みと、明日からできる改善ポイントがよく分かる」親身で分かりやすいアドバイス文章を作成してください。
+以下のGBP診断レポート結果に基づき、店舗のオーナー様・店長様（${diagData.name} 様）が直接読まれて「自分の店の強み、課題、明日からの具体的な対策」が深く理解できる、説得力と親しみのあるアドバイス文章を作成してください。
 
 【対象店舗】${diagData.name}
 【業種・カテゴリ】${diagData.category}
@@ -677,17 +677,32 @@ document.addEventListener('DOMContentLoaded', () => {
 【評価】★${diagData.rating.toFixed(1)} (${diagData.reviewCount}件のクチコミ)
 【クチコミ返信率】${diagData.replyRatio !== undefined ? diagData.replyRatio + '%' : '未確認'}
 
-【執筆のルール】
-- 店舗オーナー様や店長様に見せるための【店舗様向けレポート文章】として書いてください。
-- 難しい専門用語は避け、直感的に分かりやすい言葉を使ってください。
-- 「〜しましょう」「〜するとさらにお客様が増えます！」と、前向きで励みになるトーンで伝えてください。
-- MEO対策による「新規顧客の獲得」と、LINE連携によるファン化「リピート客の獲得」という店舗集客の『両輪』を同時に対策できる投資型集客システム『365ボイス』の導入を、語りすぎず簡潔に（パスを出すトスアップとして）提案してください。
-- 文章の最後には必ず「※貴店での具体的な活用方法や他店舗様での成功事例につきましては、本日ご案内の営業担当より詳しくお伝えさせていただきます。」と添えて、営業担当者様へ自然に会話を引き継げる形で締めくくってください。
+【必須出力フォーマット】
+以下の「3つのセクション」と「各3つの小項目（サブ見出し）」の構成と見出しタイトルの通りに厳密に出力してください。各小項目では指示に従って具体的に執筆してください。
 
-以下の3つの構成で出力してください：
-1. 💡 店舗様の現状と強み（診断総評）
-2. 🚀 集客向上に向けた改善アクション（※『新規獲得×リピート獲得』の両輪対策としての365ボイスを簡潔に提示）
-3. ✨ 今後期待できる成果とご案内メッセージ（※営業担当者へ自然に繋ぐ締めくくり）`;
+💡 セクション1: 【診断結果】${diagData.name} 様の「デジタル店舗情報」の現状と、機会損失の可能性
+小項目 1-1: 📌 現在Googleマップ上で可視化されている「クチコミ評価と顧客認知」の現状
+（高評価店舗では強みを称え、低評価や件数不足の店舗では現状の客観的分析を行ってください）
+小項目 1-2: 📊 診断データで判明した「店舗情報の設定状況と最適化スコア」
+（スコア${diagData.normalizedScore}%や設定漏れ・更新不足項目の客観的事実を述べてください）
+小項目 1-3: ⚠️ 競合店舗と比較された際に発生している「潜在的な機会損失」
+（検索上の情報不足や更新停止による顧客離れ・他店への流出の可能性を詳しく述べてください）
+
+🚀 セクション2: 競合と差をつけ集客を最大化する対策と、店舗運営における「リソース」の課題
+小項目 2-1: 📌 Web上の認知度と集客力を最大化するための「3つの必須アプローチ」
+（正確な情報更新、定期的な写真投稿、100%のクチコミ返信の重要性を述べてください）
+小項目 2-2: 📈 クチコミ件数と来店・問い合わせ増加に相関する「実証データと事実」
+（「クチコミ数は300件に達するまでは50件増えるごとに問い合わせが1.2〜1.5倍に増加する」という実証データを必ず引用してください）
+小項目 2-3: ⏳ 手作業での継続運用が直面する「時間と労力（リソース）の壁」
+（日々の本業をこなしながら手作業でこれらを継続することの大変さ・課題感を共感を持って述べてください）
+
+🤝 セクション3: 本業に集中しながら最小限の労力で成果を最大化する『365ボイス』のご提案
+小項目 3-1: ⚙️ 運用にかかる手作業ストレスをゼロにする『365ボイス』の概要
+（Googleマップ運用・クチコミ獲得・AI返信・LINE連携の自動化・効率化システムである概要を述べてください）
+小項目 3-2: 🎯 ${diagData.name} 様の現在の集客課題を解消する「厳選・特化機能のご提案」
+（診断結果の弱みに合わせて2〜3個の機能を厳選して提案してください）
+小項目 3-3: 🏛️ 単発の広告依存から脱却する「持続的なデジタル集客資産」の確立
+（一過性の広告ではなく長期的な自律集客基盤の構築を述べ、最後に必ず「※貴店での具体的な活用方法や他店舗様での成功事例につきましては、本日ご案内の営業担当より詳しくお伝えさせていただきます。」と添えて締めくくってください）`;
 
         try {
             const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${encodeURIComponent(apiKey)}`, {
@@ -699,15 +714,16 @@ document.addEventListener('DOMContentLoaded', () => {
             if (response.ok) {
                 const resData = await response.json();
                 const rawText = resData.candidates?.[0]?.content?.parts?.[0]?.text || "AI文章の生成に失敗しました。";
+                
                 const formattedHtml = rawText
-                    .replace(/^### (.*$)/gim, '<h4>$1</h4>')
-                    .replace(/^## (.*$)/gim, '<h4>$1</h4>')
+                    .replace(/^(💡|🚀|🤝)?\s*(セクション\s*\d+:[^\n]+)/gim, '<h3 class="ai-section-title">$1 $2</h3>')
+                    .replace(/^(小項目\s*\d+-\d+:[^\n]+)/gim, '<h4 class="ai-sub-title">$1</h4>')
                     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                     .replace(/\n\n/g, '</p><p>')
                     .replace(/\n/g, '<br>');
 
-                aiAdviceContent.innerHTML = `<div class="ai-generated-text"><p>${formattedHtml}</p></div>`;
-                showToast("✨ 店舗様向けアドバイスの生成が完了しました", "レポートに提案文章が反映されました。");
+                aiAdviceContent.innerHTML = `<div class="ai-generated-text">${formattedHtml}</div>`;
+                showToast("✨ 店舗様向けアドバイスの生成が完了しました", "指定セクション構成で提案文章が反映されました。");
             }
         } catch(e) {
             aiAdviceContent.innerHTML = `<p class="ai-placeholder" style="color: var(--danger-color);">⚠️ AI生成エラー: (${e.message})</p>`;
@@ -718,7 +734,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 8. SCORING & RADAR CHART ENGINE (ALL GRADED EVALUATION)
+    // 8. SCORING & RADAR CHART ENGINE
     // ==========================================
     function calculateAndRender() {
         let displayRating = storeData.rating > 0 ? storeData.rating : 5.0;
