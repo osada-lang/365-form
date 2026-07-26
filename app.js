@@ -741,8 +741,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 const formattedHtml = rawText
                     .replace(/^---+$/gim, '')
-                    .replace(/^#*\s*(💡|🚀|🤝)?\s*(セクション\s*\d+:[^\n]+)/gim, '<h3 class="ai-section-title">$1 $2</h3>')
-                    .replace(/^#*\s*(小項目\s*\d+-\d+:[^\n]+)/gim, '<h4 class="ai-sub-title">$1</h4>')
+                    .replace(/^[#\s]*([\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F600}-\u{1F64F}]?\s*セクション\s*\d+:[^\n]+)/gimu, '<h3 class="ai-section-title">$1</h3>')
+                    .replace(/^[#\s]*([\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F600}-\u{1F64F}]?\s*小項目\s*\d+-\d+:[^\n]+)/gimu, '<h4 class="ai-sub-title">$1</h4>')
                     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                     .replace(/^[\*\-]\s+(.*$)/gim, '<li style="margin-left: 1.2rem; margin-bottom: 0.3rem; list-style: disc;">$1</li>')
                     .replace(/\n\n/g, '</p><p>')
