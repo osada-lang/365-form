@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
         rating: 0,
         replyRatio: undefined,
         daysSinceLastPost: "999",
-        photoTier: "20",
+        photoTier: "0",
         rawWebsite: "",
         rawHours: "",
         rawDescription: "",
@@ -325,7 +325,7 @@ document.addEventListener('DOMContentLoaded', () => {
             "photoEls.forEach(el => {" +
             "  let txt = (el.innerText || '') + ' ' + (el.getAttribute('aria-label') || '');" +
             "  if(txt && (txt.indexOf('写真') !== -1 || txt.indexOf('すべて') !== -1 || txt.indexOf('枚') !== -1 || txt.indexOf('photos') !== -1 || (el.getAttribute('jsaction') && el.getAttribute('jsaction').indexOf('photo') !== -1))){" +
-            "    let m = txt.match(/([0-9,]+)\\s*枚/) || txt.match(/(?:写真|すべて|photos|画像)\\s*[\\(（\\s\\+]*([0-9,]+)[\\)）\\s]*/i) || txt.match(/([0-9,]+)\\s*件の(?:写真|画像)/) || txt.match(/([0-9,]+)\\s*photos/i);" +
+            "    let m = txt.match(/([0-9,]+)\\s*枚/) || txt.match(/(?:写真|すべて|photos|画像)\\s*[\\(（\\s\\+]*([0-9,]+)[\\)）\\s]*/i) || txt.match(/([0-9,]+)\\s*件の(?:写真|画像)/) || txt.match(/([0-9,]+)\\s*photos/i) || txt.match(/(?:写真|すべての写真|ギャラリー)\\s*[-:\\s]*([0-9,]+)/i);" +
             "    if(m){" +
             "      let val = parseInt(m[1].replace(/,/g, ''), 10);" +
             "      if(val > 0 && val < 100000) photoNums.push(val);" +
@@ -334,9 +334,6 @@ document.addEventListener('DOMContentLoaded', () => {
             "});" +
             "if(photoNums.length > 0){" +
             "  photoTier = String(Math.max(...photoNums));" +
-            "}else{" +
-            "  let hasPhotoBtn = Boolean(document.body.querySelector('button[jsaction*=\"photo\"], button[aria-label*=\"写真\"], button[aria-label*=\"photo\"], div.g390ld, .g390ld'));" +
-            "  if(hasPhotoBtn) photoTier = '20';" +
             "}" +
 
             "/* Days Since Last Post - Tab Presence & Internal Scan Only */" +
@@ -423,9 +420,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (controlPanelSection) controlPanelSection.classList.remove('hidden');
     }
 
+    function resetAiAdvice() {
+        currentDiagDataForAi = null;
+        if (aiAdviceContent) {
+            aiAdviceContent.innerHTML = '<p class="ai-placeholder">「🤖 AI解説文を自動生成」ボタンを押すと、この店舗に最適化された提案文章が生成されます。</p>';
+        }
+    }
+
     function resetToWelcomeView() {
         localStorage.removeItem('last_gbp_data');
         storeData = { ...INITIAL_STORE_TEMPLATE };
+        resetAiAdvice();
         if (welcomePlaceholder) welcomePlaceholder.classList.remove('hidden');
         if (reportPaper) reportPaper.classList.add('hidden');
         if (controlPanelSection) controlPanelSection.classList.add('hidden');
@@ -446,6 +451,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function triggerLoadingAnimation(onComplete, isMergeUpdate = false, isNewStore = false) {
+        resetAiAdvice();
         hideAllModals();
         activateReportView();
         loadingOverlay.classList.remove('hidden');
@@ -559,19 +565,20 @@ document.addEventListener('DOMContentLoaded', () => {
                         parsed.category = parsed.category.replace(/[\\uE000-\\uF8FF\\u2000-\\u206F]/g, '').replace(/([0-9\.]+\s*)?Google\s*のクチコミ.*/gi, '').replace(/^[0-9\.\s★⭐]+/,'').replace(/^.*?[都道府県市区町村]の/, '').trim() || "未設定";
                     }
 
-                    const saved = localStorage.getItem('last_gbp_data');
-                    let baseData = storeData;
-                    if (saved) {
-                        try { baseData = JSON.parse(saved); } catch(e){}
+                    const safeIncoming = {
+                        ...INITIAL_STORE_TEMPLATE,
+                        ...parsed
+                    };
+                    if (safeIncoming.rating > 0) {
+                        safeIncoming.rating = Math.min(Math.max(parseFloat(safeIncoming.rating), 1.0), 5.0);
                     }
 
-                    const { merged, isUpdated, isNewStore } = mergeStoreData(baseData, parsed);
-                    storeData = merged;
+                    storeData = safeIncoming;
                     localStorage.setItem('last_gbp_data', JSON.stringify(storeData));
 
                     history.replaceState(null, "", window.location.pathname);
                     activateReportView();
-                    triggerLoadingAnimation(() => updateFormValues(), isUpdated, isNewStore);
+                    triggerLoadingAnimation(() => updateFormValues(), false, true);
                     return true;
                 }
             } catch (e) {
