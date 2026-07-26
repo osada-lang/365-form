@@ -4,14 +4,15 @@
  * Key Features & Architecture:
  * 1. Single Source of Truth for Bookmarklet Window Target ("GBP_DIAGNOSTIC_REPORT_WINDOW").
  * 2. Pure Live Data Engine: Zero rating/score carry-overs between stores; resets automatically on store change.
- * 3. STRICT ATTRIBUTES "BASIC INFO" TAB DETECTOR: Attributes (詳細情報) are extracted dynamically when checkmarks (✔) or "基本情報" / "設備" / "プラン" sections are visible.
- * 4. STRICT PHOTO GALLERY "ALL" TAB DETECTOR: Photos count is ONLY extracted when the user is explicitly on the Photo Gallery "ALL" (すべて) tab. Otherwise renders '未確認 (【すべて】タブを開いて診断してください)'.
- * 5. COMPREHENSIVE ATTRIBUTE SCANNER: Scans ALL checked (✔) items dynamically without omission (e.g. トイレ, 整備士, 事前予約がおすすめ, イートイン, etc.) and appends "等".
- * 6. FULL WEEKLY HOURS & HOLIDAYS ENGINE: Automatically triggers click on Google Maps hours dropdown and extracts full Mon-Sun schedules & explicit holidays.
- * 7. RAW REAL CONTENT DISPLAY ENGINE: Captures and displays EXACT RAW TEXT, OWNER MESSAGES, FULL WEEKLY HOURS, WEBSITE URLS, and ALL VALIDATED ATTRIBUTES inside responsive card content boxes.
- * 8. Protected Review Reply Ratio (%) Engine: Calculates true percentage from visible review cards vs owner replies.
- * 9. Store-Owner-Facing AI Prompt: Generates client-friendly advice in 3 structured sections without complex jargon.
- * 10. Layout Hierarchy: Total Score & Chart -> AI Consultancy Card -> Detailed Category Analysis (2-Line Card Blocks) -> Priority Actions.
+ * 3. ZERO-OVERWRITE DATA MERGE ENGINE: Prevents tab switching (e.g., Photos 'ALL' tab or Reviews tab) from wiping or downgrading previously captured store data (Website, Hours, Description, Attributes).
+ * 4. STRICT ATTRIBUTES "BASIC INFO" TAB DETECTOR: Attributes (詳細情報) are extracted dynamically when checkmarks (✔) or "基本情報" / "設備" / "プラン" sections are visible.
+ * 5. STRICT PHOTO GALLERY "ALL" TAB DETECTOR: Photos count is ONLY extracted when the user is explicitly on the Photo Gallery "ALL" (すべて) tab. Otherwise renders '未確認 (【すべて】タブを開いて診断してください)'.
+ * 6. COMPREHENSIVE ATTRIBUTE SCANNER: Scans ALL checked (✔) items dynamically without omission (e.g. トイレ, 整備士, 事前予約がおすすめ, イートイン, etc.) and appends "等".
+ * 7. FULL WEEKLY HOURS & HOLIDAYS ENGINE: Automatically triggers click on Google Maps hours dropdown and extracts full Mon-Sun schedules & explicit holidays.
+ * 8. RAW REAL CONTENT DISPLAY ENGINE: Captures and displays EXACT RAW TEXT, OWNER MESSAGES, FULL WEEKLY HOURS, WEBSITE URLS, and ALL VALIDATED ATTRIBUTES inside responsive card content boxes.
+ * 9. Protected Review Reply Ratio (%) Engine: Calculates true percentage from visible review cards vs owner replies.
+ * 10. Store-Owner-Facing AI Prompt: Generates client-friendly advice in 3 structured sections without complex jargon.
+ * 11. Layout Hierarchy: Total Score & Chart -> AI Consultancy Card -> Detailed Category Analysis (2-Line Card Blocks) -> Priority Actions.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -145,7 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (inputApiKey) inputApiKey.value = localStorage.getItem('gemini_api_key') || "";
 
     // ==========================================
-    // 3. UNIFIED BOOKMARKLET GENERATOR ENGINE (STRICT BASIC INFO TAB ATTRIBUTES DETECTOR)
+    // 3. UNIFIED BOOKMARKLET GENERATOR ENGINE (SAFE TAB SWITCHING CAPTURE)
     // ==========================================
     function generateBookmarkletHref() {
         return "javascript:(function(){try{" +
@@ -416,8 +417,8 @@ document.addEventListener('DOMContentLoaded', () => {
             loadingStatusText.textContent = '🏢 新しい店舗の診断レポートを作成中...';
             loadingSubText.textContent = '新しい店舗データを抽出してレポートを更新しています';
         } else if (isMergeUpdate) {
-            loadingStatusText.textContent = '✨ データ集約＆「基本情報」タブ属性を判定算定中...';
-            loadingSubText.textContent = '「基本情報」タブでの属性詳細情報を統合解析しています';
+            loadingStatusText.textContent = '✨ 診断データを集約・統合更新中...';
+            loadingSubText.textContent = 'タブ切替時のデータを保護しながら集約レポートを最新化しています';
         } else {
             loadingStatusText.textContent = 'Googleマップから店舗データを抽出中...';
             loadingSubText.textContent = '基本情報・全曜日営業時間・属性(基本情報タブ)・写真(すべてタブ)を集計しています';
@@ -443,7 +444,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (isNewStore) {
                         showToast("✨ 新店舗の診断レポートを作成しました！", `${storeData.name} の診断結果を表示しています。`);
                     } else if (isMergeUpdate) {
-                        showToast("✨ レポートを統合更新しました！", `属性詳細情報(基本情報タブ)を網羅反映しました。`);
+                        showToast("✨ レポートを統合更新しました！", `全データを保持しながら写真を最新化しました。`);
                     }
                 }, 250);
             }
@@ -451,7 +452,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 5. PURE LIVE DATA MERGE ENGINE (NO CARRY-OVER)
+    // 5. PURE LIVE DATA MERGE ENGINE WITH STRICT ZERO-OVERWRITE PROTECTION
     // ==========================================
     function mergeStoreData(existing, incoming) {
         let isUpdated = false;
@@ -462,6 +463,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ...incoming
         };
 
+        // If analyzing a completely different store, reset clean
         if (existing.name && safeIncoming.name && existing.name !== safeIncoming.name && existing.name !== "店舗名未設定") {
             isNewStore = true;
             return { merged: safeIncoming, isUpdated: true, isNewStore };
@@ -474,16 +476,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (safeIncoming.category && safeIncoming.category !== "未設定") merged.category = safeIncoming.category;
         if (safeIncoming.reviewCount > 0) merged.reviewCount = Math.max(existing.reviewCount || 0, safeIncoming.reviewCount);
 
+        if (safeIncoming.rating > 0) {
+            merged.rating = Math.min(Math.max(parseFloat(safeIncoming.rating), 1.0), 5.0);
+        }
+
+        // --- STRICT RAW CONTENT PROTECTION (NEVER OVERWRITE EXISTING DATA WITH EMPTY STRINGS ON TAB SWITCHING) ---
         if (safeIncoming.rawWebsite) merged.rawWebsite = safeIncoming.rawWebsite;
         if (safeIncoming.rawHours) merged.rawHours = safeIncoming.rawHours;
         if (safeIncoming.rawDescription) merged.rawDescription = safeIncoming.rawDescription;
-
-        if (safeIncoming.statusAttributes !== 'error' && safeIncoming.rawAttributes) {
+        if (safeIncoming.rawAttributes && safeIncoming.statusAttributes !== 'error') {
             merged.rawAttributes = safeIncoming.rawAttributes;
-        }
-
-        if (safeIncoming.rating > 0) {
-            merged.rating = Math.min(Math.max(parseFloat(safeIncoming.rating), 1.0), 5.0);
         }
 
         if (safeIncoming.replyRatio !== undefined && safeIncoming.statusReply !== 'error') {
@@ -494,6 +496,7 @@ document.addEventListener('DOMContentLoaded', () => {
             merged.photoCount = safeIncoming.photoCount;
         }
 
+        // --- STRICT STATUS RANK PROTECTION (NEVER DOWNGRADE ON PARTIAL TAB VIEW) ---
         const statusKeys = ['statusWebsite', 'statusHours', 'statusDescription', 'statusCover', 'statusReply', 'statusAttributes', 'statusPhotos'];
         statusKeys.forEach(key => {
             let existingVal = existing[key] || 'error';
@@ -502,13 +505,14 @@ document.addEventListener('DOMContentLoaded', () => {
             let existingRank = STATUS_RANK[existingVal] !== undefined ? STATUS_RANK[existingVal] : 0;
             let incomingRank = STATUS_RANK[incomingVal] !== undefined ? STATUS_RANK[incomingVal] : 0;
 
-            if (incomingRank >= existingRank) {
-                if (existing[key] !== incomingVal) {
-                    merged[key] = incomingVal;
-                    isUpdated = true;
-                }
+            if (incomingRank > existingRank) {
+                merged[key] = incomingVal;
+                isUpdated = true;
+            } else if (incomingRank === existingRank && existing[key] !== incomingVal) {
+                merged[key] = incomingVal;
+                isUpdated = true;
             } else {
-                merged[key] = existingVal;
+                merged[key] = existingVal; // Preserve existing higher status!
             }
         });
 
