@@ -718,9 +718,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const rawText = resData.candidates?.[0]?.content?.parts?.[0]?.text || "AI文章の生成に失敗しました。";
                 
                 const formattedHtml = rawText
-                    .replace(/^(💡|🚀|🤝)?\s*(セクション\s*\d+:[^\n]+)/gim, '<h3 class="ai-section-title">$1 $2</h3>')
-                    .replace(/^(小項目\s*\d+-\d+:[^\n]+)/gim, '<h4 class="ai-sub-title">$1</h4>')
+                    .replace(/^---+$/gim, '')
+                    .replace(/^#*\s*(💡|🚀|🤝)?\s*(セクション\s*\d+:[^\n]+)/gim, '<h3 class="ai-section-title">$1 $2</h3>')
+                    .replace(/^#*\s*(小項目\s*\d+-\d+:[^\n]+)/gim, '<h4 class="ai-sub-title">$1</h4>')
                     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/^[\*\-]\s+(.*$)/gim, '<li style="margin-left: 1.2rem; margin-bottom: 0.3rem; list-style: disc;">$1</li>')
                     .replace(/\n\n/g, '</p><p>')
                     .replace(/\n/g, '<br>');
 
