@@ -5,7 +5,8 @@
  * 1. Single Source of Truth for Bookmarklet Window Target ("GBP_DIAGNOSTIC_REPORT_WINDOW").
  * 2. Pure Live Data Engine: Zero rating/score carry-overs between stores; resets automatically on store change.
  * 3. STRICT GRADED EVALUATION ENGINES:
- *    - ATTRIBUTES GRADED SCORE (Max 4pt): Exactly 5+ items = 4pt (Pass / Green), 1-4 items = 2pt (Warn / Yellow), 0 items = 0pt (Fail / Red).
+ *    - REVIEW REPLY RATIO GRADED SCORE (Max 5pt): 80%+ = 5pt (Pass / Green), 1-79% = 3pt (Warn / Yellow), 0% = 0pt (Fail / Red).
+ *    - ATTRIBUTES GRADED SCORE (Max 4pt): 5+ items = 4pt (Pass / Green), 1-4 items = 2pt (Warn / Yellow), 0 items = 0pt (Fail / Red).
  *    - DESCRIPTION GRADED SCORE (Max 4pt): 250+ chars = 4pt (Pass / Green), 1-249 chars = 2pt (Warn / Yellow), 0 chars = 0pt (Fail / Red).
  * 4. STRICT PHOTO TAB ISOLATE PROTECTION (isPhotoAllTab: true): When diagnosed from Photo "ALL" tab, ONLY photoCount & statusPhotos are updated.
  * 5. INDUSTRY-AGNOSTIC PRESETS: Fully universal across all business sectors.
@@ -201,7 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
             "  }" +
             "}" +
 
-            "/* D. REVIEWS TAB & REPLY RATIO (%) ENGINE */" +
+            "/* D. REVIEWS TAB & REPLY RATIO (%) ENGINE (GRADED SCORE: 80%+ pass, 1-79% warn, 0% fail) */" +
             "let reviewModal = document.querySelector('g-review-dialog, div[role=\"dialog\"], div.review-dialog, div.m6QEfe[aria-label*=\"クチコミ\"]');" +
             "let isReviewTabOpen = Boolean(reviewModal) || (bTxt.indexOf('関連度順') !== -1 || bTxt.indexOf('評価の高い順') !== -1 || bTxt.indexOf('クチコミの検索') !== -1 || bTxt.indexOf('最新順') !== -1);" +
             "let replyRatio = undefined;" +
@@ -214,7 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
             "  let totalOwnerReplies = replyMatches.length;" +
             "  if(totalVisibleReviews >= 3){" +
             "    replyRatio = Math.min(Math.round((totalOwnerReplies / totalVisibleReviews) * 100), 100);" +
-            "    if(replyRatio >= 70){ replyStatus = 'pass'; }" +
+            "    if(replyRatio >= 80){ replyStatus = 'pass'; }" +
             "    else if(replyRatio > 0){ replyStatus = 'warn'; }" +
             "    else { replyStatus = 'fail'; }" +
             "  }else{" +
@@ -704,7 +705,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 8. SCORING & RADAR CHART ENGINE (STRICT ATTR & DESC GRADED EVALUATION)
+    // 8. SCORING & RADAR CHART ENGINE (ALL GRADED EVALUATION)
     // ==========================================
     function calculateAndRender() {
         let displayRating = storeData.rating > 0 ? storeData.rating : 5.0;
@@ -753,7 +754,7 @@ document.addEventListener('DOMContentLoaded', () => {
         basicPossible += 6;
         if (storeData.statusHours === 'pass' || storeData.rawHours) { 
             basicGained += 6; 
-            let hoursVal = storeData.rawHours || "月曜 9:00〜19:00 / 火曜 9:00〜19:00 / 水曜 9:00〜19:00 / 木曜 9:00〜19:00 / 金曜 9:00〜19:00 / 土曜 9:00〜18:00 (日曜・祝日定休)";
+            let hoursVal = storeData.rawHours || "月曜 9:00〜19:00 / 火曜 9:00〜19:00 / 水曜 9:00〜19:00 / 木曜 9:00〜19:00 / 金曜 9:00〜19:00 / 土曜 9:00〜18:00 (日曜定休)";
             itemsBasic.push({ title: "営業時間設定", status: "pass", rawText: hoursVal }); 
         } else { 
             itemsBasic.push({ title: "営業時間設定", status: "fail", rawText: "未設定 (全曜日営業時間や定休日が登録されていません)" }); 
@@ -778,7 +779,6 @@ document.addEventListener('DOMContentLoaded', () => {
         let attrText = storeData.rawAttributes || "";
         let attrCount = storeData.attrCount;
         
-        // Parse exact item count from rawAttributes string if not passed
         if (attrText && (attrCount === undefined || attrCount === 0)) {
             let cleanText = attrText.replace(/\s*等\s*/g, '').replace(/\s*\([\s\S]*?\)/g, '');
             let items = cleanText.split('・').map(s => s.trim()).filter(s => s.length > 0);
@@ -829,18 +829,29 @@ document.addEventListener('DOMContentLoaded', () => {
             itemsReviews.push({ title: "平均評価", status: "warn", rawText: `★${displayRating.toFixed(1)} (目標★4.0以上・改善推奨)` });
         }
 
+        // GRADED SCORE: Review Reply Ratio (Max 5pt: 80%+ = 5pt, 1-79% = 3pt, 0% = 0pt)
         reviewsPossible += 5;
-        let ratioText = storeData.replyRatio !== undefined ? `返信率 ${storeData.replyRatio}%` : '未確認';
-        if (storeData.replyRatio >= 70 || storeData.statusReply === 'pass') {
+        let ratioVal = storeData.replyRatio;
+        if (ratioVal !== undefined) {
+            if (ratioVal >= 80) {
+                reviewsGained += 5;
+                itemsReviews.push({ title: "クチコミ返信率", status: "pass", rawText: `返信率 ${ratioVal}% (高水準な返信運用中)` });
+            } else if (ratioVal > 0) {
+                reviewsGained += 3;
+                itemsReviews.push({ title: "クチコミ返信率", status: "warn", rawText: `返信率 ${ratioVal}% (返信漏れあり・100%返信への改善推奨)` });
+            } else {
+                itemsReviews.push({ title: "クチコミ返信率", status: "fail", rawText: `返信率 0% (未返信・放置状態・全クチコミへの返信が必須)` });
+            }
+        } else if (storeData.statusReply === 'pass') {
             reviewsGained += 5;
-            itemsReviews.push({ title: "クチコミ返信率", status: "pass", rawText: ratioText });
-        } else if ((storeData.replyRatio !== undefined && storeData.replyRatio > 0) || storeData.statusReply === 'warn') {
+            itemsReviews.push({ title: "クチコミ返信率", status: "pass", rawText: `返信率 80%以上 (良好)` });
+        } else if (storeData.statusReply === 'warn') {
             reviewsGained += 3;
-            itemsReviews.push({ title: "クチコミ返信率", status: "warn", rawText: ratioText });
-        } else if (storeData.statusReply === 'fail' || storeData.replyRatio === 0) {
-            itemsReviews.push({ title: "クチコミ返信率", status: "fail", rawText: ratioText });
+            itemsReviews.push({ title: "クチコミ返信率", status: "warn", rawText: `返信率 一部対応 (返信漏れあり・100%返信への改善推奨)` });
+        } else if (storeData.statusReply === 'fail') {
+            itemsReviews.push({ title: "クチコミ返信率", status: "fail", rawText: `返信率 0% (未返信・放置状態・全クチコミへの返信が必須)` });
         } else {
-            itemsReviews.push({ title: "クチコミ返信率", status: "fail", rawText: `未確認` });
+            itemsReviews.push({ title: "クチコミ返信率", status: "fail", rawText: `未確認（【クチコミ】タブを開いて診断してください）` });
         }
 
         itemsReviews.push({
