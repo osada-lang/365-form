@@ -1,16 +1,19 @@
 /**
- * ============================================================================
- * GBP MEO Diagnostic Tool - Complete Master Rewrite 2.0
+ * GBP MEO Diagnostic Tool - Complete Master Clean Rewrite
  * 
- * Architecture & Core Principles:
+ * Key Features & Architecture:
  * 1. Single Source of Truth for Bookmarklet Window Target ("GBP_DIAGNOSTIC_REPORT_WINDOW").
- * 2. Non-Destructive Multi-Tab Data Aggregation Engine:
- *    - Seamlessly aggregates data scanned across Overview, Basic Info, Photo Gallery ("ALL"), and Reviews tabs.
- *    - Isolated Photo Tab Merge: Photo "ALL" tab updates ONLY photo count without altering store info or triggering store resets.
- * 3. Exact Raw Text Extraction: Captures and displays real Web URLs, full Mon-Sun schedules & holidays, exact owner messages, and ALL checked (✔) attributes.
- * 4. Store-Owner-Facing AI Consultant (Gemini 3.6 Flash): Generates encouraging client advice and naturally passes the baton to the sales rep.
- * 5. Clean, Robust Event Handling: Global delegation for modals, ESC key support, and responsive 2-line layout cards.
- * ============================================================================
+ * 2. Pure Live Data Engine: Zero rating/score carry-overs between stores; resets automatically on store change.
+ * 3. ACCURATE PHOTO COUNT ENGINE: Prevents lightbox 2-image DOM false-positives by prioritizing gallery headers (e.g. すべての写真 (64)) and filtering out 2-photo preview noise.
+ * 4. ISOLATED PHOTO GALLERY "ALL" TAB MERGE ENGINE: When diagnosing from the Photo Gallery "ALL" tab, ONLY photo counts/ranks are updated. All other store fields (Name, Category, Website, Hours, Description, Attributes) are completely preserved without triggering store-switch resets.
+ * 5. STRICT ATTRIBUTES "BASIC INFO" TAB DETECTOR: Attributes (詳細情報) are extracted dynamically when checkmarks (✔) or "基本情報" / "設備" / "プラン" sections are visible.
+ * 6. STRICT PHOTO GALLERY "ALL" TAB DETECTOR: Photos count is ONLY extracted when the user is explicitly on the Photo Gallery "ALL" (すべて) tab. Otherwise renders '未確認 (【すべて】タブを開いて診断してください)'.
+ * 7. COMPREHENSIVE ATTRIBUTE SCANNER: Scans ALL checked (✔) items dynamically without omission (e.g. トイレ, 整備士, 事前予約がおすすめ, イートイン, etc.) and appends "等".
+ * 8. FULL WEEKLY HOURS & HOLIDAYS ENGINE: Automatically triggers click on Google Maps hours dropdown and extracts full Mon-Sun schedules & explicit holidays.
+ * 9. RAW REAL CONTENT DISPLAY ENGINE: Captures and displays EXACT RAW TEXT, OWNER MESSAGES, FULL WEEKLY HOURS, WEBSITE URLS, and ALL VALIDATED ATTRIBUTES inside responsive card content boxes.
+ * 10. Protected Review Reply Ratio (%) Engine: Calculates true percentage from visible review cards vs owner replies.
+ * 11. Store-Owner-Facing AI Prompt: Generates client-friendly advice in 3 structured sections without complex jargon.
+ * 12. Layout Hierarchy: Total Score & Chart -> AI Consultancy Card -> Detailed Category Analysis (2-Line Card Blocks) -> Priority Actions.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -144,7 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (inputApiKey) inputApiKey.value = localStorage.getItem('gemini_api_key') || "";
 
     // ==========================================
-    // 3. BOOKMARKLET GENERATOR ENGINE 2.0
+    // 3. BOOKMARKLET GENERATOR ENGINE (ACCURATE PHOTO COUNT DETECTOR)
     // ==========================================
     function generateBookmarkletHref() {
         return "javascript:(function(){try{" +
@@ -224,7 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
             "  }" +
             "}" +
 
-            "/* E. PHOTO GALLERY 'ALL' TAB MULTI-APPROACH DETECTOR */" +
+            "/* E. ACCURATE PHOTO GALLERY COUNT DETECTOR */" +
             "let isPhotoAllTab = Boolean(document.body.querySelector('button[aria-label*=\"すべて\"][aria-selected=\"true\"], div[role=\"tab\"][aria-selected=\"true\"][aria-label*=\"すべて\"], button[aria-label*=\"写真\"][aria-selected=\"true\"]')) || " +
             "                    (loc.indexOf('!1e2') !== -1 || loc.indexOf('3a,87y') !== -1 || (bTxt.indexOf('すべての写真') !== -1 && bTxt.indexOf('最新') !== -1));" +
             "let photoCount = undefined;" +
@@ -232,21 +235,30 @@ document.addEventListener('DOMContentLoaded', () => {
             "let statusPhotos = 'error';" +
             "if(isPhotoAllTab){" +
             "  let countVal = 0;" +
-            "  let counterMatch = bTxt.match(/([0-9,]+)\\s*\\/\\s*([0-9,]+)/);" +
-            "  if(counterMatch){" +
-            "    let c = parseInt(counterMatch[2].replace(/,/g,''));" +
-            "    if(!isNaN(c) && c > 0) countVal = c;" +
+            "  /* Priority 1: Gallery Header Titles (e.g. すべての写真 (64), 写真 (64), 64枚の写真) */" +
+            "  let hMatch = bTxt.match(/すべての写真\\s*[\\(（]\\s*([0-9,]+)\\s*[\\)）]/) || " +
+            "               bTxt.match(/写真\\s*[\\(（]\\s*([0-9,]+)\\s*[\\)）]/) || " +
+            "               bTxt.match(/([0-9,]+)\\s*枚の写真/) || " +
+            "               bTxt.match(/写真\\s*([0-9,]+)\\s*枚/);" +
+            "  if(hMatch){" +
+            "    let num = parseInt((hMatch[1] || hMatch[2]).replace(/,/g, ''));" +
+            "    if(!isNaN(num) && num > 0) countVal = num;" +
             "  }" +
+            "  /* Priority 2: Index Counters (e.g. 1 / 64) - Ignore 2-photo preview noise */" +
             "  if(!countVal){" +
-            "    let txtMatch = bTxt.match(/([0-9,]+)\\s*枚の枚数|([0-9,]+)\\s*枚の写真|([0-9,]+)\\s*枚|写真\\s*\\(\\s*([0-9,]+)\\s*\\)/);" +
-            "    if(txtMatch){" +
-            "      let c = parseInt(txtMatch[1] || txtMatch[2] || txtMatch[3] || txtMatch[4]);" +
-            "      if(!isNaN(c) && c > 0) countVal = c;" +
+            "    let cMatches = Array.from(bTxt.matchAll(/([0-9,]+)\\s*\\/\\s*([0-9,]+)/g));" +
+            "    for(let m of cMatches){" +
+            "      let tot = parseInt(m[2].replace(/,/g, ''));" +
+            "      if(!isNaN(tot) && tot > 2){ countVal = tot; break; }" +
             "    }" +
             "  }" +
+            "  /* Priority 3: Left Panel Thumbnail Count */" +
             "  if(!countVal){" +
-            "    let imgNodes = Array.from(document.body.querySelectorAll('a[href*=\"/data=!3m\"], div.Uf09ed, div[aria-label*=\"写真\"], div.category-page-thin-image, img[src*=\"googleusercontent.com/p/\"], img[src*=\"ggpht.com\"]'));" +
-            "    countVal = imgNodes.length;" +
+            "    let panel = document.body.querySelector('div.m6QEfe, div[aria-label*=\"写真\"]');" +
+            "    if(panel){" +
+            "      let nodes = panel.querySelectorAll('a[href*=\"/data=!3m\"], img[src*=\"googleusercontent.com/p/\"]');" +
+            "      if(nodes.length > 2) countVal = nodes.length;" +
+            "    }" +
             "  }" +
             "  if(countVal > 0){" +
             "    photoCount = countVal;" +
