@@ -267,23 +267,12 @@
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label>最新投稿経過日数</label>
-                        <select id="input-last-post">
-                            <option value="7">7日以内 (活発)</option>
-                            <option value="30">30日以内 (標準)</option>
-                            <option value="90">90日以内 (更新低下)</option>
-                            <option value="999">90日以上 / 未利用</option>
-                            <option value="error">エラー（手動要確認）</option>
-                        </select>
+                        <label>最新投稿経過日数 (日)</label>
+                        <input type="number" id="input-last-post" placeholder="例: 14">
                     </div>
                     <div class="form-group">
-                        <label>写真・動画枚数</label>
-                        <select id="input-photo-count">
-                            <option value="50">50枚以上 (豊富)</option>
-                            <option value="20">20〜49枚 (標準)</option>
-                            <option value="1">20枚未満 (不足)</option>
-                            <option value="error">エラー（手動要確認）</option>
-                        </select>
+                        <label>写真・動画枚数 (枚)</label>
+                        <input type="number" id="input-photo-count" placeholder="例: 45">
                     </div>
                 </div>
 

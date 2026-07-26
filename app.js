@@ -321,6 +321,57 @@ document.addEventListener('DOMContentLoaded', () => {
 
             "let rawAttributes = validAttrItems.length > 0 ? validAttrItems.join(' ・ ') + ' 等' : '';" +
 
+            "/* Photos Count */" +
+            "let photoTier = '0';" +
+            "let pNode = document.body.querySelector('button[jsaction*=\"photo\"], button[aria-label*=\"写真\"], button[aria-label*=\"photo\"], div.g390ld');" +
+            "if(pNode){" +
+            "  let pTxt = pNode.innerText || pNode.getAttribute('aria-label') || '';" +
+            "  let pM = pTxt.match(/([0-9,]+)\\s*(?:枚|photos|枚の写真)/i) || pTxt.match(/(?:写真|すべて|photos)\\s*\\(?([0-9,]+)\\)?/i);" +
+            "  if(pM){ photoTier = pM[1].replace(/,/g, ''); }" +
+            "}" +
+            "if(photoTier === '0'){" +
+            "  let btns = Array.from(document.querySelectorAll('button'));" +
+            "  let targetBtn = btns.find(b => (b.innerText && (b.innerText.indexOf('写真') !== -1 || b.innerText.indexOf('枚') !== -1 || b.innerText.indexOf('photos') !== -1)));" +
+            "  if(targetBtn){" +
+            "    let pM = targetBtn.innerText.match(/([0-9,]+)\\s*(?:枚|photos|枚の写真)/i) || targetBtn.innerText.match(/(?:写真|すべて|photos)\\s*\\(?([0-9,]+)\\)?/i);" +
+            "    if(pM) photoTier = pM[1].replace(/,/g, '');" +
+            "  }" +
+            "}" +
+
+            "/* Days Since Last Post */" +
+            "let daysSinceLastPost = '999';" +
+            "let dateEls = Array.from(document.querySelectorAll('span, div'));" +
+            "let postDates = [];" +
+            "dateEls.forEach(el => {" +
+            "  let txt = el.innerText || '';" +
+            "  if (txt.match(/^(?:\\d+日前|\\d+週間前|\\d+か月前|\\d+ヶ月前|\\d+年前|\\d+時間前|\\d{4}\\/\\d{1,2}\\/\\d{1,2}|\\d+\\s+day|\\d+\\s+week|\\d+\\s+month|\\d+\\s+year|\\d+\\s+hour)/i)) {" +
+            "    if (!el.closest('.jftiEf') && !el.closest('.W370ub') && !el.closest('[jsaction*=\"reviews\"]')) {" +
+            "      postDates.push(txt.trim());" +
+            "    }" +
+            "  }" +
+            "});" +
+            "if (postDates.length > 0) {" +
+            "  let mostRecentText = postDates[0];" +
+            "  let days = 999;" +
+            "  let m;" +
+            "  if (m = mostRecentText.match(/(\\d+)\\s*日前/)) { days = parseInt(m[1], 10); }" +
+            "  else if (m = mostRecentText.match(/(\\d+)\\s*時間前/)) { days = 0; }" +
+            "  else if (m = mostRecentText.match(/(\\d+)\\s*週間前/)) { days = parseInt(m[1], 10) * 7; }" +
+            "  else if (m = mostRecentText.match(/(\\d+)\\s*[かヶ]月前/)) { days = parseInt(m[1], 10) * 30; }" +
+            "  else if (m = mostRecentText.match(/(\\d+)\\s*年前/)) { days = parseInt(m[1], 10) * 365; }" +
+            "  else if (m = mostRecentText.match(/(\\d{4})\\/(\\d{1,2})\\/(\\d{1,2})/)) {" +
+            "    let postDate = new Date(parseInt(m[1], 10), parseInt(m[2], 10) - 1, parseInt(m[3], 10));" +
+            "    let diffTime = Math.abs(new Date() - postDate);" +
+            "    days = Math.floor(diffTime / (1000 * 60 * 60 * 24));" +
+            "  }" +
+            "  else if (m = mostRecentText.match(/(\\d+)\\s*day/i)) { days = parseInt(m[1], 10); }" +
+            "  else if (m = mostRecentText.match(/(\\d+)\\s*hour/i)) { days = 0; }" +
+            "  else if (m = mostRecentText.match(/(\\d+)\\s*week/i)) { days = parseInt(m[1], 10) * 7; }" +
+            "  else if (m = mostRecentText.match(/(\\d+)\\s*month/i)) { days = parseInt(m[1], 10) * 30; }" +
+            "  else if (m = mostRecentText.match(/(\\d+)\\s*year/i)) { days = parseInt(m[1], 10) * 365; }" +
+            "  daysSinceLastPost = String(days);" +
+            "}" +
+
             "/* G. PACK & SEND DATA */" +
             "let data = {" +
             "  companyName: name," +
@@ -329,8 +380,8 @@ document.addEventListener('DOMContentLoaded', () => {
             "  reviewCount: reviewCount," +
             "  rating: rating," +
             "  replyRatio: replyRatio," +
-            "  daysSinceLastPost: '28'," +
-            "  photoTier: '20'," +
+            "  daysSinceLastPost: daysSinceLastPost," +
+            "  photoTier: photoTier," +
             "  rawWebsite: rawWebsite," +
             "  rawHours: rawHours," +
             "  rawDescription: rawDescription," +
@@ -338,7 +389,7 @@ document.addEventListener('DOMContentLoaded', () => {
             "  statusWebsite: Boolean(rawWebsite) ? 'pass' : 'fail'," +
             "  statusHours: Boolean(rawHours) ? 'pass' : 'fail'," +
             "  statusDescription: Boolean(rawDescription) ? 'pass' : 'fail'," +
-            "  statusCover: 'pass'," +
+            "  statusCover: (photoTier !== '0') ? 'pass' : 'fail'," +
             "  statusReply: replyStatus," +
             "  statusAttributes: Boolean(rawAttributes) ? 'pass' : 'fail'" +
             "};" +
@@ -794,17 +845,61 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // Category 3: Photos (Max 20)
-        let photosGained = 15;
-        let photosPossible = 20;
+        let photosGained = 0;
+        let photosPossible = 0;
         const itemsPhotos = [];
-        itemsPhotos.push({ title: "カバー・ロゴ画像", status: "pass", rawText: "設定済み (カバー画像・ロゴ掲載あり)" });
-        itemsPhotos.push({ title: "画像・動画枚数", status: "warn", rawText: "20〜49枚 (内観・外観・料理写真の追加推奨)" });
+
+        photosPossible += 10;
+        if (storeData.statusCover === 'pass') {
+            photosGained += 10;
+            itemsPhotos.push({ title: "カバー・ロゴ画像", status: "pass", rawText: "設定済み (カバー画像・ロゴ掲載あり)" });
+        } else if (storeData.statusCover === 'warn') {
+            photosGained += 6;
+            itemsPhotos.push({ title: "カバー・ロゴ画像", status: "warn", rawText: "一部未設定 (カバー画像またはロゴのいずれかが不足している可能性があります)" });
+        } else {
+            itemsPhotos.push({ title: "カバー・ロゴ画像", status: "fail", rawText: "未設定 (カバー画像・ロゴが登録されていないか、確認できませんでした)" });
+        }
+
+        photosPossible += 10;
+        let pCount = parseInt(storeData.photoTier, 10) || 0;
+        if (pCount >= 100) {
+            photosGained += 10;
+            itemsPhotos.push({ title: "画像・動画枚数", status: "pass", rawText: `${pCount}枚 (豊富に掲載されており、非常に良好な状態です)` });
+        } else if (pCount >= 50) {
+            photosGained += 8;
+            itemsPhotos.push({ title: "画像・動画枚数", status: "pass", rawText: `${pCount}枚 (良好な枚数ですが、内観・外観・料理写真の追加を推奨します)` });
+        } else if (pCount >= 20) {
+            photosGained += 5;
+            itemsPhotos.push({ title: "画像・動画枚数", status: "warn", rawText: `${pCount}枚 (20〜49枚。魅力発信のため、さらなる画像・動画追加を推奨します)` });
+        } else {
+            photosGained += 2;
+            itemsPhotos.push({ title: "画像・動画枚数", status: "fail", rawText: `${pCount}枚 (枚数が大幅に不足しています。店内や料理等の写真掲載を推奨します)` });
+        }
 
         // Category 4: Posts (Max 20)
-        let postsGained = 14;
+        let postsGained = 0;
         let postsPossible = 20;
         const itemsPosts = [];
-        itemsPosts.push({ title: "最新投稿状況", status: "warn", rawText: "30日以内に投稿あり (最新情報の定期更新中)" });
+
+        let daysPost = parseInt(storeData.daysSinceLastPost, 10);
+        if (isNaN(daysPost)) daysPost = 999;
+
+        if (daysPost <= 7) {
+            postsGained += 20;
+            itemsPosts.push({ title: "最新投稿状況", status: "pass", rawText: "直近7日以内に投稿あり (常に新鮮な情報を届けており、非常に素晴らしい状態です)" });
+        } else if (daysPost <= 30) {
+            postsGained += 15;
+            itemsPosts.push({ title: "最新投稿状況", status: "pass", rawText: "30日以内に投稿あり (最新情報の定期更新中。週1回以上の更新を推奨します)" });
+        } else if (daysPost <= 90) {
+            postsGained += 8;
+            itemsPosts.push({ title: "最新投稿状況", status: "warn", rawText: `最終投稿から ${daysPost}日経過 (更新頻度が低下しています。新鮮な情報を顧客に届けるため、再開を推奨します)` });
+        } else if (daysPost === 999) {
+            postsGained += 0;
+            itemsPosts.push({ title: "最新投稿状況", status: "fail", rawText: "投稿の掲載なし (最新情報(投稿機能)が一度も使用されていないか、投稿がありません)" });
+        } else {
+            postsGained += 3;
+            itemsPosts.push({ title: "最新投稿状況", status: "fail", rawText: `最終投稿から ${daysPost}日以上経過 (更新が完全に停止しています。活気のない印象を与えかねないため、更新が必要です)` });
+        }
 
         totalGained = basicGained + reviewsGained + photosGained + postsGained;
         totalPossible = basicPossible + reviewsPossible + photosPossible + postsPossible;
