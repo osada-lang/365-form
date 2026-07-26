@@ -4,9 +4,9 @@
  * Key Features & Architecture:
  * 1. Single Source of Truth for Bookmarklet Window Target ("GBP_DIAGNOSTIC_REPORT_WINDOW").
  * 2. Pure Live Data Engine: Zero rating/score carry-overs between stores; resets automatically on store change.
- * 3. STRICT ATTRIBUTES "BASIC INFO" TAB DETECTOR: Attributes (詳細情報) are ONLY extracted when the user is explicitly on the "基本情報" (Basic Info) tab. Otherwise renders '未確認 (【基本情報】タブを開いて診断してください)'.
+ * 3. STRICT ATTRIBUTES "BASIC INFO" TAB DETECTOR: Attributes (詳細情報) are extracted dynamically when checkmarks (✔) or "基本情報" / "設備" / "プラン" sections are visible.
  * 4. STRICT PHOTO GALLERY "ALL" TAB DETECTOR: Photos count is ONLY extracted when the user is explicitly on the Photo Gallery "ALL" (すべて) tab. Otherwise renders '未確認 (【すべて】タブを開いて診断してください)'.
- * 5. COMPREHENSIVE ATTRIBUTE SCANNER: Scans ALL checked (✔) items dynamically without omission and appends "等".
+ * 5. COMPREHENSIVE ATTRIBUTE SCANNER: Scans ALL checked (✔) items dynamically without omission (e.g. トイレ, 整備士, 事前予約がおすすめ, イートイン, etc.) and appends "等".
  * 6. FULL WEEKLY HOURS & HOLIDAYS ENGINE: Automatically triggers click on Google Maps hours dropdown and extracts full Mon-Sun schedules & explicit holidays.
  * 7. RAW REAL CONTENT DISPLAY ENGINE: Captures and displays EXACT RAW TEXT, OWNER MESSAGES, FULL WEEKLY HOURS, WEBSITE URLS, and ALL VALIDATED ATTRIBUTES inside responsive card content boxes.
  * 8. Protected Review Reply Ratio (%) Engine: Calculates true percentage from visible review cards vs owner replies.
@@ -302,25 +302,30 @@ document.addEventListener('DOMContentLoaded', () => {
             "  }" +
             "}" +
 
-            "/* G. STRICT ATTRIBUTES 'BASIC INFO' TAB DETECTOR */" +
-            "let isBasicInfoTab = Boolean(document.body.querySelector('button[aria-label*=\"基本情報\"][aria-selected=\"true\"], div[role=\"tab\"][aria-selected=\"true\"][aria-label*=\"基本情報\"]')) || " +
-            "                     (bTxt.indexOf('基本情報') !== -1 && (bTxt.indexOf('バリアフリー') !== -1 || bTxt.indexOf('サービス オプション') !== -1 || bTxt.indexOf('お支払い') !== -1 || bTxt.indexOf('設備') !== -1));" +
+            "/* G. STRICT ATTRIBUTES 'BASIC INFO' TAB DETECTOR (ROBUST DETECTOR) */" +
+            "let isBasicInfoTab = Boolean(document.body.querySelector('button[aria-label*=\"基本情報\"], div[role=\"tab\"][aria-selected=\"true\"], [aria-label*=\"基本情報\"]')) || " +
+            "                     bTxt.indexOf('✔') !== -1 || " +
+            "                     bTxt.indexOf('基本情報') !== -1 || " +
+            "                     bTxt.indexOf('設備') !== -1 || " +
+            "                     bTxt.indexOf('プラン') !== -1 || " +
+            "                     bTxt.indexOf('バリアフリー') !== -1 || " +
+            "                     bTxt.indexOf('お支払い') !== -1;" +
             "let rawAttributes = '';" +
             "let statusAttributes = 'error';" +
             "if(isBasicInfoTab){" +
             "  let validAttrItems = [];" +
-            "  let checkNodes = Array.from(document.body.querySelectorAll('div, span, li, tr'));" +
+            "  let checkNodes = Array.from(document.body.querySelectorAll('div, span, li, tr, p, td'));" +
             "  checkNodes.forEach(node => {" +
             "    let txt = node.innerText || '';" +
             "    if(txt.indexOf('✔') !== -1 && txt.length < 35 && txt.indexOf('\\n') === -1){" +
             "      let cleanItem = txt.replace(/✔/g, '').trim();" +
-            "      if(cleanItem && validAttrItems.indexOf(cleanItem) === -1){" +
+            "      if(cleanItem && cleanItem !== '基本情報' && validAttrItems.indexOf(cleanItem) === -1){" +
             "        validAttrItems.push(cleanItem);" +
             "      }" +
             "    }" +
             "  });" +
             "  let kwCandidates = [" +
-            "    'イートイン', 'テイクアウト', '一人での食事', 'アルコール飲料', 'ビール', 'ワイン', 'カクテル', '小皿料理', 'テーブル サービス', " +
+            "    'トイレ', '整備士', '事前予約がおすすめ', 'イートイン', 'テイクアウト', '一人での食事', 'アルコール飲料', 'ビール', 'ワイン', 'カクテル', '小皿料理', 'テーブル サービス', " +
             "    '車椅子対応の座席', '車椅子対応の入り口', '車椅子対応の駐車場', '車椅子対応のトイレ', '無料Wi-Fi', 'Wi-Fi完備', " +
             "    '無料駐車場完備', '駐車場あり', 'キャッシュレス決済対応', 'クレジットカード可', '電子マネー可', 'QRコード決済', '個室あり', '全席禁煙'" +
             "  ];" +
@@ -597,12 +602,12 @@ document.addEventListener('DOMContentLoaded', () => {
         storeData.daysSinceLastPost = inputLastPost.value;
         storeData.photoTier = inputPhotoCount.value;
 
-        storeData.statusWebsite = selectWebsite.value;
-        storeData.statusHours = selectHours.value;
-        storeData.statusDescription = selectDescription.value;
-        storeData.statusCover = selectCover.value;
-        storeData.statusReply = selectReply.value;
-        storeData.statusAttributes = selectAttributes.value;
+        selectWebsite.value = selectWebsite.value;
+        selectHours.value = selectHours.value;
+        selectDescription.value = selectDescription.value;
+        selectCover.value = selectCover.value;
+        selectReply.value = selectReply.value;
+        selectAttributes.value = selectAttributes.value;
 
         calculateAndRender();
     }
