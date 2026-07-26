@@ -107,10 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Buttons & Modals
     const btnPrint = document.getElementById('btn-print');
     const btnClearReport = document.getElementById('btn-clear-report');
-    const btnLoadDemo = document.getElementById('btn-load-demo');
-    const btnWelcomeDemo = document.getElementById('btn-welcome-demo');
     const btnWelcomeGuide = document.getElementById('btn-welcome-guide');
-    const btnOpenGuide = document.getElementById('btn-open-guide');
     const btnShowBookmarkletModal = document.getElementById('btn-show-bookmarklet-modal');
     const modalBookmarklet = document.getElementById('modal-bookmarklet');
     const bookmarkletLink = document.getElementById('bookmarklet-link');
@@ -1105,33 +1102,6 @@ document.addEventListener('DOMContentLoaded', () => {
     btnPrint.addEventListener('click', () => window.print());
     if (btnClearReport) btnClearReport.addEventListener('click', resetToWelcomeView);
 
-    const loadDemoAction = () => {
-        storeData = {
-            companyName: "ほるたん屋 小牧店",
-            name: "ほるたん屋 小牧店",
-            category: "焼肉店",
-            reviewCount: 221,
-            rating: 3.7,
-            replyRatio: 85,
-            daysSinceLastPost: "28",
-            photoTier: "20",
-            rawWebsite: "http://www.horutanya.jp/horumon.html",
-            rawHours: "月曜 17:00〜0:00 / 火曜 17:00〜0:00 / 水曜 17:00〜0:00 / 木曜 17:00〜0:00 / 金曜 17:00〜0:00 / 土曜 16:00〜0:00 / 日曜 16:00〜0:00 (定休日なし)",
-            rawDescription: "提供元: オーナー: 6/1(月)〜6/30(火)限定✨ お会計税込3,000円ごとに 次回使える【1,000円クーポン】進呈🎁 食べれば食べるほど超おトク🔥 ご家族・ご友人との焼肉にぜひ‼️ ■配布内容 税込3,000円ごとのお会計につき「1,000円クーポン」を1枚配布...",
-            rawAttributes: "イートイン ・ 一人での食事 ・ アルコール飲料 ・ ビール ・ 小皿料理 ・ テーブル サービス 等",
-            statusWebsite: "pass",
-            statusHours: "pass",
-            statusDescription: "pass",
-            statusCover: "pass",
-            statusReply: "pass",
-            statusAttributes: "pass"
-        };
-        triggerLoadingAnimation(() => updateFormValues(), true);
-    };
-
-    if (btnLoadDemo) btnLoadDemo.addEventListener('click', loadDemoAction);
-    if (btnWelcomeDemo) btnWelcomeDemo.addEventListener('click', loadDemoAction);
-
     btnGenerateAiAdvice.addEventListener('click', () => {
         if (currentDiagDataForAi) callAiAdviceApi(currentDiagDataForAi);
     });
@@ -1154,8 +1124,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (btnWelcomeGuide) btnWelcomeGuide.addEventListener('click', showModal);
-    btnOpenGuide.addEventListener('click', showModal);
-    btnShowBookmarkletModal.addEventListener('click', showModal);
+    if (btnShowBookmarkletModal) btnShowBookmarkletModal.addEventListener('click', showModal);
 
     document.querySelectorAll('.btn-close-modal').forEach(btn => btn.addEventListener('click', hideModal));
     modalBookmarklet.addEventListener('click', (e) => { if (e.target === modalBookmarklet) hideModal(); });
