@@ -497,40 +497,103 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 5. PURE LIVE DATA MERGE ENGINE (NO CARRY-OVER)
+    // 5. PURE LIVE DATA MERGE ENGINE (SAME STORE ADDITIVE / NEW STORE RESET)
     // ==========================================
-    function mergeStoreData(existing, incoming) {
-        let isUpdated = false;
-        let isNewStore = false;
+    function normalizeStoreName(name) {
+        if (!name) return "";
+        return name
+            .replace(/[\s\u3000]+/g, '')
+            .replace(/[（\(][^）\)]+[）\)]/g, '')
+            .replace(/株式会社|有限会社|合同会社|合資会社|合名会社/g, '')
+            .toLowerCase();
+    }
 
+    function isSameStoreName(nameA, nameB) {
+        if (!nameA || !nameB) return false;
+        if (nameA === "店舗名未設定" || nameB === "店舗名未設定") return false;
+        const normA = normalizeStoreName(nameA);
+        const normB = normalizeStoreName(nameB);
+        if (!normA || !normB) return false;
+        return normA === normB || normA.includes(normB) || normB.includes(normA);
+    }
+
+    function mergeStoreData(existing, incoming) {
         const safeIncoming = {
             ...INITIAL_STORE_TEMPLATE,
             ...incoming
         };
 
-        if (existing.name && safeIncoming.name && existing.name !== safeIncoming.name && existing.name !== "店舗名未設定") {
-            isNewStore = true;
-            return { merged: safeIncoming, isUpdated: true, isNewStore };
+        const isNewStore = !isSameStoreName(existing.name, safeIncoming.name);
+
+        if (isNewStore) {
+            if (safeIncoming.rating > 0) {
+                safeIncoming.rating = Math.min(Math.max(parseFloat(safeIncoming.rating), 1.0), 5.0);
+            }
+            return { merged: safeIncoming, isUpdated: true, isNewStore: true };
         }
 
+        // SAME STORE MERGE MODE (Additive / Cumulative Only)
+        let isUpdated = false;
         const merged = { ...existing };
 
         if (safeIncoming.name && safeIncoming.name !== "店舗名未設定") merged.name = safeIncoming.name;
-        if (safeIncoming.companyName) merged.companyName = safeIncoming.companyName;
-        if (safeIncoming.category && safeIncoming.category !== "未設定") merged.category = safeIncoming.category;
-        if (safeIncoming.reviewCount > 0) merged.reviewCount = Math.max(existing.reviewCount || 0, safeIncoming.reviewCount);
+        if (safeIncoming.companyName && safeIncoming.companyName !== "店舗名未設定") merged.companyName = safeIncoming.companyName;
+        if (safeIncoming.category && safeIncoming.category !== "未設定" && safeIncoming.category.trim().length > 0) merged.category = safeIncoming.category;
 
-        if (safeIncoming.rawWebsite) merged.rawWebsite = safeIncoming.rawWebsite;
-        if (safeIncoming.rawHours) merged.rawHours = safeIncoming.rawHours;
-        if (safeIncoming.rawDescription) merged.rawDescription = safeIncoming.rawDescription;
-        if (safeIncoming.rawAttributes !== undefined) merged.rawAttributes = safeIncoming.rawAttributes;
-
-        if (safeIncoming.rating > 0) {
-            merged.rating = Math.min(Math.max(parseFloat(safeIncoming.rating), 1.0), 5.0);
+        if (safeIncoming.rawWebsite && safeIncoming.rawWebsite.trim().length > 0) {
+            if (merged.rawWebsite !== safeIncoming.rawWebsite) { merged.rawWebsite = safeIncoming.rawWebsite; isUpdated = true; }
+        }
+        if (safeIncoming.rawHours && safeIncoming.rawHours.trim().length > 0) {
+            if (merged.rawHours !== safeIncoming.rawHours) { merged.rawHours = safeIncoming.rawHours; isUpdated = true; }
+        }
+        if (safeIncoming.rawDescription && safeIncoming.rawDescription.trim().length > 0) {
+            if (merged.rawDescription !== safeIncoming.rawDescription) { merged.rawDescription = safeIncoming.rawDescription; isUpdated = true; }
         }
 
+        // Additive attribute merging (never lose previously captured attributes)
+        if (safeIncoming.rawAttributes && safeIncoming.rawAttributes.trim().length > 0) {
+            if (!merged.rawAttributes || merged.rawAttributes.trim().length === 0) {
+                merged.rawAttributes = safeIncoming.rawAttributes;
+                isUpdated = true;
+            } else {
+                const existingAttrs = merged.rawAttributes.split(' ・ ').map(s => s.trim().replace(/ 等$/, ''));
+                const incomingAttrs = safeIncoming.rawAttributes.split(' ・ ').map(s => s.trim().replace(/ 等$/, ''));
+                const combinedAttrs = Array.from(new Set([...existingAttrs, ...incomingAttrs])).filter(Boolean);
+                const newAttrStr = combinedAttrs.join(' ・ ') + ' 等';
+                if (merged.rawAttributes !== newAttrStr) {
+                    merged.rawAttributes = newAttrStr;
+                    isUpdated = true;
+                }
+            }
+        }
+
+        if (safeIncoming.reviewCount > (merged.reviewCount || 0)) {
+            merged.reviewCount = safeIncoming.reviewCount;
+            isUpdated = true;
+        }
+        if (safeIncoming.rating > 0 && safeIncoming.rating !== merged.rating) {
+            merged.rating = Math.min(Math.max(parseFloat(safeIncoming.rating), 1.0), 5.0);
+            isUpdated = true;
+        }
         if (safeIncoming.replyRatio !== undefined && safeIncoming.statusReply !== 'error') {
-            merged.replyRatio = safeIncoming.replyRatio;
+            if (merged.replyRatio === undefined || safeIncoming.replyRatio > merged.replyRatio) {
+                merged.replyRatio = safeIncoming.replyRatio;
+                isUpdated = true;
+            }
+        }
+
+        const existingPhotos = parseInt(merged.photoTier || '0', 10);
+        const incomingPhotos = parseInt(safeIncoming.photoTier || '0', 10);
+        if (incomingPhotos > existingPhotos) {
+            merged.photoTier = String(incomingPhotos);
+            isUpdated = true;
+        }
+
+        const existingDays = parseInt(merged.daysSinceLastPost || '999', 10);
+        const incomingDays = parseInt(safeIncoming.daysSinceLastPost || '999', 10);
+        if (incomingDays < existingDays) {
+            merged.daysSinceLastPost = String(incomingDays);
+            isUpdated = true;
         }
 
         const statusKeys = ['statusWebsite', 'statusHours', 'statusDescription', 'statusCover', 'statusReply', 'statusAttributes'];
@@ -541,17 +604,13 @@ document.addEventListener('DOMContentLoaded', () => {
             let existingRank = STATUS_RANK[existingVal] !== undefined ? STATUS_RANK[existingVal] : 0;
             let incomingRank = STATUS_RANK[incomingVal] !== undefined ? STATUS_RANK[incomingVal] : 0;
 
-            if (incomingRank >= existingRank) {
-                if (existing[key] !== incomingVal) {
-                    merged[key] = incomingVal;
-                    isUpdated = true;
-                }
-            } else {
-                merged[key] = existingVal;
+            if (incomingRank > existingRank) {
+                merged[key] = incomingVal;
+                isUpdated = true;
             }
         });
 
-        return { merged, isUpdated, isNewStore };
+        return { merged, isUpdated, isNewStore: false };
     }
 
     function parseIncomingData() {
@@ -562,23 +621,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 const parsed = JSON.parse(jsonStr);
                 if (parsed && (parsed.name || parsed.companyName)) {
                     if (parsed.category) {
-                        parsed.category = parsed.category.replace(/[\\uE000-\\uF8FF\\u2000-\\u206F]/g, '').replace(/([0-9\.]+\s*)?Google\s*のクチコミ.*/gi, '').replace(/^[0-9\.\s★⭐]+/,'').replace(/^.*?[都道府県市区町村]の/, '').trim() || "未設定";
+                        parsed.category = parsed.category.replace(/[\uE000-\uF8FF\u2000-\u206F]/g, '').replace(/([0-9\.]+\s*)?Google\s*のクチコミ.*/gi, '').replace(/^[0-9\.\s★⭐]+/,'').replace(/^.*?[都道府県市区町村]の/, '').trim() || "未設定";
                     }
 
-                    const safeIncoming = {
-                        ...INITIAL_STORE_TEMPLATE,
-                        ...parsed
-                    };
-                    if (safeIncoming.rating > 0) {
-                        safeIncoming.rating = Math.min(Math.max(parseFloat(safeIncoming.rating), 1.0), 5.0);
+                    const saved = localStorage.getItem('last_gbp_data');
+                    let baseData = storeData;
+                    if (saved) {
+                        try {
+                            const parsedSaved = JSON.parse(saved);
+                            if (parsedSaved && parsedSaved.name) baseData = parsedSaved;
+                        } catch(e){}
                     }
 
-                    storeData = safeIncoming;
+                    const { merged, isUpdated, isNewStore } = mergeStoreData(baseData, parsed);
+
+                    if (isNewStore) {
+                        resetAiAdvice();
+                    }
+
+                    storeData = merged;
                     localStorage.setItem('last_gbp_data', JSON.stringify(storeData));
 
                     history.replaceState(null, "", window.location.pathname);
                     activateReportView();
-                    triggerLoadingAnimation(() => updateFormValues(), false, true);
+                    triggerLoadingAnimation(() => updateFormValues(), !isNewStore && isUpdated, isNewStore);
                     return true;
                 }
             } catch (e) {
