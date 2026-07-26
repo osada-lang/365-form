@@ -230,11 +230,13 @@
             </div>
         </section>
 
-        <!-- 3. Manual Control Panel (Hidden on Initial Visit) -->
+        <!-- 3. Manual Control Panel (Hidden by default in collapsible accordion) -->
         <aside id="control-panel-section" class="control-panel-section hidden">
-            <div class="panel-header">
-                <h3>⚙️ 診断データ手動調整</h3>
-            </div>
+            <details class="control-panel-details">
+                <summary class="control-panel-summary">⚙️ 診断データの手動微調整（クリックして展開）</summary>
+                <div class="panel-header" style="margin-top: 1.25rem;">
+                    <h3>⚙️ 診断データ手動調整</h3>
+                </div>
             
             <form class="diag-form" onsubmit="return false;">
                 <div class="form-group">
@@ -333,6 +335,7 @@
                     </div>
                 </div>
             </form>
+            </details>
         </aside>
     </main>
 

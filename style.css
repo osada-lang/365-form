@@ -575,14 +575,36 @@ body {
 
 /* 3. Manual Control Panel Aside */
 .control-panel-section {
-    width: 340px;
     background: #ffffff;
     border-radius: var(--radius-lg);
-    padding: 1.5rem;
+    padding: 1rem 1.25rem;
     border: 1px solid var(--border-color);
     box-shadow: var(--shadow-sm);
-    position: sticky;
-    top: 5rem;
+    margin-top: 1.5rem;
+}
+
+.control-panel-summary {
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    padding: 0.5rem 0.85rem;
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: var(--radius-sm);
+    outline: none;
+    transition: all 0.2s ease;
+    list-style: none;
+}
+
+.control-panel-summary::-webkit-details-marker {
+    display: none;
+}
+
+.control-panel-summary:hover {
+    background: #f1f5f9;
+    color: var(--primary-color);
+    border-color: var(--primary-color);
 }
 
 .panel-header {
