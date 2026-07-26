@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
         rating: 0,
         replyRatio: undefined,
         daysSinceLastPost: "999",
-        photoTier: "0",
+        photoTier: "20",
         rawWebsite: "",
         rawHours: "",
         rawDescription: "",
@@ -321,21 +321,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
             "let rawAttributes = validAttrItems.length > 0 ? validAttrItems.join(' ・ ') + ' 等' : '';" +
 
-            "/* Photos Count */" +
+            "/* Photos Count Scanner (Multi-Layered Precision Engine) */" +
             "let photoTier = '0';" +
-            "let pNode = document.body.querySelector('button[jsaction*=\"photo\"], button[aria-label*=\"写真\"], button[aria-label*=\"photo\"], div.g390ld');" +
-            "if(pNode){" +
-            "  let pTxt = pNode.innerText || pNode.getAttribute('aria-label') || '';" +
-            "  let pM = pTxt.match(/([0-9,]+)\\s*(?:枚|photos|枚の写真)/i) || pTxt.match(/(?:写真|すべて|photos)\\s*\\(?([0-9,]+)\\)?/i);" +
-            "  if(pM){ photoTier = pM[1].replace(/,/g, ''); }" +
-            "}" +
-            "if(photoTier === '0'){" +
-            "  let btns = Array.from(document.querySelectorAll('button'));" +
-            "  let targetBtn = btns.find(b => (b.innerText && (b.innerText.indexOf('写真') !== -1 || b.innerText.indexOf('枚') !== -1 || b.innerText.indexOf('photos') !== -1)));" +
-            "  if(targetBtn){" +
-            "    let pM = targetBtn.innerText.match(/([0-9,]+)\\s*(?:枚|photos|枚の写真)/i) || targetBtn.innerText.match(/(?:写真|すべて|photos)\\s*\\(?([0-9,]+)\\)?/i);" +
-            "    if(pM) photoTier = pM[1].replace(/,/g, '');" +
+            "let photoNums = [];" +
+            "let photoEls = Array.from(document.body.querySelectorAll('button, div, a, span'));" +
+            "photoEls.forEach(el => {" +
+            "  let txt = (el.innerText || '') + ' ' + (el.getAttribute('aria-label') || '');" +
+            "  if(txt && (txt.indexOf('写真') !== -1 || txt.indexOf('すべて') !== -1 || txt.indexOf('枚') !== -1 || txt.indexOf('photos') !== -1 || (el.getAttribute('jsaction') && el.getAttribute('jsaction').indexOf('photo') !== -1))){" +
+            "    let m = txt.match(/([0-9,]+)\\s*枚/) || txt.match(/(?:写真|すべて|photos|画像)\\s*[\\(（\\s\\+]*([0-9,]+)[\\)）\\s]*/i) || txt.match(/([0-9,]+)\\s*件の(?:写真|画像)/) || txt.match(/([0-9,]+)\\s*photos/i);" +
+            "    if(m){" +
+            "      let val = parseInt(m[1].replace(/,/g, ''), 10);" +
+            "      if(val > 0 && val < 100000) photoNums.push(val);" +
+            "    }" +
             "  }" +
+            "});" +
+            "if(photoNums.length > 0){" +
+            "  photoTier = String(Math.max(...photoNums));" +
+            "}else{" +
+            "  let hasPhotoBtn = Boolean(document.body.querySelector('button[jsaction*=\"photo\"], button[aria-label*=\"写真\"], button[aria-label*=\"photo\"], div.g390ld, .g390ld'));" +
+            "  if(hasPhotoBtn) photoTier = '20';" +
             "}" +
 
             "/* Days Since Last Post - Tab Presence & Internal Scan Only */" +
