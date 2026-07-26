@@ -338,38 +338,46 @@ document.addEventListener('DOMContentLoaded', () => {
             "  }" +
             "}" +
 
-            "/* Days Since Last Post */" +
+            "/* Days Since Last Post - Strict 3-Step Verification */" +
             "let daysSinceLastPost = '999';" +
-            "let dateEls = Array.from(document.querySelectorAll('span, div'));" +
-            "let postDates = [];" +
-            "dateEls.forEach(el => {" +
-            "  let txt = el.innerText || '';" +
-            "  if (txt.match(/^(?:\\d+日前|\\d+週間前|\\d+か月前|\\d+ヶ月前|\\d+年前|\\d+時間前|\\d{4}\\/\\d{1,2}\\/\\d{1,2}|\\d+\\s+day|\\d+\\s+week|\\d+\\s+month|\\d+\\s+year|\\d+\\s+hour)/i)) {" +
-            "    if (!el.closest('.jftiEf') && !el.closest('.W370ub') && !el.closest('[jsaction*=\"reviews\"]')) {" +
-            "      postDates.push(txt.trim());" +
+            "let allElements = Array.from(document.body.querySelectorAll('button, div, h2, h3, span'));" +
+            "let updateSectionHeader = allElements.find(el => {" +
+            "  let t = (el.innerText || '').trim();" +
+            "  return (t === '最新情報' || t === '最新の投稿' || t.indexOf('提供元: オーナー') !== -1 || t === 'Updates' || t === 'Updates from owner');" +
+            "});" +
+            "if(updateSectionHeader){" +
+            "  let updateContainer = updateSectionHeader.closest('div.m6QEfe, div.section-layout, div.Mlm32, div.jT21A, div[role=\"region\"], div[jsaction*=\"updates\"]') || updateSectionHeader.parentElement.parentElement;" +
+            "  if(updateContainer){" +
+            "    let dateNodes = Array.from(updateContainer.querySelectorAll('span, div'));" +
+            "    let postDates = [];" +
+            "    dateNodes.forEach(el => {" +
+            "      let txt = (el.innerText || '').trim();" +
+            "      if(txt.match(/^(?:\\d+日前|\\d+週間前|\\d+か月前|\\d+ヶ月前|\\d+年前|\\d+時間前|\\d{4}\\/\\d{1,2}\\/\\d{1,2}|\\d+\\s+day|\\d+\\s+week|\\d+\\s+month|\\d+\\s+year|\\d+\\s+hour)/i)){" +
+            "        postDates.push(txt);" +
+            "      }" +
+            "    });" +
+            "    if(postDates.length > 0){" +
+            "      let mostRecentText = postDates[0];" +
+            "      let days = 999;" +
+            "      let m;" +
+            "      if (m = mostRecentText.match(/(\\d+)\\s*日前/)) { days = parseInt(m[1], 10); }" +
+            "      else if (m = mostRecentText.match(/(\\d+)\\s*時間前/)) { days = 0; }" +
+            "      else if (m = mostRecentText.match(/(\\d+)\\s*週間前/)) { days = parseInt(m[1], 10) * 7; }" +
+            "      else if (m = mostRecentText.match(/(\\d+)\\s*[かヶ]月前/)) { days = parseInt(m[1], 10) * 30; }" +
+            "      else if (m = mostRecentText.match(/(\\d+)\\s*年前/)) { days = parseInt(m[1], 10) * 365; }" +
+            "      else if (m = mostRecentText.match(/(\\d{4})\\/(\\d{1,2})\\/(\\d{1,2})/)) {" +
+            "        let postDate = new Date(parseInt(m[1], 10), parseInt(m[2], 10) - 1, parseInt(m[3], 10));" +
+            "        let diffTime = Math.abs(new Date() - postDate);" +
+            "        days = Math.floor(diffTime / (1000 * 60 * 60 * 24));" +
+            "      }" +
+            "      else if (m = mostRecentText.match(/(\\d+)\\s*day/i)) { days = parseInt(m[1], 10); }" +
+            "      else if (m = mostRecentText.match(/(\\d+)\\s*hour/i)) { days = 0; }" +
+            "      else if (m = mostRecentText.match(/(\\d+)\\s*week/i)) { days = parseInt(m[1], 10) * 7; }" +
+            "      else if (m = mostRecentText.match(/(\\d+)\\s*month/i)) { days = parseInt(m[1], 10) * 30; }" +
+            "      else if (m = mostRecentText.match(/(\\d+)\\s*year/i)) { days = parseInt(m[1], 10) * 365; }" +
+            "      daysSinceLastPost = String(days);" +
             "    }" +
             "  }" +
-            "});" +
-            "if (postDates.length > 0) {" +
-            "  let mostRecentText = postDates[0];" +
-            "  let days = 999;" +
-            "  let m;" +
-            "  if (m = mostRecentText.match(/(\\d+)\\s*日前/)) { days = parseInt(m[1], 10); }" +
-            "  else if (m = mostRecentText.match(/(\\d+)\\s*時間前/)) { days = 0; }" +
-            "  else if (m = mostRecentText.match(/(\\d+)\\s*週間前/)) { days = parseInt(m[1], 10) * 7; }" +
-            "  else if (m = mostRecentText.match(/(\\d+)\\s*[かヶ]月前/)) { days = parseInt(m[1], 10) * 30; }" +
-            "  else if (m = mostRecentText.match(/(\\d+)\\s*年前/)) { days = parseInt(m[1], 10) * 365; }" +
-            "  else if (m = mostRecentText.match(/(\\d{4})\\/(\\d{1,2})\\/(\\d{1,2})/)) {" +
-            "    let postDate = new Date(parseInt(m[1], 10), parseInt(m[2], 10) - 1, parseInt(m[3], 10));" +
-            "    let diffTime = Math.abs(new Date() - postDate);" +
-            "    days = Math.floor(diffTime / (1000 * 60 * 60 * 24));" +
-            "  }" +
-            "  else if (m = mostRecentText.match(/(\\d+)\\s*day/i)) { days = parseInt(m[1], 10); }" +
-            "  else if (m = mostRecentText.match(/(\\d+)\\s*hour/i)) { days = 0; }" +
-            "  else if (m = mostRecentText.match(/(\\d+)\\s*week/i)) { days = parseInt(m[1], 10) * 7; }" +
-            "  else if (m = mostRecentText.match(/(\\d+)\\s*month/i)) { days = parseInt(m[1], 10) * 30; }" +
-            "  else if (m = mostRecentText.match(/(\\d+)\\s*year/i)) { days = parseInt(m[1], 10) * 365; }" +
-            "  daysSinceLastPost = String(days);" +
             "}" +
 
             "/* G. PACK & SEND DATA */" +
