@@ -10,8 +10,8 @@
  *    - ATTRIBUTES GRADED SCORE (Max 4pt): 5+ items = 4pt, 1-4 items = 2pt, 0 items = 0pt.
  *    - DESCRIPTION GRADED SCORE (Max 4pt): 250+ chars = 4pt, 1-249 chars = 2pt, 0 chars = 0pt.
  * 4. STRICT AI REPORT PROMPT & STRUCTURE: Exactly 3 Sections with 3 Sub-items each (1-1 to 3-3) formatted precisely.
- * 5. PINPOINT WEBSITE EXTRACTION & FILTER: 
- *    Ignores Google system URLs (google.co.jp/intl/ja/about/products) and extracts real store URLs or marks Fail.
+ * 5. PINPOINT WEBSITE EXTRACTION FOR GLOBE ICON LIST & ACTION BUTTONS:
+ *    Accurately extracts store URLs like "ichigo-jidousya.com" from globe icon list rows even if round action button is absent.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -267,7 +267,7 @@ document.addEventListener('DOMContentLoaded', () => {
             "  }" +
             "}" +
 
-            "/* F. CATEGORY & WEBSITE URL PINPOINT EXTRACTION */" +
+            "/* F. CATEGORY & WEBSITE URL PINPOINT EXTRACTION (HANDLES GLOBE ICON LIST ROWS & BUTTONS) */" +
             "let category = '未設定';" +
             "let catNode = document.body.querySelector('button[jsaction*=\"category\"], div.fontBodyMedium button, span.DkEaL');" +
             "if(catNode && catNode.innerText){" +
@@ -279,7 +279,7 @@ document.addEventListener('DOMContentLoaded', () => {
             "let hBtn = document.body.querySelector('button[aria-label*=\"営業時間\"], button[aria-label*=\"営業中\"], button[aria-label*=\"営業終了\"], button[aria-label*=\"まもなく営業終了\"], div.t3bWnc button, button[data-item-id=\"oh\"]');" +
             "if(hBtn){ try{ hBtn.click(); }catch(e){} }" +
 
-            "/* Raw Website URL (Strict Store Authority Link Filter) */" +
+            "/* Raw Website URL Extraction Engine */" +
             "let rawWebsite = '';" +
             "let webBtn = document.body.querySelector('a[data-item-id=\"authority\"], a[aria-label*=\"ウェブサイト\"], a[aria-label*=\"サイト\"]');" +
             "if(webBtn){" +
@@ -291,17 +291,22 @@ document.addEventListener('DOMContentLoaded', () => {
             "  if(h && h.indexOf('google.') === -1 && h.indexOf('gstatic.') === -1){ rawWebsite = h; }" +
             "}" +
             "if(!rawWebsite){" +
-            "  let anchors = Array.from(document.body.querySelectorAll('a[href*=\"http\"]'));" +
+            "  let anchors = Array.from(document.body.querySelectorAll('a[href]'));" +
             "  for(let a of anchors){" +
             "    let href = a.getAttribute('href') || '';" +
-            "    let label = (a.getAttribute('aria-label') || '') + ' ' + (a.innerText || '');" +
+            "    let txt = (a.innerText || '').trim();" +
+            "    let label = (a.getAttribute('aria-label') || '') + ' ' + txt;" +
             "    if(href.indexOf('google.com/url?') !== -1){" +
             "      let qM = href.match(/[?&]q=([^&]+)/);" +
             "      if(qM) href = decodeURIComponent(qM[1]);" +
             "    }" +
-            "    if(href && href.indexOf('google.') === -1 && href.indexOf('gstatic.') === -1 && href.indexOf('ggpht.') === -1){" +
-            "      if(label.indexOf('ウェブサイト') !== -1 || label.indexOf('サイト') !== -1 || a.getAttribute('data-item-id') === 'authority'){" +
-            "        rawWebsite = href; break;" +
+            "    let isGoogleSys = Boolean(href.indexOf('google.') !== -1 || href.indexOf('gstatic.') !== -1 || href.indexOf('ggpht.') !== -1 || href.indexOf('javascript:') !== -1);" +
+            "    if(!isGoogleSys){" +
+            "      if(a.getAttribute('data-item-id') === 'authority' || label.indexOf('ウェブサイト') !== -1 || label.indexOf('サイト') !== -1){" +
+            "        if(href.indexOf('http') !== -1){ rawWebsite = href; break; }" +
+            "      }else if(txt.indexOf('.com') !== -1 || txt.indexOf('.jp') !== -1 || txt.indexOf('.net') !== -1 || txt.indexOf('.org') !== -1){" +
+            "        rawWebsite = txt.indexOf('http') === -1 ? 'http://' + txt : txt;" +
+            "        break;" +
             "      }" +
             "    }" +
             "  }" +
@@ -642,7 +647,7 @@ document.addEventListener('DOMContentLoaded', () => {
         selectWebsite.value = storeData.statusWebsite || 'error';
         selectHours.value = storeData.statusHours || 'error';
         selectDescription.value = storeData.statusDescription || 'error';
-        selectCover.value = storeData.statusCover || 'pass';
+        selectCover.value = selectCover.value;
         selectReply.value = selectReply.value;
         selectAttributes.value = selectAttributes.value;
 
