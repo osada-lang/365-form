@@ -10,8 +10,8 @@
  *    - ATTRIBUTES GRADED SCORE (Max 4pt): 5+ items = 4pt, 1-4 items = 2pt, 0 items = 0pt.
  *    - DESCRIPTION GRADED SCORE (Max 4pt): 250+ chars = 4pt, 1-249 chars = 2pt, 0 chars = 0pt.
  * 4. STRICT AI REPORT PROMPT & STRUCTURE: Exactly 3 Sections with 3 Sub-items each (1-1 to 3-3) formatted precisely.
- * 5. ULTRA-ACCURATE PHOTO GALLERY COUNT DETECTOR (SECTION E HYBRID RECOVERY): 
- *    Safely extracts 2 photos, 64 photos, or any count via multi-layer text, tab aria, ratio (1/2, 1/64), and DOM nodes.
+ * 5. ABSOLUTE VAULT STORE PROTECTOR (mergeStoreData & isPhotoAllTab): 
+ *    Diagnosing photos NEVER resets store metadata (Name, Category, Hours, Attributes, Description remain 100% locked).
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -227,7 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             "/* E. ULTRA-ACCURATE HYBRID PHOTO GALLERY COUNT DETECTOR */" +
             "let isPhotoAllTab = Boolean(document.body.querySelector('button[aria-label*=\"すべて\"][aria-selected=\"true\"], div[role=\"tab\"][aria-selected=\"true\"][aria-label*=\"すべて\"], button[aria-label*=\"写真\"][aria-selected=\"true\"]')) || " +
-            "                    (loc.indexOf('!1e2') !== -1 || loc.indexOf('3a,87y') !== -1 || (bTxt.indexOf('すべての写真') !== -1 || bTxt.indexOf('写真') !== -1));" +
+            "                    (loc.indexOf('!1e2') !== -1 || loc.indexOf('3a,87y') !== -1 || loc.indexOf('!1e10') !== -1 || loc.indexOf('/photo') !== -1 || bTxt.indexOf('すべての写真') !== -1);" +
             "let photoCount = undefined;" +
             "let photoTier = '20';" +
             "let statusPhotos = 'error';" +
@@ -500,7 +500,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 5. DATA MERGE ENGINE
+    // 5. ABSOLUTE VAULT DATA MERGE ENGINE
     // ==========================================
     function mergeStoreData(existing, incoming) {
         let isUpdated = false;
@@ -513,23 +513,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const merged = { ...existing };
 
-        if (safeIncoming.isPhotoAllTab) {
+        // 写真タブからの送信、または送信データで店舗名が空・未設定・Googleマップの場合は絶対に他情報をリセットさせない保護！
+        if (safeIncoming.isPhotoAllTab || !safeIncoming.name || safeIncoming.name === "店舗名未設定" || safeIncoming.name === "Google マップ") {
             if (safeIncoming.photoCount !== undefined && safeIncoming.statusPhotos !== 'error') {
                 merged.photoCount = safeIncoming.photoCount;
                 merged.statusPhotos = safeIncoming.statusPhotos;
                 if (safeIncoming.photoTier) merged.photoTier = safeIncoming.photoTier;
             }
-            if (!merged.name || merged.name === "店舗名未設定") {
-                if (safeIncoming.name && safeIncoming.name !== "店舗名未設定") merged.name = safeIncoming.name;
-            }
             return { merged, isUpdated: true, isNewStore: false };
         }
 
-        if (existing.name && safeIncoming.name && existing.name !== safeIncoming.name && existing.name !== "店舗名未設定") {
+        // 既存店舗が存在する場合、送信されてきた名前と既存名が互いに部分一致すらしない完全に異なる店舗名である時のみ新店舗切り替え
+        if (existing.name && safeIncoming.name && existing.name !== "店舗名未設定") {
             let cleanExist = existing.name.replace(/[^a-zA-Z0-9\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]/g, '');
             let cleanIn = safeIncoming.name.replace(/[^a-zA-Z0-9\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]/g, '');
 
-            if (cleanExist.indexOf(cleanIn) === -1 && cleanIn.indexOf(cleanExist) === -1) {
+            if (cleanExist && cleanIn && cleanExist.indexOf(cleanIn) === -1 && cleanIn.indexOf(cleanExist) === -1) {
                 isNewStore = true;
                 return { merged: safeIncoming, isUpdated: true, isNewStore };
             }
