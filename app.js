@@ -10,7 +10,8 @@
  *    - ATTRIBUTES GRADED SCORE (Max 4pt): 5+ items = 4pt, 1-4 items = 2pt, 0 items = 0pt.
  *    - DESCRIPTION GRADED SCORE (Max 4pt): 250+ chars = 4pt, 1-249 chars = 2pt, 0 chars = 0pt.
  * 4. STRICT AI REPORT PROMPT & STRUCTURE: Exactly 3 Sections with 3 Sub-items each (1-1 to 3-3) formatted precisely.
- * 5. STRICT PHOTO TAB ISOLATE PROTECTION (isPhotoAllTab: true): Photo "ALL" tab updates ONLY photo metrics without resetting store info.
+ * 5. ULTRA-ACCURATE PHOTO GALLERY COUNT DETECTOR (SECTION E ONLY FIX): 
+ *    Parses DOM tab buttons, text headers, and finds maximum counter ratios to eliminate 1/2 preview noise.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -224,7 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
             "  }" +
             "}" +
 
-            "/* E. ACCURATE PHOTO GALLERY COUNT DETECTOR */" +
+            "/* E. ULTRA-ACCURATE PHOTO GALLERY COUNT DETECTOR */" +
             "let isPhotoAllTab = Boolean(document.body.querySelector('button[aria-label*=\"すべて\"][aria-selected=\"true\"], div[role=\"tab\"][aria-selected=\"true\"][aria-label*=\"すべて\"], button[aria-label*=\"写真\"][aria-selected=\"true\"]')) || " +
             "                    (loc.indexOf('!1e2') !== -1 || loc.indexOf('3a,87y') !== -1 || (bTxt.indexOf('すべての写真') !== -1 && bTxt.indexOf('最新') !== -1));" +
             "let photoCount = undefined;" +
@@ -232,26 +233,39 @@ document.addEventListener('DOMContentLoaded', () => {
             "let statusPhotos = 'error';" +
             "if(isPhotoAllTab){" +
             "  let countVal = 0;" +
-            "  let hMatch = bTxt.match(/すべての写真\\s*[\\(（]\\s*([0-9,]+)\\s*[\\)）]/) || " +
-            "               bTxt.match(/写真\\s*[\\(（]\\s*([0-9,]+)\\s*[\\)）]/) || " +
-            "               bTxt.match(/([0-9,]+)\\s*枚の写真/) || " +
-            "               bTxt.match(/写真\\s*([0-9,]+)\\s*枚/);" +
-            "  if(hMatch){" +
-            "    let num = parseInt((hMatch[1] || hMatch[2]).replace(/,/g, ''));" +
-            "    if(!isNaN(num) && num > 0) countVal = num;" +
+            "  let allTabBtn = document.body.querySelector('button[aria-label*=\"すべて\"], div[role=\"tab\"][aria-label*=\"すべて\"], button[aria-label*=\"写真\"]');" +
+            "  if(allTabBtn){" +
+            "    let tabTxt = (allTabBtn.getAttribute('aria-label') || '') + ' ' + (allTabBtn.innerText || '');" +
+            "    let btnM = tabTxt.match(/([0-9,]+)/);" +
+            "    if(btnM){" +
+            "      let num = parseInt(btnM[1].replace(/,/g, ''));" +
+            "      if(!isNaN(num) && num > 0) countVal = num;" +
+            "    }" +
+            "  }" +
+            "  if(!countVal){" +
+            "    let hMatch = bTxt.match(/すべての写真\\s*[\\(（\\s]*([0-9,]+)\\s*[\\)）枚\\s]*/) || " +
+            "                 bTxt.match(/写真\\s*[\\(（\\s]*([0-9,]+)\\s*[\\)）枚\\s]*/) || " +
+            "                 bTxt.match(/すべての写真[^\\n0-9]*([0-9,]+)/) || " +
+            "                 bTxt.match(/([0-9,]+)\\s*枚の写真/);" +
+            "    if(hMatch){" +
+            "      let num = parseInt(hMatch[1].replace(/,/g, ''));" +
+            "      if(!isNaN(num) && num > 0) countVal = num;" +
+            "    }" +
             "  }" +
             "  if(!countVal){" +
             "    let cMatches = Array.from(bTxt.matchAll(/([0-9,]+)\\s*\\/\\s*([0-9,]+)/g));" +
+            "    let maxFound = 0;" +
             "    for(let m of cMatches){" +
             "      let tot = parseInt(m[2].replace(/,/g, ''));" +
-            "      if(!isNaN(tot) && tot > 2){ countVal = tot; break; }" +
+            "      if(!isNaN(tot) && tot > maxFound){ maxFound = tot; }" +
             "    }" +
+            "    if(maxFound > 0) countVal = maxFound;" +
             "  }" +
             "  if(!countVal){" +
             "    let panel = document.body.querySelector('div.m6QEfe, div[aria-label*=\"写真\"]');" +
             "    if(panel){" +
             "      let nodes = panel.querySelectorAll('a[href*=\"/data=!3m\"], img[src*=\"googleusercontent.com/p/\"]');" +
-            "      if(nodes.length > 2) countVal = nodes.length;" +
+            "      if(nodes.length > 0) countVal = nodes.length;" +
             "    }" +
             "  }" +
             "  if(countVal > 0){" +
