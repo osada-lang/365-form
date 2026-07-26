@@ -4,16 +4,15 @@
  * Key Features & Architecture:
  * 1. Single Source of Truth for Bookmarklet Window Target ("GBP_DIAGNOSTIC_REPORT_WINDOW").
  * 2. Pure Live Data Engine: Zero rating/score carry-overs between stores; resets automatically on store change.
- * 3. ACCURATE PHOTO COUNT ENGINE: Prevents lightbox 2-image DOM false-positives by prioritizing gallery headers (e.g. すべての写真 (64)) and filtering out 2-photo preview noise.
- * 4. ISOLATED PHOTO GALLERY "ALL" TAB MERGE ENGINE: When diagnosing from the Photo Gallery "ALL" tab, ONLY photo counts/ranks are updated. All other store fields (Name, Category, Website, Hours, Description, Attributes) are completely preserved without triggering store-switch resets.
+ * 3. STRICT PHOTO TAB ISOLATE PROTECTION (isPhotoAllTab: true): When diagnosed from Photo "ALL" tab, ONLY photoCount & statusPhotos are updated. All other store data (Name, Category, Website, Hours, Description, Attributes, Reviews) are 100% preserved and will NEVER trigger store-switch resets.
+ * 4. ACCURATE PHOTO COUNT ENGINE: Prioritizes gallery headers (e.g. すべての写真 (64)) and excludes lightbox preview noise.
  * 5. STRICT ATTRIBUTES "BASIC INFO" TAB DETECTOR: Attributes (詳細情報) are extracted dynamically when checkmarks (✔) or "基本情報" / "設備" / "プラン" sections are visible.
- * 6. STRICT PHOTO GALLERY "ALL" TAB DETECTOR: Photos count is ONLY extracted when the user is explicitly on the Photo Gallery "ALL" (すべて) tab. Otherwise renders '未確認 (【すべて】タブを開いて診断してください)'.
- * 7. COMPREHENSIVE ATTRIBUTE SCANNER: Scans ALL checked (✔) items dynamically without omission (e.g. トイレ, 整備士, 事前予約がおすすめ, イートイン, etc.) and appends "等".
- * 8. FULL WEEKLY HOURS & HOLIDAYS ENGINE: Automatically triggers click on Google Maps hours dropdown and extracts full Mon-Sun schedules & explicit holidays.
- * 9. RAW REAL CONTENT DISPLAY ENGINE: Captures and displays EXACT RAW TEXT, OWNER MESSAGES, FULL WEEKLY HOURS, WEBSITE URLS, and ALL VALIDATED ATTRIBUTES inside responsive card content boxes.
- * 10. Protected Review Reply Ratio (%) Engine: Calculates true percentage from visible review cards vs owner replies.
- * 11. Store-Owner-Facing AI Prompt: Generates client-friendly advice in 3 structured sections without complex jargon.
- * 12. Layout Hierarchy: Total Score & Chart -> AI Consultancy Card -> Detailed Category Analysis (2-Line Card Blocks) -> Priority Actions.
+ * 6. COMPREHENSIVE ATTRIBUTE SCANNER: Scans ALL checked (✔) items dynamically without omission (e.g. トイレ, 整備士, 事前予約がおすすめ, イートイン, etc.) and appends "等".
+ * 7. FULL WEEKLY HOURS & HOLIDAYS ENGINE: Automatically triggers click on Google Maps hours dropdown and extracts full Mon-Sun schedules & explicit holidays.
+ * 8. RAW REAL CONTENT DISPLAY ENGINE: Captures and displays EXACT RAW TEXT, OWNER MESSAGES, FULL WEEKLY HOURS, WEBSITE URLS, and ALL VALIDATED ATTRIBUTES inside responsive card content boxes.
+ * 9. Protected Review Reply Ratio (%) Engine: Calculates true percentage from visible review cards vs owner replies.
+ * 10. Store-Owner-Facing AI Prompt: Generates client-friendly advice in 3 structured sections without complex jargon.
+ * 11. Layout Hierarchy: Total Score & Chart -> AI Consultancy Card -> Detailed Category Analysis (2-Line Card Blocks) -> Priority Actions.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -147,7 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (inputApiKey) inputApiKey.value = localStorage.getItem('gemini_api_key') || "";
 
     // ==========================================
-    // 3. BOOKMARKLET GENERATOR ENGINE (ACCURATE PHOTO COUNT DETECTOR)
+    // 3. BOOKMARKLET GENERATOR ENGINE (STRICT TAB ISOLATION DATA)
     // ==========================================
     function generateBookmarkletHref() {
         return "javascript:(function(){try{" +
@@ -369,6 +368,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             "/* H. PACK & SEND DATA */" +
             "let data = {" +
+            "  isPhotoAllTab: isPhotoAllTab," +
             "  companyName: name," +
             "  name: name," +
             "  category: category," +
@@ -475,7 +475,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 5. DATA MERGE ENGINE 2.0 (ISOLATED PHOTO TAB & NON-DESTRUCTIVE AGGREGATION)
+    // 5. DATA MERGE ENGINE (STRICT PHOTO TAB ISOLATE PROTECTION)
     // ==========================================
     function mergeStoreData(existing, incoming) {
         let isUpdated = false;
@@ -488,20 +488,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const merged = { ...existing };
 
-        // RULE 1: PHOTO GALLERY 'ALL' TAB ISOLATED UPDATE
-        // When data is received from Photo 'ALL' tab, ONLY update photo fields and preserve all store info.
-        if (safeIncoming.statusPhotos !== 'error' && safeIncoming.photoCount !== undefined) {
-            merged.photoCount = safeIncoming.photoCount;
-            merged.statusPhotos = safeIncoming.statusPhotos;
-            if (safeIncoming.photoTier) merged.photoTier = safeIncoming.photoTier;
-
+        // RULE 1: STRICT ISOLATION FOR PHOTO GALLERY 'ALL' TAB
+        // When diagnosis is executed from Photo "ALL" tab (isPhotoAllTab: true),
+        // ONLY update photo count & status. Absolutely ZERO impact or reset on any other fields!
+        if (safeIncoming.isPhotoAllTab) {
+            if (safeIncoming.photoCount !== undefined && safeIncoming.statusPhotos !== 'error') {
+                merged.photoCount = safeIncoming.photoCount;
+                merged.statusPhotos = safeIncoming.statusPhotos;
+                if (safeIncoming.photoTier) merged.photoTier = safeIncoming.photoTier;
+            }
+            // Preserve existing store name if present
             if (!merged.name || merged.name === "店舗名未設定") {
                 if (safeIncoming.name && safeIncoming.name !== "店舗名未設定") merged.name = safeIncoming.name;
             }
             return { merged, isUpdated: true, isNewStore: false };
         }
 
-        // RULE 2: STORE-SWITCH DETECTOR FOR NORMAL TABS
+        // RULE 2: STORE-SWITCH DETECTOR FOR NORMAL TABS (OVERVIEW / BASIC INFO)
         if (existing.name && safeIncoming.name && existing.name !== safeIncoming.name && existing.name !== "店舗名未設定") {
             let cleanExist = existing.name.replace(/[^a-zA-Z0-9\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]/g, '');
             let cleanIn = safeIncoming.name.replace(/[^a-zA-Z0-9\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]/g, '');
