@@ -4,16 +4,11 @@
  * Key Features & Architecture:
  * 1. Single Source of Truth for Bookmarklet Window Target ("GBP_DIAGNOSTIC_REPORT_WINDOW").
  * 2. Pure Live Data Engine: Zero rating/score carry-overs between stores; resets automatically on store change.
- * 3. STRICT PHOTO TAB ISOLATE PROTECTION (isPhotoAllTab: true): When diagnosed from Photo "ALL" tab, ONLY photoCount & statusPhotos are updated. All other store data (Name, Category, Website, Hours, Description, Attributes, Reviews) are 100% preserved and will NEVER trigger store-switch resets.
- * 4. INDUSTRY-AGNOSTIC PRESETS: All diagnostic feedback, photo recommendations, and fallback texts are fully universal and applicable to all business types (Services, Auto Repair, Medical, Salons, Retail, B2B, Restaurants, etc.).
- * 5. ACCURATE PHOTO COUNT ENGINE: Prioritizes gallery headers (e.g. すべての写真 (64)) and excludes lightbox preview noise.
- * 6. STRICT ATTRIBUTES "BASIC INFO" TAB DETECTOR: Attributes (詳細情報) are extracted dynamically when checkmarks (✔) or "基本情報" / "設備" / "プラン" sections are visible.
- * 7. COMPREHENSIVE ATTRIBUTE SCANNER: Scans ALL checked (✔) items dynamically without omission (e.g. トイレ, 整備士, 事前予約がおすすめ, バリアフリー, 駐車場あり, etc.) and appends "等".
- * 8. FULL WEEKLY HOURS & HOLIDAYS ENGINE: Automatically triggers click on Google Maps hours dropdown and extracts full Mon-Sun schedules & explicit holidays.
- * 9. RAW REAL CONTENT DISPLAY ENGINE: Captures and displays EXACT RAW TEXT, OWNER MESSAGES, FULL WEEKLY HOURS, WEBSITE URLS, and ALL VALIDATED ATTRIBUTES inside responsive card content boxes.
- * 10. Protected Review Reply Ratio (%) Engine: Calculates true percentage from visible review cards vs owner replies.
- * 11. Store-Owner-Facing AI Prompt: Generates client-friendly advice in 3 structured sections without complex jargon.
- * 12. Layout Hierarchy: Total Score & Chart -> AI Consultancy Card -> Detailed Category Analysis (2-Line Card Blocks) -> Priority Actions.
+ * 3. GRADED EVALUATION ENGINES:
+ *    - ATTRIBUTES GRADED SCORE (Max 4pt): 5+ items = 4pt (Pass), 1-4 items = 2pt (Warn), 0 items = 0pt (Fail).
+ *    - DESCRIPTION GRADED SCORE (Max 4pt): 250+ chars = 4pt (Pass), 1-249 chars = 2pt (Warn), 0 chars = 0pt (Fail).
+ * 4. STRICT PHOTO TAB ISOLATE PROTECTION (isPhotoAllTab: true): When diagnosed from Photo "ALL" tab, ONLY photoCount & statusPhotos are updated.
+ * 5. INDUSTRY-AGNOSTIC PRESETS: Fully universal across all business sectors.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -147,7 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (inputApiKey) inputApiKey.value = localStorage.getItem('gemini_api_key') || "";
 
     // ==========================================
-    // 3. BOOKMARKLET GENERATOR ENGINE (STRICT TAB ISOLATION DATA)
+    // 3. BOOKMARKLET GENERATOR ENGINE
     // ==========================================
     function generateBookmarkletHref() {
         return "javascript:(function(){try{" +
@@ -170,7 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
             "}" +
             "if(!name){ name = document.title.replace(/ - Googleマップ.*/,'').replace(/ - Google.*/,'').trim(); }" +
 
-            "/* B. RATING (PURE LIVE REAL-TIME ONLY) */" +
+            "/* B. RATING */" +
             "let rating = 0;" +
             "let ariaStar = document.body.querySelector('[aria-label*=\"5 つ星のうち\"], [aria-label*=\"5つ星のうち\"], [aria-label*=\"星\"], span.ceR21e');" +
             "if(ariaStar){" +
@@ -235,7 +230,6 @@ document.addEventListener('DOMContentLoaded', () => {
             "let statusPhotos = 'error';" +
             "if(isPhotoAllTab){" +
             "  let countVal = 0;" +
-            "  /* Priority 1: Gallery Header Titles (e.g. すべての写真 (64), 写真 (64), 64枚の写真) */" +
             "  let hMatch = bTxt.match(/すべての写真\\s*[\\(（]\\s*([0-9,]+)\\s*[\\)）]/) || " +
             "               bTxt.match(/写真\\s*[\\(（]\\s*([0-9,]+)\\s*[\\)）]/) || " +
             "               bTxt.match(/([0-9,]+)\\s*枚の写真/) || " +
@@ -244,7 +238,6 @@ document.addEventListener('DOMContentLoaded', () => {
             "    let num = parseInt((hMatch[1] || hMatch[2]).replace(/,/g, ''));" +
             "    if(!isNaN(num) && num > 0) countVal = num;" +
             "  }" +
-            "  /* Priority 2: Index Counters (e.g. 1 / 64) - Ignore 2-photo preview noise */" +
             "  if(!countVal){" +
             "    let cMatches = Array.from(bTxt.matchAll(/([0-9,]+)\\s*\\/\\s*([0-9,]+)/g));" +
             "    for(let m of cMatches){" +
@@ -252,7 +245,6 @@ document.addEventListener('DOMContentLoaded', () => {
             "      if(!isNaN(tot) && tot > 2){ countVal = tot; break; }" +
             "    }" +
             "  }" +
-            "  /* Priority 3: Left Panel Thumbnail Count */" +
             "  if(!countVal){" +
             "    let panel = document.body.querySelector('div.m6QEfe, div[aria-label*=\"写真\"]');" +
             "    if(panel){" +
@@ -278,7 +270,7 @@ document.addEventListener('DOMContentLoaded', () => {
             "  if(rawCat) category = rawCat.split('·')[0].split('•')[0].trim();" +
             "}" +
 
-            "/* Auto-click hours button to open dropdown */" +
+            "/* Auto-click hours button */" +
             "let hBtn = document.body.querySelector('button[aria-label*=\"営業時間\"], button[aria-label*=\"営業中\"], button[aria-label*=\"営業終了\"], button[aria-label*=\"まもなく営業終了\"], div.t3bWnc button, button[data-item-id=\"oh\"]');" +
             "if(hBtn){ try{ hBtn.click(); }catch(e){} }" +
 
@@ -293,7 +285,7 @@ document.addEventListener('DOMContentLoaded', () => {
             "  rawWebsite = target.getAttribute('href') || target.innerText || '';" +
             "}" +
 
-            "/* Raw Business Hours & Full Weekly Schedule Text */" +
+            "/* Raw Business Hours */" +
             "let rawHours = '';" +
             "let tableRows = Array.from(document.body.querySelectorAll('table.t3bWnc tr, table tr, tr.y07ffe, div.e2W3ic'));" +
             "let weeklyLines = [];" +
@@ -314,19 +306,22 @@ document.addEventListener('DOMContentLoaded', () => {
             "  }" +
             "}" +
 
-            "/* Raw Business Description (Owner Message Raw Text) */" +
+            "/* Raw Business Description (Full Extract up to 750 chars) */" +
             "let rawDescription = '';" +
             "let descIdx = bTxt.indexOf('提供元: オーナー');" +
             "if(descIdx !== -1){" +
-            "  rawDescription = bTxt.substring(descIdx, descIdx + 280).replace(/\\n+/g, ' ').trim();" +
+            "  rawDescription = bTxt.substring(descIdx, descIdx + 750).replace(/\\n+/g, ' ').trim();" +
             "}else{" +
             "  let descIdx2 = bTxt.indexOf('ビジネスの説明');" +
             "  if(descIdx2 !== -1){" +
-            "    rawDescription = bTxt.substring(descIdx2, descIdx2 + 280).replace(/\\n+/g, ' ').trim();" +
+            "    rawDescription = bTxt.substring(descIdx2, descIdx2 + 750).replace(/\\n+/g, ' ').trim();" +
             "  }" +
             "}" +
+            "let statusDescription = 'fail';" +
+            "if(rawDescription && rawDescription.length >= 250){ statusDescription = 'pass'; }" +
+            "else if(rawDescription && rawDescription.length > 0){ statusDescription = 'warn'; }" +
 
-            "/* G. BASIC INFO TAB ATTRIBUTES DETECTOR (ROBUST DETECTOR) */" +
+            "/* G. BASIC INFO TAB ATTRIBUTES DETECTOR */" +
             "let isBasicInfoTab = Boolean(document.body.querySelector('button[aria-label*=\"基本情報\"], div[role=\"tab\"][aria-selected=\"true\"], [aria-label*=\"基本情報\"]')) || " +
             "                     bTxt.indexOf('✔') !== -1 || " +
             "                     bTxt.indexOf('基本情報') !== -1 || " +
@@ -336,6 +331,7 @@ document.addEventListener('DOMContentLoaded', () => {
             "                     bTxt.indexOf('お支払い') !== -1;" +
             "let rawAttributes = '';" +
             "let statusAttributes = 'error';" +
+            "let attrCount = 0;" +
             "if(isBasicInfoTab){" +
             "  let validAttrItems = [];" +
             "  let checkNodes = Array.from(document.body.querySelectorAll('div, span, li, tr, p, td'));" +
@@ -359,9 +355,13 @@ document.addEventListener('DOMContentLoaded', () => {
             "      validAttrItems.push(kw);" +
             "    }" +
             "  });" +
-            "  if(validAttrItems.length > 0){" +
+            "  attrCount = validAttrItems.length;" +
+            "  if(attrCount >= 5){" +
             "    rawAttributes = validAttrItems.join(' ・ ') + ' 等';" +
             "    statusAttributes = 'pass';" +
+            "  }else if(attrCount >= 1){" +
+            "    rawAttributes = validAttrItems.join(' ・ ') + ' 等';" +
+            "    statusAttributes = 'warn';" +
             "  }else{" +
             "    statusAttributes = 'fail';" +
             "  }" +
@@ -384,9 +384,10 @@ document.addEventListener('DOMContentLoaded', () => {
             "  rawHours: rawHours," +
             "  rawDescription: rawDescription," +
             "  rawAttributes: rawAttributes," +
+            "  attrCount: attrCount," +
             "  statusWebsite: Boolean(rawWebsite) ? 'pass' : 'fail'," +
             "  statusHours: Boolean(rawHours) ? 'pass' : 'fail'," +
-            "  statusDescription: Boolean(rawDescription) ? 'pass' : 'fail'," +
+            "  statusDescription: statusDescription," +
             "  statusCover: 'pass'," +
             "  statusReply: replyStatus," +
             "  statusAttributes: statusAttributes" +
@@ -476,7 +477,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 5. DATA MERGE ENGINE (STRICT PHOTO TAB ISOLATE PROTECTION)
+    // 5. DATA MERGE ENGINE
     // ==========================================
     function mergeStoreData(existing, incoming) {
         let isUpdated = false;
@@ -489,9 +490,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const merged = { ...existing };
 
-        // RULE 1: STRICT ISOLATION FOR PHOTO GALLERY 'ALL' TAB
-        // When diagnosis is executed from Photo "ALL" tab (isPhotoAllTab: true),
-        // ONLY update photo count & status. Absolutely ZERO impact or reset on any other fields!
         if (safeIncoming.isPhotoAllTab) {
             if (safeIncoming.photoCount !== undefined && safeIncoming.statusPhotos !== 'error') {
                 merged.photoCount = safeIncoming.photoCount;
@@ -504,7 +502,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return { merged, isUpdated: true, isNewStore: false };
         }
 
-        // RULE 2: STORE-SWITCH DETECTOR FOR NORMAL TABS (OVERVIEW / BASIC INFO)
         if (existing.name && safeIncoming.name && existing.name !== safeIncoming.name && existing.name !== "店舗名未設定") {
             let cleanExist = existing.name.replace(/[^a-zA-Z0-9\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]/g, '');
             let cleanIn = safeIncoming.name.replace(/[^a-zA-Z0-9\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]/g, '');
@@ -515,7 +512,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // RULE 3: NORMAL TAB NON-DESTRUCTIVE AGGREGATION
         if (safeIncoming.name && safeIncoming.name !== "店舗名未設定") merged.name = safeIncoming.name;
         if (safeIncoming.companyName) merged.companyName = safeIncoming.companyName;
         if (safeIncoming.category && safeIncoming.category !== "未設定") merged.category = safeIncoming.category;
@@ -527,6 +523,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (safeIncoming.rawDescription) merged.rawDescription = safeIncoming.rawDescription;
         if (safeIncoming.rawAttributes && safeIncoming.statusAttributes !== 'error') {
             merged.rawAttributes = safeIncoming.rawAttributes;
+            if (safeIncoming.attrCount !== undefined) merged.attrCount = safeIncoming.attrCount;
         }
 
         if (safeIncoming.replyRatio !== undefined && safeIncoming.statusReply !== 'error') {
@@ -712,7 +709,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 8. SCORING & RADAR CHART RENDER ENGINE 2.0 (INDUSTRY-AGNOSTIC PRESETS)
+    // 8. SCORING & RADAR CHART ENGINE (GRADED DESCRIPTION & ATTRIBUTES)
     // ==========================================
     function calculateAndRender() {
         let displayRating = storeData.rating > 0 ? storeData.rating : 5.0;
@@ -752,7 +749,7 @@ document.addEventListener('DOMContentLoaded', () => {
         basicPossible += 6;
         if (storeData.statusWebsite === 'pass' || storeData.rawWebsite) { 
             basicGained += 6; 
-            let webVal = storeData.rawWebsite || "http://www.horutanya.jp/horumon.html";
+            let webVal = storeData.rawWebsite || "http://ichigo-auto.jp/";
             itemsBasic.push({ title: "Webサイトリンク", status: "pass", rawText: webVal }); 
         } else { 
             itemsBasic.push({ title: "Webサイトリンク", status: "fail", rawText: "未設定 (WebサイトのURLリンクが登録されていません)" }); 
@@ -767,20 +764,38 @@ document.addEventListener('DOMContentLoaded', () => {
             itemsBasic.push({ title: "営業時間設定", status: "fail", rawText: "未設定 (全曜日営業時間や定休日が登録されていません)" }); 
         }
 
+        // GRADED SCORE: Business Description (Max 4pt: 250+ chars = 4pt, 1-249 chars = 2pt, 0 = 0pt)
         basicPossible += 4;
-        if (storeData.statusDescription === 'pass' || storeData.rawDescription) { 
+        let descText = storeData.rawDescription || "";
+        let descLen = descText.length;
+        if (storeData.statusDescription === 'pass' || descLen >= 250) { 
             basicGained += 4; 
-            let descVal = storeData.rawDescription || "提供元: オーナー: 今月限定キャンペーン開催中✨ サービスご利用の皆様へ【特別クーポン】を進呈中🎁 ご家族・ご友人とのご来店・ご利用にぜひ‼️ ■詳しくはお問い合わせまたはWebサイトをご覧ください...";
-            itemsBasic.push({ title: "ビジネス説明文", status: "pass", rawText: descVal }); 
+            let descVal = descText || "提供元: オーナー: 今月限定キャンペーン開催中✨ サービスご利用の皆様へ【特別クーポン】を進呈中🎁 ご家族・ご友人とのご来店・ご利用にぜひ‼️ ■詳しくはお問い合わせまたはWebサイトをご覧ください...";
+            itemsBasic.push({ title: "ビジネス説明文", status: "pass", rawText: `${descVal} (${descLen > 0 ? descLen : '250+'}文字・良好)` }); 
+        } else if (storeData.statusDescription === 'warn' || (descLen > 0 && descLen < 250)) {
+            basicGained += 2;
+            itemsBasic.push({ title: "ビジネス説明文", status: "warn", rawText: `${descText} (${descLen}文字・文字数が不足しています。検索キーワードを含めて250文字以上への拡充を推奨)` });
         } else { 
             itemsBasic.push({ title: "ビジネス説明文", status: "fail", rawText: "未対応 (店舗のビジネス説明文・PRメッセージが未掲載です)" }); 
         }
 
+        // GRADED SCORE: Attributes (Max 4pt: 5+ items = 4pt, 1-4 items = 2pt, 0 items = 0pt)
         basicPossible += 4;
-        if (storeData.statusAttributes === 'pass' || (storeData.rawAttributes && storeData.statusAttributes !== 'error')) { 
+        let attrText = storeData.rawAttributes || "";
+        let attrCount = storeData.attrCount;
+        if (attrCount === undefined && attrText) {
+            attrCount = attrText.split('・').length;
+        }
+        
+        if (storeData.statusAttributes === 'pass' || (attrCount !== undefined && attrCount >= 5)) { 
             basicGained += 4; 
-            let attrVal = storeData.rawAttributes || "バリアフリー対応 ・ クレジットカード可 ・ 無料Wi-Fi ・ 駐車場あり ・ 事前予約可能 等";
-            itemsBasic.push({ title: "属性（詳細情報）", status: "pass", rawText: attrVal }); 
+            let attrVal = attrText || "バリアフリー対応 ・ クレジットカード可 ・ 無料Wi-Fi ・ 駐車場あり ・ 事前予約可能 等";
+            let cntLabel = attrCount ? `${attrCount}項目登録済み (充満)` : "5項目以上登録済み (良好)";
+            itemsBasic.push({ title: "属性（詳細情報）", status: "pass", rawText: `${attrVal} (${cntLabel})` }); 
+        } else if (storeData.statusAttributes === 'warn' || (attrCount !== undefined && attrCount >= 1 && attrCount < 5)) {
+            basicGained += 2;
+            let attrVal = attrText || "クレジットカード可 ・ 駐車場あり 等";
+            itemsBasic.push({ title: "属性（詳細情報）", status: "warn", rawText: `${attrVal} (${attrCount}項目登録・項目数が不足しています。決済手段や設備の追加登録を推奨)` });
         } else if (storeData.statusAttributes === 'fail') {
             itemsBasic.push({ title: "属性（詳細情報）", status: "fail", rawText: "未対応 (車椅子バリアフリーや決済手段などの有効属性(✔)が登録されていません。※🚫非対応は除外)" }); 
         } else {
@@ -836,7 +851,7 @@ document.addEventListener('DOMContentLoaded', () => {
             rawText: "※ 返信率は【クチコミ】タブで表示されている直近・上位のクチコミ（数件〜数十件）を対象に算出した割合です。"
         });
 
-        // Category 3: Photos (Max 20) - INDUSTRY-AGNOSTIC RECOMMENDATION TEXT
+        // Category 3: Photos (Max 20)
         let photosGained = 0;
         let photosPossible = 20;
         const itemsPhotos = [];
@@ -978,7 +993,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 9. RADAR CHART DRAWING ENGINE 2.0
+    // 9. RADAR CHART DRAWING ENGINE
     // ==========================================
     function drawRadarChart(scores) {
         const cx = 150, cy = 150, r = 85;
@@ -1055,8 +1070,9 @@ document.addEventListener('DOMContentLoaded', () => {
             statusPhotos: "pass",
             rawWebsite: "http://ichigo-auto.jp/",
             rawHours: "月曜 9:00〜19:00 / 火曜 9:00〜19:00 / 水曜 9:00〜19:00 / 木曜 9:00〜19:00 / 金曜 9:00〜19:00 / 土曜 9:00〜18:00 (日曜定休)",
-            rawDescription: "提供元: オーナー: 小牧市の鈑金塗装・自動車整備工場です。車検、点検、修理、オイル交換などお気軽にご相談ください！無料代車もご用意しております...",
+            rawDescription: "提供元: オーナー: 小牧市の鈑金塗装・自動車整備工場です。車検、点検、修理、オイル交換などお気軽にご相談ください！無料代車もご用意しております。確かな技術でお客様のカーライフをトータルサポートいたします！",
             rawAttributes: "トイレ ・ 整備士 ・ 事前予約がおすすめ ・ 車椅子対応の駐車場 ・ キャッシュレス決済対応 等",
+            attrCount: 5,
             statusWebsite: "pass",
             statusHours: "pass",
             statusDescription: "pass",
