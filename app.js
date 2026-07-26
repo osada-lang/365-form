@@ -5,14 +5,15 @@
  * 1. Single Source of Truth for Bookmarklet Window Target ("GBP_DIAGNOSTIC_REPORT_WINDOW").
  * 2. Pure Live Data Engine: Zero rating/score carry-overs between stores; resets automatically on store change.
  * 3. STRICT PHOTO TAB ISOLATE PROTECTION (isPhotoAllTab: true): When diagnosed from Photo "ALL" tab, ONLY photoCount & statusPhotos are updated. All other store data (Name, Category, Website, Hours, Description, Attributes, Reviews) are 100% preserved and will NEVER trigger store-switch resets.
- * 4. ACCURATE PHOTO COUNT ENGINE: Prioritizes gallery headers (e.g. すべての写真 (64)) and excludes lightbox preview noise.
- * 5. STRICT ATTRIBUTES "BASIC INFO" TAB DETECTOR: Attributes (詳細情報) are extracted dynamically when checkmarks (✔) or "基本情報" / "設備" / "プラン" sections are visible.
- * 6. COMPREHENSIVE ATTRIBUTE SCANNER: Scans ALL checked (✔) items dynamically without omission (e.g. トイレ, 整備士, 事前予約がおすすめ, イートイン, etc.) and appends "等".
- * 7. FULL WEEKLY HOURS & HOLIDAYS ENGINE: Automatically triggers click on Google Maps hours dropdown and extracts full Mon-Sun schedules & explicit holidays.
- * 8. RAW REAL CONTENT DISPLAY ENGINE: Captures and displays EXACT RAW TEXT, OWNER MESSAGES, FULL WEEKLY HOURS, WEBSITE URLS, and ALL VALIDATED ATTRIBUTES inside responsive card content boxes.
- * 9. Protected Review Reply Ratio (%) Engine: Calculates true percentage from visible review cards vs owner replies.
- * 10. Store-Owner-Facing AI Prompt: Generates client-friendly advice in 3 structured sections without complex jargon.
- * 11. Layout Hierarchy: Total Score & Chart -> AI Consultancy Card -> Detailed Category Analysis (2-Line Card Blocks) -> Priority Actions.
+ * 4. INDUSTRY-AGNOSTIC PRESETS: All diagnostic feedback, photo recommendations, and fallback texts are fully universal and applicable to all business types (Services, Auto Repair, Medical, Salons, Retail, B2B, Restaurants, etc.).
+ * 5. ACCURATE PHOTO COUNT ENGINE: Prioritizes gallery headers (e.g. すべての写真 (64)) and excludes lightbox preview noise.
+ * 6. STRICT ATTRIBUTES "BASIC INFO" TAB DETECTOR: Attributes (詳細情報) are extracted dynamically when checkmarks (✔) or "基本情報" / "設備" / "プラン" sections are visible.
+ * 7. COMPREHENSIVE ATTRIBUTE SCANNER: Scans ALL checked (✔) items dynamically without omission (e.g. トイレ, 整備士, 事前予約がおすすめ, バリアフリー, 駐車場あり, etc.) and appends "等".
+ * 8. FULL WEEKLY HOURS & HOLIDAYS ENGINE: Automatically triggers click on Google Maps hours dropdown and extracts full Mon-Sun schedules & explicit holidays.
+ * 9. RAW REAL CONTENT DISPLAY ENGINE: Captures and displays EXACT RAW TEXT, OWNER MESSAGES, FULL WEEKLY HOURS, WEBSITE URLS, and ALL VALIDATED ATTRIBUTES inside responsive card content boxes.
+ * 10. Protected Review Reply Ratio (%) Engine: Calculates true percentage from visible review cards vs owner replies.
+ * 11. Store-Owner-Facing AI Prompt: Generates client-friendly advice in 3 structured sections without complex jargon.
+ * 12. Layout Hierarchy: Total Score & Chart -> AI Consultancy Card -> Detailed Category Analysis (2-Line Card Blocks) -> Priority Actions.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -348,9 +349,9 @@ document.addEventListener('DOMContentLoaded', () => {
             "    }" +
             "  });" +
             "  let kwCandidates = [" +
-            "    'トイレ', '整備士', '事前予約がおすすめ', 'イートイン', 'テイクアウト', '一人での食事', 'アルコール飲料', 'ビール', 'ワイン', 'カクテル', '小皿料理', 'テーブル サービス', " +
-            "    '車椅子対応の座席', '車椅子対応の入り口', '車椅子対応の駐車場', '車椅子対応のトイレ', '無料Wi-Fi', 'Wi-Fi完備', " +
-            "    '無料駐車場完備', '駐車場あり', 'キャッシュレス決済対応', 'クレジットカード可', '電子マネー可', 'QRコード決済', '個室あり', '全席禁煙'" +
+            "    'トイレ', '整備士', '事前予約がおすすめ', '車椅子対応の座席', '車椅子対応の入り口', '車椅子対応の駐車場', '車椅子対応のトイレ', " +
+            "    '無料Wi-Fi', 'Wi-Fi完備', '無料駐車場完備', '駐車場あり', 'キャッシュレス決済対応', 'クレジットカード可', '電子マネー可', " +
+            "    'QRコード決済', '個室あり', '全席禁煙', 'テイクアウト', '一人での食事', 'テーブル サービス'" +
             "  ];" +
             "  kwCandidates.forEach(kw => {" +
             "    let isDisabled = bTxt.indexOf('🚫 ' + kw) !== -1 || bTxt.indexOf('🚫' + kw) !== -1;" +
@@ -497,7 +498,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 merged.statusPhotos = safeIncoming.statusPhotos;
                 if (safeIncoming.photoTier) merged.photoTier = safeIncoming.photoTier;
             }
-            // Preserve existing store name if present
             if (!merged.name || merged.name === "店舗名未設定") {
                 if (safeIncoming.name && safeIncoming.name !== "店舗名未設定") merged.name = safeIncoming.name;
             }
@@ -712,7 +712,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 8. SCORING & RADAR CHART RENDER ENGINE 2.0
+    // 8. SCORING & RADAR CHART RENDER ENGINE 2.0 (INDUSTRY-AGNOSTIC PRESETS)
     // ==========================================
     function calculateAndRender() {
         let displayRating = storeData.rating > 0 ? storeData.rating : 5.0;
@@ -761,7 +761,7 @@ document.addEventListener('DOMContentLoaded', () => {
         basicPossible += 6;
         if (storeData.statusHours === 'pass' || storeData.rawHours) { 
             basicGained += 6; 
-            let hoursVal = storeData.rawHours || "月曜 17:00〜0:00 / 火曜 17:00〜0:00 / 水曜 17:00〜0:00 / 木曜 17:00〜0:00 / 金曜 17:00〜0:00 / 土曜 16:00〜0:00 / 日曜 16:00〜0:00 (定休日なし)";
+            let hoursVal = storeData.rawHours || "月曜 9:00〜19:00 / 火曜 9:00〜19:00 / 水曜 9:00〜19:00 / 木曜 9:00〜19:00 / 金曜 9:00〜19:00 / 土曜 9:00〜18:00 (日曜・祝日定休)";
             itemsBasic.push({ title: "営業時間設定", status: "pass", rawText: hoursVal }); 
         } else { 
             itemsBasic.push({ title: "営業時間設定", status: "fail", rawText: "未設定 (全曜日営業時間や定休日が登録されていません)" }); 
@@ -770,7 +770,7 @@ document.addEventListener('DOMContentLoaded', () => {
         basicPossible += 4;
         if (storeData.statusDescription === 'pass' || storeData.rawDescription) { 
             basicGained += 4; 
-            let descVal = storeData.rawDescription || "提供元: オーナー: 6/1(月)〜6/30(火)限定✨ お会計税込3,000円ごとに 次回使える【1,000円クーポン】進呈🎁 食べれば食べるほど超おトク🔥 ご家族・ご友人との焼肉にぜひ‼️ ■配布内容 税込3,000円ごとのお会計につき「1,000円クーポン」を1枚配布...";
+            let descVal = storeData.rawDescription || "提供元: オーナー: 今月限定キャンペーン開催中✨ サービスご利用の皆様へ【特別クーポン】を進呈中🎁 ご家族・ご友人とのご来店・ご利用にぜひ‼️ ■詳しくはお問い合わせまたはWebサイトをご覧ください...";
             itemsBasic.push({ title: "ビジネス説明文", status: "pass", rawText: descVal }); 
         } else { 
             itemsBasic.push({ title: "ビジネス説明文", status: "fail", rawText: "未対応 (店舗のビジネス説明文・PRメッセージが未掲載です)" }); 
@@ -779,7 +779,7 @@ document.addEventListener('DOMContentLoaded', () => {
         basicPossible += 4;
         if (storeData.statusAttributes === 'pass' || (storeData.rawAttributes && storeData.statusAttributes !== 'error')) { 
             basicGained += 4; 
-            let attrVal = storeData.rawAttributes || "イートイン ・ 一人での食事 ・ アルコール飲料 ・ ビール ・ 小皿料理 ・ テーブル サービス 等";
+            let attrVal = storeData.rawAttributes || "バリアフリー対応 ・ クレジットカード可 ・ 無料Wi-Fi ・ 駐車場あり ・ 事前予約可能 等";
             itemsBasic.push({ title: "属性（詳細情報）", status: "pass", rawText: attrVal }); 
         } else if (storeData.statusAttributes === 'fail') {
             itemsBasic.push({ title: "属性（詳細情報）", status: "fail", rawText: "未対応 (車椅子バリアフリーや決済手段などの有効属性(✔)が登録されていません。※🚫非対応は除外)" }); 
@@ -836,7 +836,7 @@ document.addEventListener('DOMContentLoaded', () => {
             rawText: "※ 返信率は【クチコミ】タブで表示されている直近・上位のクチコミ（数件〜数十件）を対象に算出した割合です。"
         });
 
-        // Category 3: Photos (Max 20)
+        // Category 3: Photos (Max 20) - INDUSTRY-AGNOSTIC RECOMMENDATION TEXT
         let photosGained = 0;
         let photosPossible = 20;
         const itemsPhotos = [];
@@ -848,7 +848,7 @@ document.addEventListener('DOMContentLoaded', () => {
             itemsPhotos.push({ title: "画像・動画枚数", status: "pass", rawText: cntText });
         } else if (storeData.statusPhotos === 'warn' || (storeData.photoCount && storeData.photoCount >= 20)) {
             photosGained += 10;
-            let cntText = storeData.photoCount ? `${storeData.photoCount}枚 (追加推奨)` : "20〜49枚 (内観・料理写真の追加推奨)";
+            let cntText = storeData.photoCount ? `${storeData.photoCount}枚 (店舗外観・内観・サービス写真の追加推奨)` : "20〜49枚 (店舗外観・内観・サービス写真の追加推奨)";
             itemsPhotos.push({ title: "画像・動画枚数", status: "warn", rawText: cntText });
         } else if (storeData.statusPhotos === 'fail') {
             photosGained += 4;
@@ -1043,20 +1043,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const loadDemoAction = () => {
         storeData = {
-            companyName: "ほるたん屋 小牧店",
-            name: "ほるたん屋 小牧店",
-            category: "焼肉店",
+            companyName: "一期自動車 小牧店",
+            name: "一期自動車 小牧店",
+            category: "自動車整備工場",
             reviewCount: 221,
-            rating: 3.7,
+            rating: 4.7,
             replyRatio: 85,
             daysSinceLastPost: "28",
             photoTier: "50",
             photoCount: 64,
             statusPhotos: "pass",
-            rawWebsite: "http://www.horutanya.jp/horumon.html",
-            rawHours: "月曜 17:00〜0:00 / 火曜 17:00〜0:00 / 水曜 17:00〜0:00 / 木曜 17:00〜0:00 / 金曜 17:00〜0:00 / 土曜 16:00〜0:00 / 日曜 16:00〜0:00 (定休日なし)",
-            rawDescription: "提供元: オーナー: 6/1(月)〜6/30(火)限定✨ お会計税込3,000円ごとに 次回使える【1,000円クーポン】進呈🎁 食べれば食べるほど超おトク🔥 ご家族・ご友人との焼肉にぜひ‼️ ■配布内容 税込3,000円ごとのお会計につき「1,000円クーポン」を1枚配布...",
-            rawAttributes: "イートイン ・ 一人での食事 ・ アルコール飲料 ・ ビール ・ 小皿料理 ・ テーブル サービス 等",
+            rawWebsite: "http://ichigo-auto.jp/",
+            rawHours: "月曜 9:00〜19:00 / 火曜 9:00〜19:00 / 水曜 9:00〜19:00 / 木曜 9:00〜19:00 / 金曜 9:00〜19:00 / 土曜 9:00〜18:00 (日曜定休)",
+            rawDescription: "提供元: オーナー: 小牧市の鈑金塗装・自動車整備工場です。車検、点検、修理、オイル交換などお気軽にご相談ください！無料代車もご用意しております...",
+            rawAttributes: "トイレ ・ 整備士 ・ 事前予約がおすすめ ・ 車椅子対応の駐車場 ・ キャッシュレス決済対応 等",
             statusWebsite: "pass",
             statusHours: "pass",
             statusDescription: "pass",
