@@ -858,7 +858,7 @@ document.addEventListener('DOMContentLoaded', () => {
             basicGained += 6; 
             itemsBasic.push({ title: "Webサイトリンク", status: "pass", rawText: storeData.rawWebsite }); 
         } else { 
-            itemsBasic.push({ title: "Webサイトリンク", status: "fail", rawText: "未設定 (WebサイトのURLリンクが登録されていません)" }); 
+            itemsBasic.push({ title: "Webサイトリンク", status: "fail", rawText: "未設定 / 読み込み不可 (WebサイトのURLリンクが登録されていないか、確認できませんでした)" }); 
         }
 
         basicPossible += 6;
@@ -866,7 +866,7 @@ document.addEventListener('DOMContentLoaded', () => {
             basicGained += 6; 
             itemsBasic.push({ title: "営業時間設定", status: "pass", rawText: storeData.rawHours }); 
         } else { 
-            itemsBasic.push({ title: "営業時間設定", status: "fail", rawText: "未設定 (全曜日営業時間や定休日が登録されていません)" }); 
+            itemsBasic.push({ title: "営業時間設定", status: "fail", rawText: "未設定 / 読み込み不可 (営業時間情報が登録されていないか、確認できませんでした)" }); 
         }
 
         basicPossible += 4;
@@ -874,7 +874,7 @@ document.addEventListener('DOMContentLoaded', () => {
             basicGained += 4; 
             itemsBasic.push({ title: "ビジネス説明文", status: "pass", rawText: storeData.rawDescription }); 
         } else { 
-            itemsBasic.push({ title: "ビジネス説明文", status: "fail", rawText: "未対応 (店舗のビジネス説明文・PRメッセージが未掲載です)" }); 
+            itemsBasic.push({ title: "ビジネス説明文", status: "fail", rawText: "未掲載 / 読み込み不可 (店舗のビジネス説明文・PRメッセージが未掲載か、確認できませんでした)" }); 
         }
 
         basicPossible += 4;
@@ -882,7 +882,7 @@ document.addEventListener('DOMContentLoaded', () => {
             basicGained += 4; 
             itemsBasic.push({ title: "属性（詳細情報）", status: "pass", rawText: storeData.rawAttributes }); 
         } else { 
-            itemsBasic.push({ title: "属性（詳細情報）", status: "fail", rawText: "未対応 (車椅子バリアフリーや決済手段などの有効属性(✔)が登録されていません)" }); 
+            itemsBasic.push({ title: "属性（詳細情報）", status: "fail", rawText: "未掲載 / 読み込み不可 (バリアフリーや決済手段などの有効属性(✔)が確認できませんでした)" }); 
         }
 
         // Category 2: Reviews (Max 30)
@@ -965,9 +965,11 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (pCount >= 20) {
             photosGained += 5;
             itemsPhotos.push({ title: "画像・動画枚数", status: "warn", rawText: `${pCount}枚 (20〜49枚。魅力発信のため、さらなる画像・動画追加を推奨します)` });
-        } else {
+        } else if (pCount > 0) {
             photosGained += 2;
-            itemsPhotos.push({ title: "画像・動画枚数", status: "fail", rawText: `${pCount}枚 (枚数が大幅に不足しています。店内や料理等の写真掲載を推奨します)` });
+            itemsPhotos.push({ title: "画像・動画枚数", status: "fail", rawText: `${pCount}枚 (枚数が不足しています。店内等の写真追加を推奨します)` });
+        } else {
+            itemsPhotos.push({ title: "画像・動画枚数", status: "fail", rawText: "0枚 / 読み込み不可 (画像・動画情報が確認できませんでした)" });
         }
 
         // Category 4: Posts (Max 20)
