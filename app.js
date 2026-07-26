@@ -1,19 +1,16 @@
 /**
- * GBP MEO Diagnostic Tool - Complete Master Clean Rewrite
+ * ============================================================================
+ * GBP MEO Diagnostic Tool - Complete Master Rewrite 2.0
  * 
- * Key Features & Architecture:
+ * Architecture & Core Principles:
  * 1. Single Source of Truth for Bookmarklet Window Target ("GBP_DIAGNOSTIC_REPORT_WINDOW").
- * 2. Pure Live Data Engine: Zero rating/score carry-overs between stores; resets automatically on store change.
- * 3. MULTI-APPROACH PHOTO COUNT DETECTOR: Captures full photo gallery count from counters (e.g. 1/25), text notations (e.g. 25枚の写真), and thumbnail nodes even in photo lightbox views.
- * 4. ISOLATED PHOTO GALLERY "ALL" TAB MERGE ENGINE: When diagnosing from the Photo Gallery "ALL" tab, ONLY photo counts/ranks are updated. All other store fields (Name, Category, Website, Hours, Description, Attributes) are completely preserved without triggering store-switch resets.
- * 5. STRICT ATTRIBUTES "BASIC INFO" TAB DETECTOR: Attributes (詳細情報) are extracted dynamically when checkmarks (✔) or "基本情報" / "設備" / "プラン" sections are visible.
- * 6. STRICT PHOTO GALLERY "ALL" TAB DETECTOR: Photos count is ONLY extracted when the user is explicitly on the Photo Gallery "ALL" (すべて) tab. Otherwise renders '未確認 (【すべて】タブを開いて診断してください)'.
- * 7. COMPREHENSIVE ATTRIBUTE SCANNER: Scans ALL checked (✔) items dynamically without omission (e.g. トイレ, 整備士, 事前予約がおすすめ, イートイン, etc.) and appends "等".
- * 8. FULL WEEKLY HOURS & HOLIDAYS ENGINE: Automatically triggers click on Google Maps hours dropdown and extracts full Mon-Sun schedules & explicit holidays.
- * 9. RAW REAL CONTENT DISPLAY ENGINE: Captures and displays EXACT RAW TEXT, OWNER MESSAGES, FULL WEEKLY HOURS, WEBSITE URLS, and ALL VALIDATED ATTRIBUTES inside responsive card content boxes.
- * 10. Protected Review Reply Ratio (%) Engine: Calculates true percentage from visible review cards vs owner replies.
- * 11. Store-Owner-Facing AI Prompt: Generates client-friendly advice in 3 structured sections without complex jargon.
- * 12. Layout Hierarchy: Total Score & Chart -> AI Consultancy Card -> Detailed Category Analysis (2-Line Card Blocks) -> Priority Actions.
+ * 2. Non-Destructive Multi-Tab Data Aggregation Engine:
+ *    - Seamlessly aggregates data scanned across Overview, Basic Info, Photo Gallery ("ALL"), and Reviews tabs.
+ *    - Isolated Photo Tab Merge: Photo "ALL" tab updates ONLY photo count without altering store info or triggering store resets.
+ * 3. Exact Raw Text Extraction: Captures and displays real Web URLs, full Mon-Sun schedules & holidays, exact owner messages, and ALL checked (✔) attributes.
+ * 4. Store-Owner-Facing AI Consultant (Gemini 3.6 Flash): Generates encouraging client advice and naturally passes the baton to the sales rep.
+ * 5. Clean, Robust Event Handling: Global delegation for modals, ESC key support, and responsive 2-line layout cards.
+ * ============================================================================
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -147,7 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (inputApiKey) inputApiKey.value = localStorage.getItem('gemini_api_key') || "";
 
     // ==========================================
-    // 3. UNIFIED BOOKMARKLET GENERATOR ENGINE (MULTI-APPROACH PHOTO DETECTOR)
+    // 3. BOOKMARKLET GENERATOR ENGINE 2.0
     // ==========================================
     function generateBookmarkletHref() {
         return "javascript:(function(){try{" +
@@ -206,7 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
             "  }" +
             "}" +
 
-            "/* D. HYBRID ULTRA-PRECISE REVIEW REPLY RATIO ENGINE */" +
+            "/* D. REVIEWS TAB & REPLY RATIO (%) ENGINE */" +
             "let reviewModal = document.querySelector('g-review-dialog, div[role=\"dialog\"], div.review-dialog, div.m6QEfe[aria-label*=\"クチコミ\"]');" +
             "let isReviewTabOpen = Boolean(reviewModal) || (bTxt.indexOf('関連度順') !== -1 || bTxt.indexOf('評価の高い順') !== -1 || bTxt.indexOf('クチコミの検索') !== -1 || bTxt.indexOf('最新順') !== -1);" +
             "let replyRatio = undefined;" +
@@ -227,7 +224,7 @@ document.addEventListener('DOMContentLoaded', () => {
             "  }" +
             "}" +
 
-            "/* E. MULTI-APPROACH PHOTO GALLERY DETECTOR */" +
+            "/* E. PHOTO GALLERY 'ALL' TAB MULTI-APPROACH DETECTOR */" +
             "let isPhotoAllTab = Boolean(document.body.querySelector('button[aria-label*=\"すべて\"][aria-selected=\"true\"], div[role=\"tab\"][aria-selected=\"true\"][aria-label*=\"すべて\"], button[aria-label*=\"写真\"][aria-selected=\"true\"]')) || " +
             "                    (loc.indexOf('!1e2') !== -1 || loc.indexOf('3a,87y') !== -1 || (bTxt.indexOf('すべての写真') !== -1 && bTxt.indexOf('最新') !== -1));" +
             "let photoCount = undefined;" +
@@ -317,7 +314,7 @@ document.addEventListener('DOMContentLoaded', () => {
             "  }" +
             "}" +
 
-            "/* G. STRICT ATTRIBUTES 'BASIC INFO' TAB DETECTOR (ROBUST DETECTOR) */" +
+            "/* G. BASIC INFO TAB ATTRIBUTES DETECTOR (ROBUST DETECTOR) */" +
             "let isBasicInfoTab = Boolean(document.body.querySelector('button[aria-label*=\"基本情報\"], div[role=\"tab\"][aria-selected=\"true\"], [aria-label*=\"基本情報\"]')) || " +
             "                     bTxt.indexOf('✔') !== -1 || " +
             "                     bTxt.indexOf('基本情報') !== -1 || " +
@@ -390,7 +387,7 @@ document.addEventListener('DOMContentLoaded', () => {
     bookmarkletLink.setAttribute('href', generateBookmarkletHref());
 
     // ==========================================
-    // 4. VIEW CONTROLLER & TOAST NOTIFICATIONS
+    // 4. VIEW CONTROLLER & TOAST SYSTEM
     // ==========================================
     function activateReportView() {
         if (welcomePlaceholder) welcomePlaceholder.classList.add('hidden');
@@ -466,7 +463,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 5. PURE LIVE DATA MERGE ENGINE (PHOTO TAB ISOLATED UPDATE)
+    // 5. DATA MERGE ENGINE 2.0 (ISOLATED PHOTO TAB & NON-DESTRUCTIVE AGGREGATION)
     // ==========================================
     function mergeStoreData(existing, incoming) {
         let isUpdated = false;
@@ -479,21 +476,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const merged = { ...existing };
 
-        // RULE 1: PHOTO GALLERY 'ALL' TAB SPECIAL ISOLATED MERGE
-        // When data comes from Photo 'ALL' tab, ONLY update photo fields and NEVER trigger store resets or overwrite text data!
+        // RULE 1: PHOTO GALLERY 'ALL' TAB ISOLATED UPDATE
+        // When data is received from Photo 'ALL' tab, ONLY update photo fields and preserve all store info.
         if (safeIncoming.statusPhotos !== 'error' && safeIncoming.photoCount !== undefined) {
             merged.photoCount = safeIncoming.photoCount;
             merged.statusPhotos = safeIncoming.statusPhotos;
             if (safeIncoming.photoTier) merged.photoTier = safeIncoming.photoTier;
 
-            // Preserve existing store name if available
             if (!merged.name || merged.name === "店舗名未設定") {
                 if (safeIncoming.name && safeIncoming.name !== "店舗名未設定") merged.name = safeIncoming.name;
             }
             return { merged, isUpdated: true, isNewStore: false };
         }
 
-        // RULE 2: STORE-SWITCH DETECTOR FOR NORMAL TABS (OVERVIEW / BASIC INFO)
+        // RULE 2: STORE-SWITCH DETECTOR FOR NORMAL TABS
         if (existing.name && safeIncoming.name && existing.name !== safeIncoming.name && existing.name !== "店舗名未設定") {
             let cleanExist = existing.name.replace(/[^a-zA-Z0-9\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]/g, '');
             let cleanIn = safeIncoming.name.replace(/[^a-zA-Z0-9\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]/g, '');
@@ -504,7 +500,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // RULE 3: NORMAL TAB SAFE MERGE (PRESERVE EXISTING DATA)
+        // RULE 3: NORMAL TAB NON-DESTRUCTIVE AGGREGATION
         if (safeIncoming.name && safeIncoming.name !== "店舗名未設定") merged.name = safeIncoming.name;
         if (safeIncoming.companyName) merged.companyName = safeIncoming.companyName;
         if (safeIncoming.category && safeIncoming.category !== "未設定") merged.category = safeIncoming.category;
@@ -636,7 +632,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 7. GEMINI 3.6 FLASH AI ADVISOR (CLIENT FOCUS)
+    // 7. GEMINI 3.6 FLASH AI ADVISOR 2.0
     // ==========================================
     async function callAiAdviceApi(diagData) {
         const apiKey = localStorage.getItem('gemini_api_key') || DEFAULT_GEMINI_KEY || "";
@@ -701,7 +697,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 8. SCORING & RADAR CHART RENDER ENGINE (ATTRIBUTES STRICT BASIC INFO TAB EVALUATION)
+    // 8. SCORING & RADAR CHART RENDER ENGINE 2.0
     // ==========================================
     function calculateAndRender() {
         let displayRating = storeData.rating > 0 ? storeData.rating : 5.0;
@@ -717,7 +713,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let totalGained = 0;
         let totalPossible = 0;
 
-        // Category 1: Basic Info (Max 30) - Display EXACT RAW TEXT
+        // Category 1: Basic Info (Max 30)
         let basicGained = 0;
         let basicPossible = 0;
         const itemsBasic = [];
@@ -825,7 +821,7 @@ document.addEventListener('DOMContentLoaded', () => {
             rawText: "※ 返信率は【クチコミ】タブで表示されている直近・上位のクチコミ（数件〜数十件）を対象に算出した割合です。"
         });
 
-        // Category 3: Photos (Max 20) - STRICT "ALL" TAB LOGIC
+        // Category 3: Photos (Max 20)
         let photosGained = 0;
         let photosPossible = 20;
         const itemsPhotos = [];
@@ -967,7 +963,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 9. RADAR CHART DRAWING ENGINE
+    // 9. RADAR CHART DRAWING ENGINE 2.0
     // ==========================================
     function drawRadarChart(scores) {
         const cx = 150, cy = 150, r = 85;
@@ -1020,7 +1016,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 10. EVENT LISTENERS & MODALS
+    // 10. EVENT LISTENERS & GLOBAL DELEGATION
     // ==========================================
     document.querySelectorAll('.diag-form input, .diag-form select').forEach(el => {
         el.addEventListener('input', readFormValues);
