@@ -4,13 +4,14 @@
  * Key Features & Architecture:
  * 1. Single Source of Truth for Bookmarklet Window Target ("GBP_DIAGNOSTIC_REPORT_WINDOW").
  * 2. Pure Live Data Engine: Zero rating/score carry-overs between stores; resets automatically on store change.
- * 3. STRICT PHOTO GALLERY "ALL" TAB DETECTOR: Photos count is ONLY extracted when the user is explicitly on the Photo Gallery "ALL" (すべて) tab. Otherwise renders '未確認 (【すべて】タブを開いて診断してください)'.
- * 4. COMPREHENSIVE ATTRIBUTE SCANNER: Scans ALL checked (✔) items dynamically without omission and appends "等".
- * 5. FULL WEEKLY HOURS & HOLIDAYS ENGINE: Automatically triggers click on Google Maps hours dropdown and extracts full Mon-Sun schedules & explicit holidays.
- * 6. RAW REAL CONTENT DISPLAY ENGINE: Captures and displays EXACT RAW TEXT, OWNER MESSAGES, FULL WEEKLY HOURS, WEBSITE URLS, and ALL VALIDATED ATTRIBUTES inside responsive card content boxes.
- * 7. Protected Review Reply Ratio (%) Engine: Calculates true percentage from visible review cards vs owner replies.
- * 8. Store-Owner-Facing AI Prompt: Generates client-friendly advice in 3 structured sections without complex jargon.
- * 9. Layout Hierarchy: Total Score & Chart -> AI Consultancy Card -> Detailed Category Analysis (2-Line Card Blocks) -> Priority Actions.
+ * 3. STRICT ATTRIBUTES "BASIC INFO" TAB DETECTOR: Attributes (詳細情報) are ONLY extracted when the user is explicitly on the "基本情報" (Basic Info) tab. Otherwise renders '未確認 (【基本情報】タブを開いて診断してください)'.
+ * 4. STRICT PHOTO GALLERY "ALL" TAB DETECTOR: Photos count is ONLY extracted when the user is explicitly on the Photo Gallery "ALL" (すべて) tab. Otherwise renders '未確認 (【すべて】タブを開いて診断してください)'.
+ * 5. COMPREHENSIVE ATTRIBUTE SCANNER: Scans ALL checked (✔) items dynamically without omission and appends "等".
+ * 6. FULL WEEKLY HOURS & HOLIDAYS ENGINE: Automatically triggers click on Google Maps hours dropdown and extracts full Mon-Sun schedules & explicit holidays.
+ * 7. RAW REAL CONTENT DISPLAY ENGINE: Captures and displays EXACT RAW TEXT, OWNER MESSAGES, FULL WEEKLY HOURS, WEBSITE URLS, and ALL VALIDATED ATTRIBUTES inside responsive card content boxes.
+ * 8. Protected Review Reply Ratio (%) Engine: Calculates true percentage from visible review cards vs owner replies.
+ * 9. Store-Owner-Facing AI Prompt: Generates client-friendly advice in 3 structured sections without complex jargon.
+ * 10. Layout Hierarchy: Total Score & Chart -> AI Consultancy Card -> Detailed Category Analysis (2-Line Card Blocks) -> Priority Actions.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -144,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (inputApiKey) inputApiKey.value = localStorage.getItem('gemini_api_key') || "";
 
     // ==========================================
-    // 3. UNIFIED BOOKMARKLET GENERATOR ENGINE (STRICT PHOTO "ALL" TAB DETECTOR)
+    // 3. UNIFIED BOOKMARKLET GENERATOR ENGINE (STRICT BASIC INFO TAB ATTRIBUTES DETECTOR)
     // ==========================================
     function generateBookmarkletHref() {
         return "javascript:(function(){try{" +
@@ -301,30 +302,41 @@ document.addEventListener('DOMContentLoaded', () => {
             "  }" +
             "}" +
 
-            "/* G. COMPREHENSIVE DYNAMIC ATTRIBUTES SCANNER */" +
-            "let validAttrItems = [];" +
-            "let checkNodes = Array.from(document.body.querySelectorAll('div, span, li, tr'));" +
-            "checkNodes.forEach(node => {" +
-            "  let txt = node.innerText || '';" +
-            "  if(txt.indexOf('✔') !== -1 && txt.length < 35 && txt.indexOf('\\n') === -1){" +
-            "    let cleanItem = txt.replace(/✔/g, '').trim();" +
-            "    if(cleanItem && validAttrItems.indexOf(cleanItem) === -1){" +
-            "      validAttrItems.push(cleanItem);" +
+            "/* G. STRICT ATTRIBUTES 'BASIC INFO' TAB DETECTOR */" +
+            "let isBasicInfoTab = Boolean(document.body.querySelector('button[aria-label*=\"基本情報\"][aria-selected=\"true\"], div[role=\"tab\"][aria-selected=\"true\"][aria-label*=\"基本情報\"]')) || " +
+            "                     (bTxt.indexOf('基本情報') !== -1 && (bTxt.indexOf('バリアフリー') !== -1 || bTxt.indexOf('サービス オプション') !== -1 || bTxt.indexOf('お支払い') !== -1 || bTxt.indexOf('設備') !== -1));" +
+            "let rawAttributes = '';" +
+            "let statusAttributes = 'error';" +
+            "if(isBasicInfoTab){" +
+            "  let validAttrItems = [];" +
+            "  let checkNodes = Array.from(document.body.querySelectorAll('div, span, li, tr'));" +
+            "  checkNodes.forEach(node => {" +
+            "    let txt = node.innerText || '';" +
+            "    if(txt.indexOf('✔') !== -1 && txt.length < 35 && txt.indexOf('\\n') === -1){" +
+            "      let cleanItem = txt.replace(/✔/g, '').trim();" +
+            "      if(cleanItem && validAttrItems.indexOf(cleanItem) === -1){" +
+            "        validAttrItems.push(cleanItem);" +
+            "      }" +
             "    }" +
+            "  });" +
+            "  let kwCandidates = [" +
+            "    'イートイン', 'テイクアウト', '一人での食事', 'アルコール飲料', 'ビール', 'ワイン', 'カクテル', '小皿料理', 'テーブル サービス', " +
+            "    '車椅子対応の座席', '車椅子対応の入り口', '車椅子対応の駐車場', '車椅子対応のトイレ', '無料Wi-Fi', 'Wi-Fi完備', " +
+            "    '無料駐車場完備', '駐車場あり', 'キャッシュレス決済対応', 'クレジットカード可', '電子マネー可', 'QRコード決済', '個室あり', '全席禁煙'" +
+            "  ];" +
+            "  kwCandidates.forEach(kw => {" +
+            "    let isDisabled = bTxt.indexOf('🚫 ' + kw) !== -1 || bTxt.indexOf('🚫' + kw) !== -1;" +
+            "    if(bTxt.indexOf(kw) !== -1 && !isDisabled && validAttrItems.indexOf(kw) === -1){" +
+            "      validAttrItems.push(kw);" +
+            "    }" +
+            "  });" +
+            "  if(validAttrItems.length > 0){" +
+            "    rawAttributes = validAttrItems.join(' ・ ') + ' 等';" +
+            "    statusAttributes = 'pass';" +
+            "  }else{" +
+            "    statusAttributes = 'fail';" +
             "  }" +
-            "});" +
-            "let kwCandidates = [" +
-            "  'イートイン', 'テイクアウト', '一人での食事', 'アルコール飲料', 'ビール', 'ワイン', 'カクテル', '小皿料理', 'テーブル サービス', " +
-            "  '車椅子対応の座席', '車椅子対応の入り口', '車椅子対応の駐車場', '車椅子対応のトイレ', '無料Wi-Fi', 'Wi-Fi完備', " +
-            "  '無料駐車場完備', '駐車場あり', 'キャッシュレス決済対応', 'クレジットカード可', '電子マネー可', 'QRコード決済', '個室あり', '全席禁煙'" +
-            "];" +
-            "kwCandidates.forEach(kw => {" +
-            "  let isDisabled = bTxt.indexOf('🚫 ' + kw) !== -1 || bTxt.indexOf('🚫' + kw) !== -1;" +
-            "  if(bTxt.indexOf(kw) !== -1 && !isDisabled && validAttrItems.indexOf(kw) === -1){" +
-            "    validAttrItems.push(kw);" +
-            "  }" +
-            "});" +
-            "let rawAttributes = validAttrItems.length > 0 ? validAttrItems.join(' ・ ') + ' 等' : '';" +
+            "}" +
 
             "/* H. PACK & SEND DATA */" +
             "let data = {" +
@@ -347,7 +359,7 @@ document.addEventListener('DOMContentLoaded', () => {
             "  statusDescription: Boolean(rawDescription) ? 'pass' : 'fail'," +
             "  statusCover: 'pass'," +
             "  statusReply: replyStatus," +
-            "  statusAttributes: Boolean(rawAttributes) ? 'pass' : 'fail'" +
+            "  statusAttributes: statusAttributes" +
             "};" +
             "let targetUrl = '" + APP_BASE_URL + "#data=' + encodeURIComponent(JSON.stringify(data));" +
             "window.open(targetUrl, '" + REPORT_WINDOW_TARGET + "');" +
@@ -399,11 +411,11 @@ document.addEventListener('DOMContentLoaded', () => {
             loadingStatusText.textContent = '🏢 新しい店舗の診断レポートを作成中...';
             loadingSubText.textContent = '新しい店舗データを抽出してレポートを更新しています';
         } else if (isMergeUpdate) {
-            loadingStatusText.textContent = '✨ データ集約＆写真「すべて」タブ枚数を判定算定中...';
-            loadingSubText.textContent = '写真ギャラリー「すべて」タブでの枚数情報を統合解析しています';
+            loadingStatusText.textContent = '✨ データ集約＆「基本情報」タブ属性を判定算定中...';
+            loadingSubText.textContent = '「基本情報」タブでの属性詳細情報を統合解析しています';
         } else {
             loadingStatusText.textContent = 'Googleマップから店舗データを抽出中...';
-            loadingSubText.textContent = '基本情報・全曜日営業時間・全有効属性・写真「すべて」タブを集計しています';
+            loadingSubText.textContent = '基本情報・全曜日営業時間・属性(基本情報タブ)・写真(すべてタブ)を集計しています';
         }
 
         const startTime = Date.now();
@@ -426,7 +438,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (isNewStore) {
                         showToast("✨ 新店舗の診断レポートを作成しました！", `${storeData.name} の診断結果を表示しています。`);
                     } else if (isMergeUpdate) {
-                        showToast("✨ レポートを統合更新しました！", `写真枚数(すべてタブ)を網羅反映しました。`);
+                        showToast("✨ レポートを統合更新しました！", `属性詳細情報(基本情報タブ)を網羅反映しました。`);
                     }
                 }, 250);
             }
@@ -460,7 +472,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (safeIncoming.rawWebsite) merged.rawWebsite = safeIncoming.rawWebsite;
         if (safeIncoming.rawHours) merged.rawHours = safeIncoming.rawHours;
         if (safeIncoming.rawDescription) merged.rawDescription = safeIncoming.rawDescription;
-        if (safeIncoming.rawAttributes !== undefined) merged.rawAttributes = safeIncoming.rawAttributes;
+
+        if (safeIncoming.statusAttributes !== 'error' && safeIncoming.rawAttributes) {
+            merged.rawAttributes = safeIncoming.rawAttributes;
+        }
 
         if (safeIncoming.rating > 0) {
             merged.rating = Math.min(Math.max(parseFloat(safeIncoming.rating), 1.0), 5.0);
@@ -470,7 +485,7 @@ document.addEventListener('DOMContentLoaded', () => {
             merged.replyRatio = safeIncoming.replyRatio;
         }
 
-        if (safeIncoming.photoCount !== undefined) {
+        if (safeIncoming.photoCount !== undefined && safeIncoming.statusPhotos !== 'error') {
             merged.photoCount = safeIncoming.photoCount;
         }
 
@@ -658,7 +673,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 8. SCORING & RADAR CHART RENDER ENGINE (PHOTO GALLERY STRICT TAB EVALUATION)
+    // 8. SCORING & RADAR CHART RENDER ENGINE (ATTRIBUTES STRICT BASIC INFO TAB EVALUATION)
     // ==========================================
     function calculateAndRender() {
         let displayRating = storeData.rating > 0 ? storeData.rating : 5.0;
@@ -723,12 +738,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         basicPossible += 4;
-        let attrVal = storeData.rawAttributes || "イートイン ・ 一人での食事 ・ アルコール飲料 ・ ビール ・ 小皿料理 ・ テーブル サービス 等";
-        if (attrVal && attrVal.length > 0) { 
+        if (storeData.statusAttributes === 'pass' || (storeData.rawAttributes && storeData.statusAttributes !== 'error')) { 
             basicGained += 4; 
+            let attrVal = storeData.rawAttributes || "イートイン ・ 一人での食事 ・ アルコール飲料 ・ ビール ・ 小皿料理 ・ テーブル サービス 等";
             itemsBasic.push({ title: "属性（詳細情報）", status: "pass", rawText: attrVal }); 
-        } else { 
-            itemsBasic.push({ title: "属性（詳細情報）", status: "fail", rawText: "未対応 (車椅子バリアフリーや決済手段などの有効属性(✔)が登録されていません。※🚫非対応は除外判定)" }); 
+        } else if (storeData.statusAttributes === 'fail') {
+            itemsBasic.push({ title: "属性（詳細情報）", status: "fail", rawText: "未対応 (車椅子バリアフリーや決済手段などの有効属性(✔)が登録されていません。※🚫非対応は除外)" }); 
+        } else {
+            itemsBasic.push({ title: "属性（詳細情報）", status: "fail", rawText: "未確認（【基本情報】タブを開いて診断してください）" }); 
         }
 
         // Category 2: Reviews (Max 30)
