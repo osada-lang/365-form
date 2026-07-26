@@ -4,7 +4,7 @@
  * Key Features & Architecture:
  * 1. Single Source of Truth for Bookmarklet Window Target ("GBP_DIAGNOSTIC_REPORT_WINDOW").
  * 2. Pure Live Data Engine: Zero rating/score carry-overs between stores; resets automatically on store change.
- * 3. ZERO-OVERWRITE DATA MERGE ENGINE: Prevents tab switching (e.g., Photos 'ALL' tab or Reviews tab) from wiping or downgrading previously captured store data (Website, Hours, Description, Attributes).
+ * 3. ISOLATED PHOTO GALLERY "ALL" TAB MERGE ENGINE: When diagnosing from the Photo Gallery "ALL" tab, ONLY photo counts/ranks are updated. All other store fields (Name, Category, Website, Hours, Description, Attributes) are completely preserved without triggering store-switch resets.
  * 4. STRICT ATTRIBUTES "BASIC INFO" TAB DETECTOR: Attributes (詳細情報) are extracted dynamically when checkmarks (✔) or "基本情報" / "設備" / "プラン" sections are visible.
  * 5. STRICT PHOTO GALLERY "ALL" TAB DETECTOR: Photos count is ONLY extracted when the user is explicitly on the Photo Gallery "ALL" (すべて) tab. Otherwise renders '未確認 (【すべて】タブを開いて診断してください)'.
  * 6. COMPREHENSIVE ATTRIBUTE SCANNER: Scans ALL checked (✔) items dynamically without omission (e.g. トイレ, 整備士, 事前予約がおすすめ, イートイン, etc.) and appends "等".
@@ -146,7 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (inputApiKey) inputApiKey.value = localStorage.getItem('gemini_api_key') || "";
 
     // ==========================================
-    // 3. UNIFIED BOOKMARKLET GENERATOR ENGINE (SAFE TAB SWITCHING CAPTURE)
+    // 3. UNIFIED BOOKMARKLET GENERATOR ENGINE (ISOLATED PHOTO TAB DETECTOR)
     // ==========================================
     function generateBookmarkletHref() {
         return "javascript:(function(){try{" +
@@ -417,8 +417,8 @@ document.addEventListener('DOMContentLoaded', () => {
             loadingStatusText.textContent = '🏢 新しい店舗の診断レポートを作成中...';
             loadingSubText.textContent = '新しい店舗データを抽出してレポートを更新しています';
         } else if (isMergeUpdate) {
-            loadingStatusText.textContent = '✨ 診断データを集約・統合更新中...';
-            loadingSubText.textContent = 'タブ切替時のデータを保護しながら集約レポートを最新化しています';
+            loadingStatusText.textContent = '✨ 写真「すべて」タブの画像枚数を統合中...';
+            loadingSubText.textContent = '既存の店舗情報を100%保持しながら、画像枚数のみを反映しています';
         } else {
             loadingStatusText.textContent = 'Googleマップから店舗データを抽出中...';
             loadingSubText.textContent = '基本情報・全曜日営業時間・属性(基本情報タブ)・写真(すべてタブ)を集計しています';
@@ -444,7 +444,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (isNewStore) {
                         showToast("✨ 新店舗の診断レポートを作成しました！", `${storeData.name} の診断結果を表示しています。`);
                     } else if (isMergeUpdate) {
-                        showToast("✨ レポートを統合更新しました！", `全データを保持しながら写真を最新化しました。`);
+                        showToast("✨ 写真枚数を反映・統合しました！", `店舗情報を維持したまま、最新の画像枚数を追加しました。`);
                     }
                 }, 250);
             }
@@ -452,7 +452,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 5. PURE LIVE DATA MERGE ENGINE WITH STRICT ZERO-OVERWRITE PROTECTION
+    // 5. PURE LIVE DATA MERGE ENGINE (PHOTO TAB ISOLATED UPDATE)
     // ==========================================
     function mergeStoreData(existing, incoming) {
         let isUpdated = false;
@@ -463,24 +463,40 @@ document.addEventListener('DOMContentLoaded', () => {
             ...incoming
         };
 
-        // If analyzing a completely different store, reset clean
-        if (existing.name && safeIncoming.name && existing.name !== safeIncoming.name && existing.name !== "店舗名未設定") {
-            isNewStore = true;
-            return { merged: safeIncoming, isUpdated: true, isNewStore };
-        }
-
         const merged = { ...existing };
 
+        // RULE 1: PHOTO GALLERY 'ALL' TAB SPECIAL ISOLATED MERGE
+        // When data comes from Photo 'ALL' tab, ONLY update photo fields and NEVER trigger store resets or overwrite text data!
+        if (safeIncoming.statusPhotos !== 'error' && safeIncoming.photoCount !== undefined) {
+            merged.photoCount = safeIncoming.photoCount;
+            merged.statusPhotos = safeIncoming.statusPhotos;
+            if (safeIncoming.photoTier) merged.photoTier = safeIncoming.photoTier;
+
+            // Preserve existing store name if available
+            if (!merged.name || merged.name === "店舗名未設定") {
+                if (safeIncoming.name && safeIncoming.name !== "店舗名未設定") merged.name = safeIncoming.name;
+            }
+            return { merged, isUpdated: true, isNewStore: false };
+        }
+
+        // RULE 2: STORE-SWITCH DETECTOR FOR NORMAL TABS (OVERVIEW / BASIC INFO)
+        if (existing.name && safeIncoming.name && existing.name !== safeIncoming.name && existing.name !== "店舗名未設定") {
+            let cleanExist = existing.name.replace(/[^a-zA-Z0-9\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]/g, '');
+            let cleanIn = safeIncoming.name.replace(/[^a-zA-Z0-9\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]/g, '');
+
+            if (cleanExist.indexOf(cleanIn) === -1 && cleanIn.indexOf(cleanExist) === -1) {
+                isNewStore = true;
+                return { merged: safeIncoming, isUpdated: true, isNewStore };
+            }
+        }
+
+        // RULE 3: NORMAL TAB SAFE MERGE (PRESERVE EXISTING DATA)
         if (safeIncoming.name && safeIncoming.name !== "店舗名未設定") merged.name = safeIncoming.name;
         if (safeIncoming.companyName) merged.companyName = safeIncoming.companyName;
         if (safeIncoming.category && safeIncoming.category !== "未設定") merged.category = safeIncoming.category;
         if (safeIncoming.reviewCount > 0) merged.reviewCount = Math.max(existing.reviewCount || 0, safeIncoming.reviewCount);
+        if (safeIncoming.rating > 0) merged.rating = Math.min(Math.max(parseFloat(safeIncoming.rating), 1.0), 5.0);
 
-        if (safeIncoming.rating > 0) {
-            merged.rating = Math.min(Math.max(parseFloat(safeIncoming.rating), 1.0), 5.0);
-        }
-
-        // --- STRICT RAW CONTENT PROTECTION (NEVER OVERWRITE EXISTING DATA WITH EMPTY STRINGS ON TAB SWITCHING) ---
         if (safeIncoming.rawWebsite) merged.rawWebsite = safeIncoming.rawWebsite;
         if (safeIncoming.rawHours) merged.rawHours = safeIncoming.rawHours;
         if (safeIncoming.rawDescription) merged.rawDescription = safeIncoming.rawDescription;
@@ -492,12 +508,7 @@ document.addEventListener('DOMContentLoaded', () => {
             merged.replyRatio = safeIncoming.replyRatio;
         }
 
-        if (safeIncoming.photoCount !== undefined && safeIncoming.statusPhotos !== 'error') {
-            merged.photoCount = safeIncoming.photoCount;
-        }
-
-        // --- STRICT STATUS RANK PROTECTION (NEVER DOWNGRADE ON PARTIAL TAB VIEW) ---
-        const statusKeys = ['statusWebsite', 'statusHours', 'statusDescription', 'statusCover', 'statusReply', 'statusAttributes', 'statusPhotos'];
+        const statusKeys = ['statusWebsite', 'statusHours', 'statusDescription', 'statusCover', 'statusReply', 'statusAttributes'];
         statusKeys.forEach(key => {
             let existingVal = existing[key] || 'error';
             let incomingVal = safeIncoming[key] || 'error';
@@ -505,18 +516,12 @@ document.addEventListener('DOMContentLoaded', () => {
             let existingRank = STATUS_RANK[existingVal] !== undefined ? STATUS_RANK[existingVal] : 0;
             let incomingRank = STATUS_RANK[incomingVal] !== undefined ? STATUS_RANK[incomingVal] : 0;
 
-            if (incomingRank > existingRank) {
+            if (incomingRank >= existingRank) {
                 merged[key] = incomingVal;
-                isUpdated = true;
-            } else if (incomingRank === existingRank && existing[key] !== incomingVal) {
-                merged[key] = incomingVal;
-                isUpdated = true;
-            } else {
-                merged[key] = existingVal; // Preserve existing higher status!
             }
         });
 
-        return { merged, isUpdated, isNewStore };
+        return { merged, isUpdated: true, isNewStore: false };
     }
 
     function parseIncomingData() {
