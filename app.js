@@ -442,9 +442,21 @@ document.addEventListener('DOMContentLoaded', () => {
         if (controlPanelSection) controlPanelSection.classList.remove('hidden');
     }
 
+    function resetAiAdvice() {
+        currentDiagDataForAi = null;
+        if (aiAdviceContent) {
+            aiAdviceContent.innerHTML = '<p class="ai-placeholder">「AI解説文を自動生成」ボタンを押すと、診断データに基づいたプロコンサルタント視点の解説と営業トーク案が即時作成されます。</p>';
+        }
+        if (btnGenerateAiAdvice) {
+            btnGenerateAiAdvice.disabled = false;
+            btnGenerateAiAdvice.textContent = '🤖 AI解説文を自動生成';
+        }
+    }
+
     function resetToWelcomeView() {
         localStorage.removeItem('last_gbp_data');
         storeData = { ...INITIAL_STORE_TEMPLATE };
+        resetAiAdvice();
         if (welcomePlaceholder) welcomePlaceholder.classList.remove('hidden');
         if (reportPaper) reportPaper.classList.add('hidden');
         if (controlPanelSection) controlPanelSection.classList.add('hidden');
@@ -465,6 +477,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function triggerLoadingAnimation(onComplete, isMergeUpdate = false, isNewStore = false) {
+        resetAiAdvice();
         hideAllModals();
         activateReportView();
         loadingOverlay.classList.remove('hidden');
