@@ -26,17 +26,26 @@
             border-radius: 4px;
         }
 
+        @page {
+            size: A4 portrait;
+            margin: 0;
+        }
+
         @media print {
             body {
                 background: #ffffff;
                 padding: 0;
+                margin: 0;
             }
             .sheet-container {
-                width: 100%;
-                margin: 0;
+                width: 210mm;
+                height: 297mm;
+                box-sizing: border-box;
+                margin: 0 auto;
                 padding: 8mm 10mm;
                 box-shadow: none;
                 border-radius: 0;
+                page-break-after: always;
             }
             .no-print {
                 display: none !important;
@@ -163,13 +172,13 @@
                 </div>
             </div>
 
-            <!-- Main Content: Left (基本情報) & Right (AIが投稿に活かせる情報) -->
+            <!-- Main Content: Left (基本情報 1) & Right (基本情報 2) -->
             <div class="grid grid-cols-12 gap-3 text-xs">
-                <!-- Left Column: 基本情報 (用紙幅の約半分 col-span-6) -->
-                <div class="col-span-12 md:col-span-6">
-                    <h2 class="bg-[#005a36] text-white font-bold px-2.5 py-1 rounded-t text-xs">基本情報</h2>
+                <!-- Left Column: 基本情報 1 (col-span-6) -->
+                <div class="col-span-12 md:col-span-6 print:col-span-6">
+                    <h2 class="bg-[#005a36] text-white font-bold px-2.5 py-1 rounded-t text-xs">基本情報 (1)</h2>
                     <table class="w-full text-[11px] border border-gray-300">
-                        <tbody class="divide-y divide-gray-200">
+                        <tbody class="divide-y divide-gray-200 bg-white">
                             <tr>
                                 <th class="w-[140px] bg-emerald-50/60 text-gray-800 p-1 text-left font-bold border-r border-gray-300 whitespace-nowrap">店舗名（正式名称）</th>
                                 <td class="p-0.5"><input type="text" class="w-full"></td>
@@ -198,8 +207,17 @@
                                 <th class="bg-emerald-50/60 text-gray-800 p-1 text-left font-bold border-r border-gray-300 whitespace-nowrap">住所（番地まで正確に）</th>
                                 <td class="p-0.5"><input type="text" class="w-full"></td>
                             </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Right Column: 基本情報 2 (col-span-6) -->
+                <div class="col-span-12 md:col-span-6 print:col-span-6">
+                    <h2 class="bg-[#005a36] text-white font-bold px-2.5 py-1 rounded-t text-xs">基本情報 (2)</h2>
+                    <table class="w-full text-[11px] border border-gray-300">
+                        <tbody class="divide-y divide-gray-200 bg-white">
                             <tr>
-                                <th class="bg-emerald-50/60 text-gray-800 p-1 text-left font-bold border-r border-gray-300 whitespace-nowrap">メールアドレス</th>
+                                <th class="w-[140px] bg-emerald-50/60 text-gray-800 p-1 text-left font-bold border-r border-gray-300 whitespace-nowrap">メールアドレス</th>
                                 <td class="p-0.5"><input type="text" class="w-full"></td>
                             </tr>
                             <tr>
@@ -230,36 +248,18 @@
                                 <td class="p-0.5"><input type="text" class="w-full"></td>
                             </tr>
                             <tr>
-                                <th class="bg-emerald-50/60 text-gray-800 p-1 text-left font-bold border-r border-gray-300">
-                                    その他予約URL<br>
-                                    <span class="font-normal text-[9px] text-gray-500">例：ホットペッパー、食べログ等</span>
+                                <th class="bg-emerald-50/60 text-gray-800 p-1 text-left font-bold border-r border-gray-300 whitespace-nowrap">
+                                    ポータルサイトURL<br>
+                                    <span class="font-normal text-[8px] text-gray-500 leading-tight">ホットペッパー、食べログ、グルナビなど</span>
                                 </th>
-                                <td class="p-0.5"><input type="text" class="w-full"></td>
+                                <td class="p-0.5 space-y-0.5">
+                                    <input type="text" class="w-full" placeholder="URL 1">
+                                    <input type="text" class="w-full" placeholder="URL 2">
+                                    <input type="text" class="w-full" placeholder="URL 3">
+                                </td>
                             </tr>
                         </tbody>
                     </table>
-                </div>
-
-                <!-- Right Column: AIが投稿に活かせる情報（自由記入） (用紙幅の約半分 col-span-6) -->
-                <div class="col-span-12 md:col-span-6 flex flex-col justify-between">
-                    <div>
-                        <h2 class="bg-[#005a36] text-white font-bold px-2.5 py-1 rounded-t text-xs">AIが投稿に活かせる情報（自由記入）</h2>
-                        <div class="border border-t-0 border-gray-300 p-2 bg-white">
-                            <p class="text-gray-700 text-[11px] mb-1">お店の魅力やこだわり、伝えたい情報などをご自由にご記入ください。</p>
-                            <textarea rows="14" class="w-full p-1.5 border border-gray-200 rounded text-xs" placeholder="自由記述欄"></textarea>
-                        </div>
-                    </div>
-                    <div class="mt-1 p-2 bg-gray-50 border border-gray-200 rounded text-[10px] text-gray-700">
-                        <span class="font-bold text-gray-900">（記入例）</span>
-                        <ul class="list-disc list-inside space-y-0.5 mt-0.5 text-gray-600">
-                            <li>創業のきっかけ、想い、ストーリー</li>
-                            <li>受賞歴、メディア掲載歴など</li>
-                            <li>こだわりの食材・技術・設備などの詳細</li>
-                            <li>お客様にとってのメリット・価値</li>
-                            <li>他店との違いや独自の強み</li>
-                            <li>今後の目標、ビジョン など</li>
-                        </ul>
-                    </div>
                 </div>
             </div>
         </div>
@@ -275,15 +275,39 @@
         </div>
 
         <!-- Row 1: ①〜④ (4 Columns) -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-2 text-[11px] mb-2">
-            <!-- ① 絶対に使わない言葉・表現 -->
+        <div class="grid grid-cols-1 md:grid-cols-4 print:grid-cols-4 gap-2 text-[11px] mb-2">
+            <!-- ① 毎投稿に必ず入れたいメインキーワード -->
             <div class="border border-gray-300 rounded p-1.5 bg-white">
-                <h3 class="font-bold text-[#005a36] mb-0.5 text-xs flex items-center gap-1">
-                    <span class="text-sm">①</span>
-                    絶対に使わない言葉・表現
+                <h3 class="font-bold text-[#005a36] mb-0.5 text-xs flex items-center justify-between gap-1">
+                    <span class="flex items-center gap-1">
+                        <span class="text-sm">①</span>
+                        毎投稿に必ず入れたいメインキーワード
+                    </span>
+                    <span class="text-[9px] text-red-500 font-bold bg-red-50 px-1 py-0.2 rounded border border-red-200 shrink-0">必須</span>
                 </h3>
                 <p class="text-gray-500 mb-1 text-[8.5px] leading-tight">
-                    (例) 「地域No.1」「絶対に治る」「日本一」「最安値」「激安」「格安」「100%効果」「必ず」「即効性」「他店より優れている」など
+                    (例) 店舗名、看板メニュー、代表的なサービス名など
+                </p>
+                <div class="space-y-0.5 text-[10px]">
+                    <div class="flex items-center gap-0.5"><span>1.</span><input type="text" class="input-inline"></div>
+                    <div class="flex items-center gap-0.5"><span>2.</span><input type="text" class="input-inline"></div>
+                    <div class="flex items-center gap-0.5"><span>3.</span><input type="text" class="input-inline"></div>
+                    <div class="flex items-center gap-0.5"><span>4.</span><input type="text" class="input-inline"></div>
+                    <div class="flex items-center gap-0.5"><span>5.</span><input type="text" class="input-inline"></div>
+                </div>
+            </div>
+
+            <!-- ② 任意で２〜３語ランダムピックアップするサブキーワード -->
+            <div class="border border-gray-300 rounded p-1.5 bg-white">
+                <h3 class="font-bold text-[#005a36] mb-0.5 text-xs flex items-center justify-between gap-1">
+                    <span class="flex items-center gap-1">
+                        <span class="text-sm">②</span>
+                        任意で２〜３語ランダムピックアップするサブキーワード
+                    </span>
+                    <span class="text-[9px] text-gray-500 font-bold bg-gray-50 px-1 py-0.2 rounded border border-gray-200 shrink-0">任意</span>
+                </h3>
+                <p class="text-gray-500 mb-1 text-[8.5px] leading-tight">
+                    宣伝したいメニューやサービスなどをご記入ください。
                 </p>
                 <div class="space-y-0.5 text-[10px]">
                     <div class="flex items-center gap-0.5"><span>1.</span><input type="text" class="input-inline"></div>
@@ -299,86 +323,10 @@
                 </div>
             </div>
 
-            <!-- ② 必ず入れたい言葉・キーワード -->
-            <div class="border border-gray-300 rounded p-1.5 bg-white">
-                <h3 class="font-bold text-[#005a36] mb-0.5 text-xs flex items-center gap-1">
-                    <span class="text-sm">②</span>
-                    必ず入れたい言葉・キーワード
-                </h3>
-                <p class="text-gray-500 mb-1 text-[8.5px] leading-tight">
-                    (例) 「ご来店」「〇〇店」「〇〇ブランド」「地域名」「商品名」「サービス名」「特徴」「メニュー名」など
-                </p>
-                <div class="space-y-0.5 text-[10px]">
-                    <div class="flex items-center gap-0.5"><span>1.</span><input type="text" class="input-inline"></div>
-                    <div class="flex items-center gap-0.5"><span>2.</span><input type="text" class="input-inline"></div>
-                    <div class="flex items-center gap-0.5"><span>3.</span><input type="text" class="input-inline"></div>
-                    <div class="flex items-center gap-0.5"><span>4.</span><input type="text" class="input-inline"></div>
-                    <div class="flex items-center gap-0.5"><span>5.</span><input type="text" class="input-inline"></div>
-                    <div class="flex items-center gap-0.5"><span>6.</span><input type="text" class="input-inline"></div>
-                    <div class="flex items-center gap-0.5"><span>7.</span><input type="text" class="input-inline"></div>
-                    <div class="flex items-center gap-0.5"><span>8.</span><input type="text" class="input-inline"></div>
-                    <div class="flex items-center gap-0.5"><span>9.</span><input type="text" class="input-inline"></div>
-                    <div class="flex items-center gap-0.5"><span>10.</span><input type="text" class="input-inline"></div>
-                </div>
-            </div>
-
-            <!-- ③ 投稿してはいけない内容 -->
+            <!-- ③ 投稿の雰囲気・トーン (旧⑤) -->
             <div class="border border-gray-300 rounded p-1.5 bg-white">
                 <h3 class="font-bold text-[#005a36] mb-0.5 text-xs flex items-center gap-1">
                     <span class="text-sm">③</span>
-                    投稿してはいけない内容
-                </h3>
-                <p class="text-gray-500 mb-1 text-[8.5px]">（該当するものに✓）</p>
-                <div class="space-y-0.5 text-[9.5px]">
-                    <label class="checkbox-label block"><input type="checkbox"> 個人や特定の団体を誹謗中傷する内容</label>
-                    <label class="checkbox-label block"><input type="checkbox"> 他社比較・批判につながる内容</label>
-                    <label class="checkbox-label block"><input type="checkbox"> 誤認・根拠のないNo.1表現</label>
-                    <label class="checkbox-label block"><input type="checkbox"> 医療・治療効果を保証する表現</label>
-                    <label class="checkbox-label block"><input type="checkbox"> 公序良俗に反する内容</label>
-                    <label class="checkbox-label block"><input type="checkbox"> 政治・宗教に関する内容</label>
-                    <label class="checkbox-label block"><input type="checkbox"> 暴力的・性的・差別的表現</label>
-                    <label class="checkbox-label block"><input type="checkbox"> 著作権・肖像権を侵害する内容</label>
-                    <label class="checkbox-label block"><input type="checkbox"> 虚偽・事実と異なる内容</label>
-                    <label class="checkbox-label block"><input type="checkbox"> AIが事実確認できない内容</label>
-                    <div class="mt-0.5 flex items-center gap-0.5">
-                        <label class="checkbox-label whitespace-nowrap"><input type="checkbox"> その他 (</label>
-                        <input type="text" class="input-inline text-[9.5px]">
-                        <span>)</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ④ 投稿したい内容 -->
-            <div class="border border-gray-300 rounded p-1.5 bg-white">
-                <h3 class="font-bold text-[#005a36] mb-0.5 text-xs flex items-center gap-1">
-                    <span class="text-sm">④</span>
-                    投稿したい内容
-                </h3>
-                <p class="text-gray-500 mb-1 text-[8.5px] leading-tight">
-                    (できるだけ具体的にご記入ください)<br>
-                    (例) 商品紹介、サービス紹介、スタッフ紹介、イベント情報、お客様の声、季節の情報、お役立ち情報など
-                </p>
-                <div class="space-y-0.5 text-[10px]">
-                    <div class="flex items-center gap-0.5"><span>1.</span><input type="text" class="input-inline"></div>
-                    <div class="flex items-center gap-0.5"><span>2.</span><input type="text" class="input-inline"></div>
-                    <div class="flex items-center gap-0.5"><span>3.</span><input type="text" class="input-inline"></div>
-                    <div class="flex items-center gap-0.5"><span>4.</span><input type="text" class="input-inline"></div>
-                    <div class="flex items-center gap-0.5"><span>5.</span><input type="text" class="input-inline"></div>
-                    <div class="flex items-center gap-0.5"><span>6.</span><input type="text" class="input-inline"></div>
-                    <div class="flex items-center gap-0.5"><span>7.</span><input type="text" class="input-inline"></div>
-                    <div class="flex items-center gap-0.5"><span>8.</span><input type="text" class="input-inline"></div>
-                    <div class="flex items-center gap-0.5"><span>9.</span><input type="text" class="input-inline"></div>
-                    <div class="flex items-center gap-0.5"><span>10.</span><input type="text" class="input-inline"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Row 2: ⑤〜⑦ (3 Columns) -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-[11px] mb-2">
-            <!-- ⑤ 投稿の雰囲気・トーン -->
-            <div class="border border-gray-300 rounded p-1.5 bg-white">
-                <h3 class="font-bold text-[#005a36] mb-0.5 text-xs flex items-center gap-1">
-                    <span class="text-sm">⑤</span>
                     投稿の雰囲気・トーン
                 </h3>
                 <p class="text-gray-500 mb-0.5 text-[8.5px]">（該当するものに✓）</p>
@@ -400,87 +348,116 @@
                 <p class="text-[8.5px] text-gray-400 mt-0.5">(具体的なイメージがあればご記入ください)</p>
             </div>
 
-            <!-- ⑥ 投稿の文体・口調 -->
-            <div class="border border-gray-300 rounded p-1.5 bg-white">
-                <h3 class="font-bold text-[#005a36] mb-0.5 text-xs flex items-center gap-1">
-                    <span class="text-sm">⑥</span>
-                    投稿の文体・口調
-                </h3>
-                <p class="text-gray-500 mb-0.5 text-[8.5px]">（該当するものに✓）</p>
-                <div class="space-y-0.5 text-[9.5px]">
-                    <label class="checkbox-label block"><input type="radio" name="tone_style"> です・ます調（丁寧）</label>
-                    <label class="checkbox-label block"><input type="radio" name="tone_style"> だ・である調（しっかり）</label>
-                    <label class="checkbox-label block"><input type="radio" name="tone_style"> です・ます調（親しみやすく柔らかい）</label>
-                    <label class="checkbox-label block"><input type="radio" name="tone_style"> だ・である調（カジュアル）</label>
-                    <div class="mt-0.5 flex items-center gap-0.5">
-                        <label class="checkbox-label whitespace-nowrap"><input type="radio" name="tone_style"> その他 (</label>
-                        <input type="text" class="input-inline text-[9.5px]">
-                        <span>)</span>
+            <!-- ④ よくある質問・お客様から聞かれること (旧⑥) -->
+            <div class="border border-gray-300 rounded p-1.5 bg-white flex flex-col justify-between">
+                <div>
+                    <h3 class="font-bold text-[#005a36] mb-0.5 text-xs flex items-center gap-1">
+                        <span class="text-sm">④</span>
+                        よくある質問・お客様から聞かれること
+                    </h3>
+                    <p class="text-gray-500 mb-1 text-[8px] leading-tight">店舗についてよくある質問と回答をそれぞれまとめてご記入ください。（複数入力可）</p>
+                </div>
+                <div class="space-y-1 mt-1 flex-grow flex flex-col">
+                    <div class="flex-grow">
+                        <span class="font-bold text-gray-500 text-[8.5px]">【よくある質問】（複数入力可）</span>
+                        <textarea rows="3" class="w-full border border-gray-200 rounded p-1 text-[9px]" placeholder="例：&#10;Q1. 駐車場はありますか？&#10;Q2. 予約は必須ですか？"></textarea>
                     </div>
-                </div>
-                <div class="mt-1 p-1 bg-gray-50 rounded text-[8.5px] text-gray-500">
-                    (例)<br>
-                    ・「丁寧にご案内します。」<br>
-                    ・「しっかりサポートします。」<br>
-                    ・「親しみやすくお話しします！」<br>
-                    ・「楽しくお伝えします！」 など
-                </div>
-            </div>
-
-            <!-- ⑦ 新着情報（投稿・お知らせ）に関する禁止事項 -->
-            <div class="border border-gray-300 rounded p-1.5 bg-white">
-                <h3 class="font-bold text-[#005a36] mb-0.5 text-xs flex items-center gap-1">
-                    <span class="text-sm">⑦</span>
-                    新着情報（投稿・お知らせ）に関する禁止事項
-                </h3>
-                <p class="text-gray-500 mb-0.5 text-[8.5px]">（該当するものに✓）</p>
-                <div class="space-y-0.5 text-[9.5px]">
-                    <label class="checkbox-label block"><input type="checkbox"> 絵文字・顔文字の使用</label>
-                    <label class="checkbox-label block"><input type="checkbox"> 特定のURLのみの投稿（内容がないリンク）</label>
-                    <label class="checkbox-label block"><input type="checkbox"> 価格や割引だけを強調した投稿</label>
-                    <label class="checkbox-label block"><input type="checkbox"> 繰り返しの同じ内容投稿</label>
-                    <label class="checkbox-label block"><input type="checkbox"> 法律・根拠に基づかない内容（景表法違反など）</label>
-                    <label class="checkbox-label block"><input type="checkbox"> 医療・健康効果を断定する表現</label>
-                    <label class="checkbox-label block"><input type="checkbox"> 公序良俗に反する内容</label>
-                    <div class="mt-0.5 flex items-center gap-0.5">
-                        <label class="checkbox-label whitespace-nowrap"><input type="checkbox"> その他 (</label>
-                        <input type="text" class="input-inline text-[9.5px]">
-                        <span>)</span>
+                    <div class="flex-grow mt-1">
+                        <span class="font-bold text-[#005a36] text-[8.5px]">【それに対する解答】（複数入力可）</span>
+                        <textarea rows="3" class="w-full border border-gray-200 rounded p-1 text-[9px]" placeholder="例：&#10;A1. 3台分ございます。&#10;A2. 当日のご予約も承っております。"></textarea>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Row 3: ⑧〜⑨ (2 Columns) -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-[11px] mb-2">
-            <!-- ⑧ AIへの指示事項（自由記入） -->
-            <div class="border border-gray-300 rounded p-1.5 bg-white">
-                <h3 class="font-bold text-[#005a36] mb-0.5 text-xs flex items-center gap-1">
-                    <span class="text-sm">⑧</span>
-                    AIへの指示事項（自由記入）
-                </h3>
-                <p class="text-gray-500 mb-0.5 text-[9px]">AIが作成する文章について、特に意識してほしいことや、伝えたい思いなどをご自由にご記入ください。</p>
-                <textarea rows="4" class="w-full border border-gray-200 rounded p-1 text-[10px]" placeholder="自由記入欄"></textarea>
+        <!-- Row 2: ⑤〜⑧ (4 Columns) -->
+        <div class="grid grid-cols-1 md:grid-cols-4 print:grid-cols-4 gap-2 text-[11px] mb-2">
+            <!-- ⑤ 毎投稿最後に表示されるフッター情報 (旧③) -->
+            <div class="border border-gray-300 rounded p-1.5 bg-white flex flex-col justify-between">
+                <div>
+                    <h3 class="font-bold text-[#005a36] mb-0.5 text-xs flex items-center gap-1">
+                        <span class="text-sm">⑤</span>
+                        毎投稿最後に表示されるフッター情報
+                    </h3>
+                    <p class="text-gray-500 mb-1 text-[8px] leading-tight">
+                        店舗住所、アクセス方法、電話番号、予約時の注意書きなど、AI生成テキストの最下部に必ず毎回挿入したい情報をご記入ください。
+                    </p>
+                </div>
+                <div class="text-[10px] mt-auto">
+                    <textarea rows="3" class="w-full border border-gray-200 rounded p-1 text-[9.5px]" placeholder="自由記入欄（店舗住所、アクセス方法、電話番号、注意書き等）"></textarea>
+                </div>
             </div>
 
-            <!-- ⑨ よくある質問・お客様から聞かれること -->
-            <div class="border border-gray-300 rounded p-1.5 bg-white">
-                <h3 class="font-bold text-[#005a36] mb-0.5 text-xs flex items-center gap-1">
-                    <span class="text-sm">⑨</span>
-                    よくある質問・お客様から聞かれること
-                </h3>
-                <p class="text-gray-500 mb-0.5 text-[8.5px]">店舗についてよく質問される内容をご記入ください。これを元に、役立つ投稿や口コミ返信を作成します。</p>
-                <div class="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[9.5px]">
-                    <div class="flex items-center gap-0.5"><span>1.</span><input type="text" class="input-inline"></div>
-                    <div class="flex items-center gap-0.5"><span>6.</span><input type="text" class="input-inline"></div>
-                    <div class="flex items-center gap-0.5"><span>2.</span><input type="text" class="input-inline"></div>
-                    <div class="flex items-center gap-0.5"><span>7.</span><input type="text" class="input-inline"></div>
-                    <div class="flex items-center gap-0.5"><span>3.</span><input type="text" class="input-inline"></div>
-                    <div class="flex items-center gap-0.5"><span>8.</span><input type="text" class="input-inline"></div>
-                    <div class="flex items-center gap-0.5"><span>4.</span><input type="text" class="input-inline"></div>
-                    <div class="flex items-center gap-0.5"><span>9.</span><input type="text" class="input-inline"></div>
-                    <div class="flex items-center gap-0.5"><span>5.</span><input type="text" class="input-inline"></div>
-                    <div class="flex items-center gap-0.5"><span>10.</span><input type="text" class="input-inline"></div>
+            <!-- ⑥ 投稿時のボタン用URL (旧④) -->
+            <div class="border border-gray-300 rounded p-1.5 bg-white flex flex-col justify-between">
+                <div>
+                    <h3 class="font-bold text-[#005a36] mb-0.5 text-xs flex items-center gap-1">
+                        <span class="text-sm">⑥</span>
+                        投稿時のボタン用URL
+                    </h3>
+                    <p class="text-gray-500 mb-1 text-[8px] leading-tight">
+                        最新情報投稿時の「詳細」ボタン等の遷移先URL（キャンペーンページやLP等）をご記入ください。
+                    </p>
+                </div>
+                <div class="text-[10px] mt-auto">
+                    <input type="text" class="w-full p-1 border border-gray-200 rounded" placeholder="https://">
+                </div>
+            </div>
+
+            <!-- ⑦ AIへの指示事項（自由記入） -->
+            <div class="border border-gray-300 rounded p-1.5 bg-white flex flex-col justify-between">
+                <div>
+                    <h3 class="font-bold text-[#005a36] mb-0.5 text-xs flex items-center gap-1">
+                        <span class="text-sm">⑦</span>
+                        AIへの指示事項（自由記入）
+                    </h3>
+                    <p class="text-gray-500 mb-0.5 text-[8.5px] leading-tight">AIが作成する文章について、特に意識してほしいことや、伝えたい思いなどをご自由にご記入ください。</p>
+                </div>
+                <textarea rows="2.5" class="w-full border border-gray-200 rounded p-1 text-[10px]" placeholder="自由記入欄"></textarea>
+            </div>
+
+            <!-- ⑧ 毎日の最新情報自動投稿の希望時間帯 -->
+            <div class="border border-gray-300 rounded p-1.5 bg-white flex flex-col justify-between">
+                <div>
+                    <h3 class="font-bold text-[#005a36] mb-0.5 text-xs flex items-center gap-1">
+                        <span class="text-sm">⑧</span>
+                        毎日の最新情報自動投稿の希望時間帯
+                    </h3>
+                    <p class="text-gray-500 mb-1 text-[8px] leading-tight">
+                        ご希望の投稿時間帯をご選択ください。（1時間単位）
+                    </p>
+                </div>
+                <div class="space-y-1.5 mt-auto text-[10px]">
+                    <select class="w-full bg-gray-50 border border-gray-300 rounded p-1 text-[10.5px] font-medium text-gray-800 outline-none focus:border-[#005a36] focus:ring-1 focus:ring-[#005a36]/20">
+                        <option value="">特に希望なし (正午に投稿)</option>
+                        <option value="0">0時頃</option>
+                        <option value="1">1時頃</option>
+                        <option value="2">2時頃</option>
+                        <option value="3">3時頃</option>
+                        <option value="4">4時頃</option>
+                        <option value="5">5時頃</option>
+                        <option value="6">6時頃</option>
+                        <option value="7">7時頃</option>
+                        <option value="8">8時頃</option>
+                        <option value="9">9時頃</option>
+                        <option value="10">10時頃</option>
+                        <option value="11">11時頃</option>
+                        <option value="12">12時頃</option>
+                        <option value="13">13時頃</option>
+                        <option value="14">14時頃</option>
+                        <option value="15">15時頃</option>
+                        <option value="16">16時頃</option>
+                        <option value="17">17時頃</option>
+                        <option value="18">18時頃</option>
+                        <option value="19">19時頃</option>
+                        <option value="20">20時頃</option>
+                        <option value="21">21時頃</option>
+                        <option value="22">22時頃</option>
+                        <option value="23">23時頃</option>
+                    </select>
+                    <p class="text-[7.5px] text-gray-400 mt-1 leading-normal">
+                        ※特にご希望がない場合は、お昼の12時（正午）前後に自動投稿されます。
+                    </p>
                 </div>
             </div>
         </div>
@@ -488,9 +465,9 @@
         <!-- ===== Footer Section (添付画像通りの独立4構造) ===== -->
         <div class="mt-2 space-y-1.5 text-[9.5px]">
             <!-- Top Row: 2 Separate Bordered Boxes -->
-            <div class="grid grid-cols-1 md:grid-cols-12 gap-2 items-stretch">
+            <div class="grid grid-cols-1 md:grid-cols-12 print:grid-cols-12 gap-2 items-stretch">
                 <!-- Box 1 (Left): 記入のポイント -->
-                <div class="col-span-12 md:col-span-6 border border-gray-300 rounded-md p-2 bg-white">
+                <div class="col-span-12 md:col-span-6 print:col-span-6 border border-gray-300 rounded-md p-2 bg-white">
                     <h4 class="font-bold text-[#005a36] mb-1 flex items-center gap-1 text-[10.5px]">
                         💡 記入のポイント
                     </h4>
@@ -503,7 +480,7 @@
                 </div>
 
                 <!-- Box 2 (Right): 4-Step Flow Diagram -->
-                <div class="col-span-12 md:col-span-6 border border-gray-300 rounded-md p-2 bg-white flex items-center">
+                <div class="col-span-12 md:col-span-6 print:col-span-6 border border-gray-300 rounded-md p-2 bg-white flex items-center">
                     <div class="flex items-center justify-around w-full font-bold text-[#005a36] text-[8.5px] text-center px-1">
                         <!-- Step 1 -->
                         <div class="flex flex-col items-center">
@@ -548,16 +525,16 @@
     <!-- Page Break for Printing -->
     <div class="page-break"></div>
 
-    <!-- ===== PAGE 2 (画像②：365ボイス AI設計シート Ver.1.0) ===== -->
+    <!-- ===== PAGE 3 (365ボイス アカウント発行&導入準備チェックシート) ===== -->
     <div class="sheet-container">
         <!-- Header Row -->
-        <div class="mb-2">
+        <div class="mb-3">
             <div class="flex justify-between items-start mb-1">
                 <!-- Left Title -->
                 <div class="flex items-baseline gap-1.5 flex-nowrap whitespace-nowrap">
                     <span class="text-2xl md:text-3xl font-black text-[#005a36] tracking-tight">365ボイス</span>
-                    <span class="text-xl md:text-2xl inline-flex items-center text-[#005a36]">💬</span>
-                    <span class="text-2xl md:text-3xl font-black text-black tracking-tight ml-0.5">AI設計シート</span>
+                    <span class="text-xl md:text-2xl inline-flex items-center text-[#005a36]">📋</span>
+                    <span class="text-2xl md:text-3xl font-black text-black tracking-tight ml-0.5">導入準備チェックシート</span>
                     <span class="text-base md:text-lg font-bold text-black ml-1">Ver.1.0</span>
                 </div>
 
@@ -569,243 +546,184 @@
 
             <!-- Subtitle -->
             <p class="text-xs text-gray-700 whitespace-nowrap mb-2">
-                このシートは、AIがお店らしい情報を発信するための設計図になります。できるだけ具体的にご記入ください。
+                管理画面の発行、および初期設定を円滑に進めるための「導入ヒアリング＆設定チェックシート」です。
             </p>
+        </div>
 
-            <!-- Green Tab (店舗情報) & Date Box (記入日) -->
-            <div class="flex justify-between items-end">
-                <span class="bg-[#005a36] text-white font-bold px-4 py-1 rounded-t-md text-xs inline-block">店舗情報</span>
+        <!-- ===== PHASE A: アカウント発行前に回収する情報 ===== -->
+        <div class="mb-3 text-[11px]">
+            <div class="bg-[#005a36] text-white font-bold px-3 py-1.5 rounded-t text-xs flex justify-between items-center tracking-wider">
+                <span>🏁 【フェーズA】アカウント発行前に回収する情報（ヒアリング 1 〜 2）</span>
+                <span class="text-[9px] bg-white text-[#005a36] px-1.5 py-0.5 rounded font-bold whitespace-nowrap">事前ヒアリング</span>
+            </div>
+            <div class="border border-t-0 border-gray-300 p-2 bg-white space-y-2">
+                <p class="text-gray-700 font-bold mb-1 leading-snug">
+                    ※システムのアカウントを管理画面上で発行し、初期設定を構築するために事前にクライアント（店舗）からヒアリングする情報です。
+                </p>
 
-                <!-- Date Box (記入日) -->
-                <div class="w-[180px] shrink-0">
-                    <table class="w-full border border-gray-400 text-xs border-collapse bg-white">
-                        <tbody>
-                            <tr>
-                                <th class="bg-gray-100 font-normal text-gray-800 py-0.5 px-2 border-r border-gray-400 text-center w-[50px] text-[11px] whitespace-nowrap">記入日</th>
-                                <td class="py-0.5 px-1 text-center font-normal text-[11px] whitespace-nowrap overflow-hidden">
-                                    <input type="text" class="header-date-input text-center">年
-                                    <input type="text" class="header-date-input text-center" style="width:20px!important">月
-                                    <input type="text" class="header-date-input text-center" style="width:20px!important">日
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <!-- ヒアリング 1: Googleビジネスプロフィール連携 -->
+                <div class="border border-emerald-100 rounded bg-emerald-50/20 p-2.5">
+                    <div class="flex justify-between items-center mb-1.5">
+                        <span class="font-bold text-[#005a36] text-xs">ヒアリング 1：Google ビジネスプロフィール（GBP）連携（必須）</span>
+                        <label class="checkbox-label font-bold text-[#005a36]"><input type="checkbox"> 回収済</label>
+                    </div>
+                    <p class="text-gray-600 text-[10px] mb-2 leading-snug">Googleマップ上に記事を自動投稿し、口コミを自動同期するための必須情報です。</p>
+                    
+                    <div class="grid grid-cols-12 gap-2 mb-2.5">
+                        <div class="col-span-12 flex items-center gap-1.5 bg-white border border-gray-300 rounded p-1.5">
+                            <span class="font-bold text-gray-700 whitespace-nowrap shrink-0 text-[10.5px]">ビジネスプロフィールID (Location ID):</span>
+                            <input type="text" class="w-full border-none focus:ring-0 p-0 text-[11px] font-mono outline-none" placeholder="例：1234567890123456789 (19桁前後の数字)">
+                        </div>
+                    </div>
+
+                    <!-- Location IDの調べ方 (大きく拡大して見やすく表示) -->
+                    <div class="bg-white border border-emerald-200 rounded p-3 text-[10px] leading-snug shadow-sm">
+                        <span class="font-bold text-[#005a36] block mb-2 text-[11px]">💡 【解説】Location ID（ビジネスプロフィールID）の調べ方・画面遷移ステップ</span>
+                        <div class="grid grid-cols-1 md:grid-cols-6 print:grid-cols-6 gap-2 text-gray-700 font-medium text-[9.5px]">
+                            <div class="border-r border-emerald-100 pr-2 last:border-0">
+                                <span class="font-bold text-[#005a36] block text-[9px] mb-1 bg-emerald-50 px-1.5 py-0.5 rounded w-fit">ステップ 1</span>
+                                Googleを開き、管理するGoogleアカウントでログイン。
+                            </div>
+                            <div class="border-r border-emerald-100 pr-2 px-1 last:border-0">
+                                <span class="font-bold text-[#005a36] block text-[9px] mb-1 bg-emerald-50 px-1.5 py-0.5 rounded w-fit">ステップ 2</span>
+                                Google検索で「マイビジネス」または「自分の店舗名」と検索。
+                            </div>
+                            <div class="border-r border-emerald-100 pr-2 px-1 last:border-0">
+                                <span class="font-bold text-[#005a36] block text-[9px] mb-1 bg-emerald-50 px-1.5 py-0.5 rounded w-fit">ステップ 3</span>
+                                検索結果の店舗管理ツール右上にある「縦の3点リーダー（︙）」をクリック。
+                            </div>
+                            <div class="border-r border-emerald-100 pr-2 px-1 last:border-0">
+                                <span class="font-bold text-[#005a36] block text-[9px] mb-1 bg-emerald-50 px-1.5 py-0.5 rounded w-fit">ステップ 4</span>
+                                メニューから「ビジネスプロフィールの設定」をクリック。
+                            </div>
+                            <div class="border-r border-emerald-100 pr-2 px-1 last:border-0">
+                                <span class="font-bold text-[#005a36] block text-[9px] mb-1 bg-emerald-50 px-1.5 py-0.5 rounded w-fit">ステップ 5</span>
+                                メニュー一覧から「詳細設定」をクリック。
+                            </div>
+                            <div class="px-1 last:border-0">
+                                <span class="font-bold text-[#005a36] block text-[9px] mb-1 bg-emerald-50 px-1.5 py-0.5 rounded w-fit">ステップ 6</span>
+                                一番上に表示される「ビジネスプロフィールID」をコピーして回収。
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ヒアリング 2: AI自動投稿（MEO対策）用情報 (フル幅) -->
+                <div class="border border-gray-200 rounded p-2.5 bg-gray-50/30">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="font-bold text-gray-800 text-[11px]">ヒアリング 2：AI自動投稿（MEO対策）用情報（口コミ自動返信・お詫び設定を含む）</span>
+                        <label class="checkbox-label font-bold text-gray-800"><input type="checkbox"> 回収確認済</label>
+                    </div>
+                    <p class="text-gray-500 text-[9px] leading-snug mb-2">
+                        ※1ページ目の「GBP情報設計シート / 投稿ルール」にご記入いただけていれば、こちらに重ねてご記入いただく必要はありません。（自動連携設定項目）
+                    </p>
+                    <div class="bg-white border border-gray-200 rounded p-2 text-[9.5px]">
+                        <span class="font-bold text-gray-700 block mb-1.5">【設計シートからの自動連携項目一覧】</span>
+                        <div class="grid grid-cols-2 md:grid-cols-4 print:grid-cols-4 gap-2 text-gray-600 leading-normal">
+                            <div class="flex items-center gap-1.5 bg-gray-50 p-1 rounded border border-gray-100 font-medium">
+                                <span class="text-[#005a36] font-bold text-[11px]">✔</span>
+                                <span>メインキーワード (最大3〜5個)</span>
+                            </div>
+                            <div class="flex items-center gap-1.5 bg-gray-50 p-1 rounded border border-gray-100 font-medium">
+                                <span class="text-[#005a36] font-bold text-[11px]">✔</span>
+                                <span>サブキーワード (5〜10個程度)</span>
+                            </div>
+                            <div class="flex items-center gap-1.5 bg-gray-50 p-1 rounded border border-gray-100 font-medium">
+                                <span class="text-[#005a36] font-bold text-[11px]">✔</span>
+                                <span>店舗ホームページ(HP) URL</span>
+                            </div>
+                            <div class="flex items-center gap-1.5 bg-gray-50 p-1 rounded border border-gray-100 font-medium">
+                                <span class="text-[#005a36] font-bold text-[11px]">✔</span>
+                                <span>詳細（ボタン）リンク先URL</span>
+                            </div>
+                            <div class="flex items-center gap-1.5 bg-gray-50 p-1 rounded border border-gray-100 font-medium">
+                                <span class="text-[#005a36] font-bold text-[11px]">✔</span>
+                                <span>ポータルサイト掲載URL (任意)</span>
+                            </div>
+                            <div class="flex items-center gap-1.5 bg-gray-50 p-1 rounded border border-gray-100 font-medium">
+                                <span class="text-[#005a36] font-bold text-[11px]">✔</span>
+                                <span>固定フッター文面 (テンプレート)</span>
+                            </div>
+                            <div class="flex items-center gap-1.5 bg-gray-50 p-1 rounded border border-gray-100 font-medium">
+                                <span class="text-[#005a36] font-bold text-[11px]">✔</span>
+                                <span>追加指示プロンプト (任意)</span>
+                            </div>
+                            <div class="flex items-center gap-1.5 bg-gray-50 p-1 rounded border border-gray-100 font-medium">
+                                <span class="text-[#005a36] font-bold text-[11px]">✔</span>
+                                <span>自動投稿希望時間 (1時間単位)</span>
+                            </div>
+                            <div class="flex items-center gap-1.5 bg-gray-50 p-1 rounded border border-gray-100 font-medium md:col-span-2">
+                                <span class="text-[#005a36] font-bold text-[11px]">✔</span>
+                                <span>口コミ自動返信の「ON / OFF」希望</span>
+                            </div>
+                            <div class="flex items-center gap-1.5 bg-gray-50 p-1 rounded border border-gray-100 font-medium md:col-span-2">
+                                <span class="text-[#005a36] font-bold text-[11px]">✔</span>
+                                <span>低評価口コミお詫び文の追加指示</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-
-            <!-- 店舗情報テーブル -->
-            <table class="w-full text-xs border border-gray-300">
-                <tbody>
-                    <tr class="border-b border-gray-200">
-                        <th class="w-24 bg-gray-100 text-gray-800 p-1 text-left font-bold border-r border-gray-300 text-[10.5px]">店舗名</th>
-                        <td class="p-1"><input type="text" class="w-full text-[10.5px]" placeholder="店舗名を入力"></td>
-                    </tr>
-                    <tr>
-                        <th class="bg-gray-100 text-gray-800 p-1 text-left font-bold border-r border-gray-300 text-[10.5px]">ご担当者名</th>
-                        <td class="p-1"><input type="text" class="w-full text-[10.5px]" placeholder="お名前を入力"></td>
-                    </tr>
-                </tbody>
-            </table>
         </div>
 
-        <!-- Table: 項目 (7つのキーワード) -->
-        <div class="mb-2">
-            <table class="text-xs w-full border border-gray-300">
-                <thead>
-                    <tr class="bg-[#005a36] text-white font-bold text-center text-[10px]">
-                        <th style="width: 4%;" class="p-1 border-r border-emerald-700">No.</th>
-                        <th style="width: 22%;" class="p-1 border-r border-emerald-700 text-left">項目 (7つのキーワード)</th>
-                        <th style="width: 10%;" class="p-1 border-r border-emerald-700">目的</th>
-                        <th style="width: 40%;" class="p-1 border-r border-emerald-700">ご記入欄 (できるだけ具体的にご記入ください)</th>
-                        <th style="width: 24%;" class="p-1">記入例 (様々な業種の例)</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-300 text-[9.5px]">
-                    <!-- Row 1 -->
-                    <tr>
-                        <td class="text-center font-bold text-emerald-800 p-1 bg-emerald-50/30">1</td>
-                        <td class="font-bold text-emerald-800 p-1">
-                            <div class="flex items-center gap-1">
-                                <span class="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 text-[10px] shrink-0">🔍</span>
-                                <span class="leading-tight text-[9.5px]">マップ検索で見つけてもらいたいキーワード</span>
-                            </div>
-                        </td>
-                        <td class="text-center font-bold text-gray-800 p-1 align-middle">集客</td>
-                        <td class="p-1">
-                            <p class="text-gray-700 text-[9px] mb-0.5 font-bold">お客様が検索しそうなキーワードを思いつく限りご記入ください。</p>
-                            <textarea rows="2" class="w-full p-1 border border-gray-200 rounded text-[9.5px]" placeholder="例：渋谷 カフェ、個室、駐車場あり等"></textarea>
-                        </td>
-                        <td class="p-1 text-gray-600 text-[8.5px] bg-gray-50/50 leading-tight">
-                            <span class="font-bold text-emerald-800">例)</span><br>
-                            ・地域名＋業種・サービス<br>
-                            （例：渋谷 カフェ、浦和 美容室）<br>
-                            ・お悩みや目的／特徴・ニーズ
-                        </td>
-                    </tr>
-
-                    <!-- Row 2 -->
-                    <tr>
-                        <td class="text-center font-bold text-emerald-800 p-1 bg-emerald-50/30">2</td>
-                        <td class="font-bold text-emerald-800 p-1">
-                            <div class="flex items-center gap-1">
-                                <span class="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 text-[10px] shrink-0">💚</span>
-                                <span class="leading-tight text-[9.5px]">お客様に覚えて帰ってほしい言葉 (3つまで)</span>
-                            </div>
-                        </td>
-                        <td class="text-center font-bold text-gray-800 p-1 align-middle">ブランディング</td>
-                        <td class="p-1">
-                            <p class="text-gray-700 text-[9px] mb-0.5 font-bold">お店の価値や魅力を表す、覚えて帰ってほしい言葉を3つご記入ください。</p>
-                            <div class="space-y-0.5">
-                                <div class="flex items-center gap-1">
-                                    <span class="w-3 text-center font-bold text-emerald-800 text-[9px]">①</span>
-                                    <input type="text" class="w-full input-inline text-[9px] py-0" placeholder="キーワード 1">
-                                </div>
-                                <div class="flex items-center gap-1">
-                                    <span class="w-3 text-center font-bold text-emerald-800 text-[9px]">②</span>
-                                    <input type="text" class="w-full input-inline text-[9px] py-0" placeholder="キーワード 2">
-                                </div>
-                                <div class="flex items-center gap-1">
-                                    <span class="w-3 text-center font-bold text-emerald-800 text-[9px]">③</span>
-                                    <input type="text" class="w-full input-inline text-[9px] py-0" placeholder="キーワード 3">
-                                </div>
-                            </div>
-                        </td>
-                        <td class="p-1 text-gray-600 text-[8.5px] bg-gray-50/50 leading-tight">
-                            <span class="font-bold text-emerald-800">例)</span><br>
-                            ・心地よい時間・丁寧な対応<br>
-                            ・こだわりの味・安心安全<br>
-                            ・また来たいと思えるお店
-                        </td>
-                    </tr>
-
-                    <!-- Row 3 -->
-                    <tr>
-                        <td class="text-center font-bold text-orange-600 p-1 bg-orange-50/30">3</td>
-                        <td class="font-bold text-orange-700 p-1">
-                            <div class="flex items-center gap-1">
-                                <span class="w-5 h-5 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 text-[10px] shrink-0">🗣️</span>
-                                <span class="leading-tight text-[9.5px]">お客様が実際によく使う言葉</span>
-                            </div>
-                        </td>
-                        <td class="text-center font-bold text-gray-800 p-1 align-middle">自然な表現</td>
-                        <td class="p-1">
-                            <p class="text-gray-700 text-[9px] mb-0.5 font-bold">お客様が口コミで実際に使いそうな言葉・感想を思いつく限りご記入ください。</p>
-                            <textarea rows="2" class="w-full p-1 border border-gray-200 rounded text-[9.5px]" placeholder="自由入力欄"></textarea>
-                        </td>
-                        <td class="p-1 text-gray-600 text-[8.5px] bg-gray-50/50 leading-tight">
-                            <span class="font-bold text-orange-700">例)</span><br>
-                            ・居心地が良かった<br>
-                            ・スタッフが親切だった<br>
-                            ・コスパが良い・分かりやすい
-                        </td>
-                    </tr>
-
-                    <!-- Row 4 -->
-                    <tr>
-                        <td class="text-center font-bold text-blue-600 p-1 bg-blue-50/30">4</td>
-                        <td class="font-bold text-blue-800 p-1">
-                            <div class="flex items-center gap-1">
-                                <span class="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 text-[10px] shrink-0">🏆</span>
-                                <span class="leading-tight text-[9.5px]">お店の強み・特徴を表すキーワード</span>
-                            </div>
-                        </td>
-                        <td class="text-center font-bold text-gray-800 p-1 align-middle">差別化</td>
-                        <td class="p-1">
-                            <p class="text-gray-700 text-[9px] mb-0.5 font-bold">他店と比べたときの強み・特徴・こだわりをキーワードでご記入ください。</p>
-                            <textarea rows="2" class="w-full p-1 border border-gray-200 rounded text-[9.5px]" placeholder="自由入力欄"></textarea>
-                        </td>
-                        <td class="p-1 text-gray-600 text-[8.5px] bg-gray-50/50 leading-tight">
-                            <span class="font-bold text-blue-800">例)</span><br>
-                            ・オリジナルメニュー<br>
-                            ・完全予約制・経験豊富<br>
-                            ・手作り・無添加・最新設備
-                        </td>
-                    </tr>
-
-                    <!-- Row 5 -->
-                    <tr>
-                        <td class="text-center font-bold text-pink-600 p-1 bg-pink-50/30">5</td>
-                        <td class="font-bold text-pink-700 p-1">
-                            <div class="flex items-center gap-1">
-                                <span class="w-5 h-5 rounded-full bg-pink-100 flex items-center justify-center text-pink-600 text-[10px] shrink-0">🎁</span>
-                                <span class="leading-tight text-[9.5px]">季節・イベント・商品の関連キーワード</span>
-                            </div>
-                        </td>
-                        <td class="text-center font-bold text-gray-800 p-1 align-middle">
-                            話題性・<br>再来店促進
-                        </td>
-                        <td class="p-1">
-                            <p class="text-gray-700 text-[9px] mb-0.5 font-bold">季節・イベント・キャンペーン・限定メニューなどのキーワードをご記入ください。</p>
-                            <textarea rows="2" class="w-full p-1 border border-gray-200 rounded text-[9.5px]" placeholder="自由入力欄"></textarea>
-                        </td>
-                        <td class="p-1 text-gray-600 text-[8.5px] bg-gray-50/50 leading-tight">
-                            <span class="font-bold text-pink-700">例)</span><br>
-                            ・春限定 いちごフェア<br>
-                            ・夏の冷たいドリンク<br>
-                            ・年末年始キャンペーン
-                        </td>
-                    </tr>
-
-                    <!-- Row 6 -->
-                    <tr>
-                        <td class="text-center font-bold text-teal-600 p-1 bg-teal-50/30">6</td>
-                        <td class="font-bold text-teal-800 p-1">
-                            <div class="flex items-center gap-1">
-                                <span class="w-5 h-5 rounded-full bg-teal-100 flex items-center justify-center text-teal-700 text-[10px] shrink-0">🏢</span>
-                                <span class="leading-tight text-[9.5px]">地域・エリアに関連するキーワード</span>
-                            </div>
-                        </td>
-                        <td class="text-center font-bold text-gray-800 p-1 align-middle">地域性強化</td>
-                        <td class="p-1">
-                            <p class="text-gray-700 text-[9px] mb-0.5 font-bold">地域名・周辺施設・ランドマークなど、地域に関連する言葉をご記入ください。</p>
-                            <textarea rows="2" class="w-full p-1 border border-gray-200 rounded text-[9.5px]" placeholder="自由入力欄"></textarea>
-                        </td>
-                        <td class="p-1 text-gray-600 text-[8.5px] bg-gray-50/50 leading-tight">
-                            <span class="font-bold text-teal-800">例)</span><br>
-                            ・駅近・商業施設すぐそば<br>
-                            ・オフィス街・住宅街の中<br>
-                            ・学校・病院の近く
-                        </td>
-                    </tr>
-
-                    <!-- Row 7 -->
-                    <tr>
-                        <td class="text-center font-bold text-amber-600 p-1 bg-amber-50/30">7</td>
-                        <td class="font-bold text-amber-800 p-1">
-                            <div class="flex items-center gap-1">
-                                <span class="w-5 h-5 rounded-full bg-amber-100 flex items-center justify-center text-amber-700 text-[10px] shrink-0">⭐</span>
-                                <span class="leading-tight text-[9.5px]">お客様の悩み・目的 解決キーワード</span>
-                            </div>
-                        </td>
-                        <td class="text-center font-bold text-gray-800 p-1 align-middle">
-                            共感・<br>信頼獲得
-                        </td>
-                        <td class="p-1">
-                            <p class="text-gray-700 text-[9px] mb-0.5 font-bold">お客様が来店する前の悩みや目的、それが解決できる言葉をご記入ください。</p>
-                            <textarea rows="2" class="w-full p-1 border border-gray-200 rounded text-[9.5px]" placeholder="自由入力欄"></textarea>
-                        </td>
-                        <td class="p-1 text-gray-600 text-[8.5px] bg-gray-50/50 leading-tight">
-                            <span class="font-bold text-amber-800">例)</span><br>
-                            ・リラックスしたい<br>
-                            ・きれいになりたい<br>
-                            ・特別な日を楽しみたい
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <!-- 最後に、お聞きします -->
-        <div class="border border-gray-300 rounded p-2 bg-white">
-            <div class="flex items-center gap-2 mb-1">
-                <span class="bg-[#005a36] text-white font-bold text-center px-2.5 py-1 rounded text-[11px] whitespace-nowrap">
-                    最後に<br>お聞きします
-                </span>
-                <p class="text-[11px] font-bold text-gray-900">
-                    あなたのお店を知らない人に、30秒で魅力を伝えるなら何と言いますか？
-                </p>
+        <!-- ===== PHASE B: アカウント発行後に設定・用意する情報 ===== -->
+        <div class="text-[11px]">
+            <div class="bg-[#005a36] text-white font-bold px-3 py-1.5 rounded-t text-xs flex justify-between items-center tracking-wider">
+                <span>🚀 【フェーズB】アカウント発行後に設定・用意する情報（準備タスク 1）</span>
+                <span class="text-[9px] bg-white text-[#005a36] px-1.5 py-0.5 rounded font-bold whitespace-nowrap">発行後スタートアップ</span>
             </div>
-            <textarea rows="3.5" class="w-full p-1.5 border border-gray-200 rounded text-[11px]" placeholder="自由記述欄"></textarea>
+            <div class="border border-t-0 border-gray-300 p-2 bg-white space-y-2">
+                <p class="text-gray-700 font-bold mb-1 leading-snug">
+                    ※管理画面アカウントを店舗に発行した直後、店舗（およびメーカー側）で実際に操作・用意する設定情報です。
+                </p>
+
+                <!-- 準備タスク 1: Google ドライブ写真ストック -->
+                <div class="border border-emerald-100 rounded bg-emerald-50/10 p-2.5 flex flex-col justify-between">
+                    <div>
+                        <span class="font-bold text-[#005a36] text-[11px] block mb-1">準備タスク 1：Google ドライブ（写真ストック用）</span>
+                        <p class="text-gray-600 text-[9px] leading-tight mb-2">
+                            AI自動投稿で使用する店舗写真（外観、内観、料理、施術風景など）を格納・ストックしておく場所の用意です。
+                        </p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 print:grid-cols-2 gap-2 text-[9px] items-stretch">
+                            <!-- メーカー側対応 -->
+                            <div class="bg-white border border-emerald-100 rounded p-2 flex flex-col justify-between">
+                                <div>
+                                    <span class="font-bold text-[#005a36] block text-[9px] mb-0.5">【メーカー側対応】店舗専用「Google ドライブ フォルダ」の作成・共有</span>
+                                    <p class="text-gray-500 leading-normal text-[8.5px]">
+                                        メーカー側（管理側）のGoogleドライブ内に店舗専用の新規フォルダを作成し、そのフォルダIDを管理画面に設定して共有します。
+                                    </p>
+                                </div>
+                                <label class="checkbox-label mt-2 font-bold text-[#005a36]"><input type="checkbox"> ドライブフォルダ作成＆連携完了</label>
+                            </div>
+                            
+                            <!-- 店舗側対応 -->
+                            <div class="bg-white border border-emerald-100 rounded p-2 text-gray-700 flex flex-col justify-between">
+                                <div>
+                                    <span class="font-bold text-[#005a36] block text-[9px] mb-0.5">【店舗（クライアント）側対応】ストック用画像のアップロード（事前準備）</span>
+                                    <p class="text-gray-500 leading-normal text-[8.5px]">
+                                        共有された共有フォルダに、横型（推奨）の店舗写真（内観、外観、施術、メニュー、スタッフ写真等）を事前に**15枚〜30枚程度**アップロードしてください。
+                                    </p>
+                                    <div class="mt-1.5 bg-amber-50/50 border border-amber-200 rounded p-1 text-[8px] text-amber-950 leading-normal font-medium">
+                                        <span class="font-bold text-amber-800">📌 重要：画像名とメニュー・サービス名を一致させてください</span><br>
+                                        写真のファイル名を実際のサービス名やメニュー名（例：「醤油ラーメン.jpg」等）に変更していただくと、AIが投稿内容に合わせた正確な写真を自動選択します。<br>
+                                        <span class="text-gray-400 font-bold">※ファイル名を変更しなくても、AIが画像を自動解析して適した投稿に添付しますが、ミスマッチを防ぐためには名前の一致を推奨します。</span>
+                                    </div>
+                                    <div class="mt-1 text-[8px] text-red-600 leading-normal font-bold">
+                                        ⚠️ 注意：写真のアップロード枚数が10枚以下の場合、画像なしでの投稿（テキストのみの投稿）が含まれてしまう可能性があります。
+                                    </div>
+                                </div>
+                                <label class="checkbox-label mt-2 font-bold text-emerald-800"><input type="checkbox"> 写真アップロード完了（15〜30枚程度）</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-1 text-[8px] text-gray-400 leading-tight mt-1.5 border-t border-emerald-100/30 pt-1.5">
+                        ※写真は横長サイズを推奨します。AIが日々の自動投稿を作成する際、このフォルダ内の画像から自動で1枚をピックアップして投稿に添付します。
+                    </div>
+                </div>
+            </div>
+        </div>
+            </div>
         </div>
     </div>
 
