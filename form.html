@@ -283,10 +283,10 @@
             </p>
         </div>
 
-        <!-- Row 1: ① メインキーワード / ② サブキーワード (横広がり) / ③ 雰囲気・トーン -->
+        <!-- Row 1: ① メインキーワード (4/12) / ② サブキーワード (8/12 - 横2列×5行 = 10個) -->
         <div class="grid grid-cols-1 md:grid-cols-12 print:grid-cols-12 gap-2.5 mb-2.5 items-stretch text-[11px]">
-            <!-- Col 1 (3/12): ① メインキーワード -->
-            <div class="col-span-12 md:col-span-3 print:col-span-3 border border-gray-300 rounded p-2.5 bg-white flex flex-col justify-between">
+            <!-- Col 1 (4/12): ① メインキーワード -->
+            <div class="col-span-12 md:col-span-4 print:col-span-4 border border-gray-300 rounded p-2.5 bg-white flex flex-col justify-between">
                 <div>
                     <h3 class="font-bold text-[#005a36] mb-1 text-xs flex items-center justify-between gap-1">
                         <span class="flex items-center gap-1">
@@ -306,8 +306,8 @@
                 </div>
             </div>
 
-            <!-- Col 2 (5/12): ② 任意で選ぶサブキーワード (横2列×5行 = 10個) -->
-            <div class="col-span-12 md:col-span-5 print:col-span-5 border border-gray-300 rounded p-2.5 bg-white flex flex-col justify-between">
+            <!-- Col 2 (8/12): ② 任意で選ぶサブキーワード (横2列×5行 = 10個) -->
+            <div class="col-span-12 md:col-span-8 print:col-span-8 border border-gray-300 rounded p-2.5 bg-white flex flex-col justify-between">
                 <div>
                     <h3 class="font-bold text-[#005a36] mb-1 text-xs flex items-center justify-between gap-1">
                         <span class="flex items-center gap-1">
@@ -317,51 +317,53 @@
                         <span class="text-[9px] text-gray-500 font-bold bg-gray-50 px-1 py-0.2 rounded border border-gray-200 shrink-0">任意</span>
                     </h3>
                     <p class="text-gray-500 mb-1.5 text-[8.5px] leading-tight">
-                        宣伝したいメニューやサービスをご記入ください。（ランダム配置）
+                        宣伝したいメニューやサービスをご記入ください。（AIがランダムに組み合わせて投稿を作成します）
                     </p>
-                    <div class="grid grid-cols-2 gap-1.5 text-[10px]">
-                        <div class="flex items-center gap-0.5"><span>1.</span><input type="text" class="input-inline"></div>
-                        <div class="flex items-center gap-0.5"><span>2.</span><input type="text" class="input-inline"></div>
-                        <div class="flex items-center gap-0.5"><span>3.</span><input type="text" class="input-inline"></div>
-                        <div class="flex items-center gap-0.5"><span>4.</span><input type="text" class="input-inline"></div>
-                        <div class="flex items-center gap-0.5"><span>5.</span><input type="text" class="input-inline"></div>
-                        <div class="flex items-center gap-0.5"><span>6.</span><input type="text" class="input-inline"></div>
-                        <div class="flex items-center gap-0.5"><span>7.</span><input type="text" class="input-inline"></div>
-                        <div class="flex items-center gap-0.5"><span>8.</span><input type="text" class="input-inline"></div>
-                        <div class="flex items-center gap-0.5"><span>9.</span><input type="text" class="input-inline"></div>
-                        <div class="flex items-center gap-0.5"><span>10.</span><input type="text" class="input-inline"></div>
+                    <div class="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[10px]">
+                        <div class="flex items-center gap-1"><span>1.</span><input type="text" class="input-inline"></div>
+                        <div class="flex items-center gap-1"><span>6.</span><input type="text" class="input-inline"></div>
+                        <div class="flex items-center gap-1"><span>2.</span><input type="text" class="input-inline"></div>
+                        <div class="flex items-center gap-1"><span>7.</span><input type="text" class="input-inline"></div>
+                        <div class="flex items-center gap-1"><span>3.</span><input type="text" class="input-inline"></div>
+                        <div class="flex items-center gap-1"><span>8.</span><input type="text" class="input-inline"></div>
+                        <div class="flex items-center gap-1"><span>4.</span><input type="text" class="input-inline"></div>
+                        <div class="flex items-center gap-1"><span>9.</span><input type="text" class="input-inline"></div>
+                        <div class="flex items-center gap-1"><span>5.</span><input type="text" class="input-inline"></div>
+                        <div class="flex items-center gap-1"><span>10.</span><input type="text" class="input-inline"></div>
                     </div>
-                </div>
-            </div>
-
-            <!-- Col 3 (4/12): ③ 投稿の雰囲気・トーン -->
-            <div class="col-span-12 md:col-span-4 print:col-span-4 border border-gray-300 rounded p-2.5 bg-white flex flex-col justify-between">
-                <div>
-                    <h3 class="font-bold text-[#005a36] mb-1 text-xs flex items-center gap-1">
-                        <span class="text-sm">③</span>
-                        投稿の雰囲気・トーン
-                    </h3>
-                    <p class="text-gray-500 mb-1 text-[8.5px]">（該当するものに✓）</p>
-                    <div class="grid grid-cols-2 gap-x-2 gap-y-1 text-[9.5px]">
-                        <label class="checkbox-label block"><input type="checkbox"> 高級感・上質</label>
-                        <label class="checkbox-label block"><input type="checkbox"> 親しみ・カジュアル</label>
-                        <label class="checkbox-label block"><input type="checkbox"> 元気・明るい</label>
-                        <label class="checkbox-label block"><input type="checkbox"> 丁寧・落ち着いた</label>
-                        <label class="checkbox-label block"><input type="checkbox"> 専門的・信頼感</label>
-                        <label class="checkbox-label block"><input type="checkbox"> 温かい・優しい</label>
-                        <label class="checkbox-label block"><input type="checkbox"> シンプル・自然</label>
-                        <label class="checkbox-label block"><input type="checkbox"> ユーモア・楽しい</label>
-                        <label class="checkbox-label col-span-2 block"><input type="checkbox"> その他</label>
-                    </div>
-                </div>
-                <div class="mt-1.5">
-                    <p class="text-[8.5px] text-gray-500 mb-0.5 font-bold">【その他・具体的なイメージ】</p>
-                    <textarea rows="2" class="w-full border border-gray-200 rounded p-1 text-[9px]" placeholder="自由記述欄"></textarea>
                 </div>
             </div>
         </div>
 
-        <!-- Row 2: ④ 投稿時のボタン用URL / ⑤ 自動投稿の希望時間帯 (2 Columns) -->
+        <!-- Row 2: ③ 投稿の雰囲気・トーン (全幅横長カード) -->
+        <div class="border border-gray-300 rounded p-2.5 bg-white mb-2.5 text-[11px]">
+            <h3 class="font-bold text-[#005a36] mb-1 text-xs flex items-center gap-1">
+                <span class="text-sm">③</span>
+                投稿の雰囲気・トーン
+                <span class="text-gray-500 font-normal text-[8.5px] ml-1">（該当するものに✓）</span>
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-12 print:grid-cols-12 gap-3 items-center mt-1">
+                <!-- 左側: チェックボックス (7/12) -->
+                <div class="col-span-12 md:col-span-7 print:col-span-7 grid grid-cols-3 gap-y-1.5 gap-x-2 text-[9.5px]">
+                    <label class="checkbox-label block"><input type="checkbox"> 高級感・上質</label>
+                    <label class="checkbox-label block"><input type="checkbox"> 親しみ・カジュアル</label>
+                    <label class="checkbox-label block"><input type="checkbox"> 元気・明るい</label>
+                    <label class="checkbox-label block"><input type="checkbox"> 丁寧・落ち着いた</label>
+                    <label class="checkbox-label block"><input type="checkbox"> 専門的・信頼感</label>
+                    <label class="checkbox-label block"><input type="checkbox"> 温かい・優しい</label>
+                    <label class="checkbox-label block"><input type="checkbox"> シンプル・自然</label>
+                    <label class="checkbox-label block"><input type="checkbox"> ユーモア・楽しい</label>
+                    <label class="checkbox-label block"><input type="checkbox"> その他</label>
+                </div>
+                <!-- 右側: 具体的なイメージ記述 (5/12) -->
+                <div class="col-span-12 md:col-span-5 print:col-span-5 border-l md:border-l border-gray-200 pl-3">
+                    <p class="text-[8.5px] text-gray-500 mb-0.5 font-bold">【その他・具体的なイメージ】</p>
+                    <textarea rows="2" class="w-full border border-gray-200 rounded p-1 text-[9px]" placeholder="自由記述欄（具体的なトーン・雰囲気のイメージ等）"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 3: ④ 投稿時のボタン用URL / ⑤ 自動投稿の希望時間帯 (2 Columns) -->
         <div class="grid grid-cols-1 md:grid-cols-2 print:grid-cols-2 gap-2.5 mb-2.5 text-[11px]">
             <!-- ④ 投稿時のボタン用URL -->
             <div class="border border-gray-300 rounded p-2.5 bg-white flex flex-col justify-between">
@@ -418,7 +420,7 @@
             </div>
         </div>
 
-        <!-- Row 3: ⑥ 毎投稿最後に表示されるフッター情報 (広々1カラム) -->
+        <!-- Row 4: ⑥ 毎投稿最後に表示されるフッター情報 (広々1カラム) -->
         <div class="border border-gray-300 rounded p-2.5 bg-white">
             <h3 class="font-bold text-[#005a36] mb-1 text-xs flex items-center gap-1">
                 <span class="text-sm">⑥</span>
