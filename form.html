@@ -495,28 +495,28 @@
                 </p>
 
                 <!-- 1. 基本項目（数字・チェック選択） -->
-                <div class="grid grid-cols-1 md:grid-cols-2 print:grid-cols-2 gap-2 bg-emerald-50/30 p-2.5 rounded border border-emerald-100 text-xs">
+                <div class="grid grid-cols-1 md:grid-cols-2 print:grid-cols-2 gap-3 bg-emerald-50/30 p-2.5 rounded border border-emerald-100 text-xs">
                     <!-- 左列: 経験年数・実績 -->
-                    <div class="space-y-1.5">
-                        <div class="flex items-center gap-1">
-                            <span class="font-bold text-[#005a36] shrink-0">・業界経験年数:</span>
-                            <span>約</span>
-                            <input type="text" class="w-12 border border-gray-300 rounded px-1 py-0.5 text-center bg-white font-bold" placeholder="15">
-                            <span>年</span>
+                    <div class="space-y-2 flex flex-col justify-center">
+                        <div class="flex items-center gap-1.5 whitespace-nowrap">
+                            <span class="font-bold text-[#005a36] shrink-0 w-[100px]">・業界経験年数:</span>
+                            <span class="shrink-0 text-gray-700">約</span>
+                            <input type="text" class="w-16 border border-gray-300 rounded px-1.5 py-0.5 text-center bg-white font-bold text-xs" placeholder="15">
+                            <span class="shrink-0 text-gray-700">年</span>
                         </div>
-                        <div class="flex items-center gap-1">
-                            <span class="font-bold text-[#005a36] shrink-0">・対応・施術実績:</span>
-                            <span>延べ</span>
-                            <input type="text" class="w-20 border border-gray-300 rounded px-1 py-0.5 text-center bg-white font-bold" placeholder="10,000">
-                            <span>人・件以上</span>
+                        <div class="flex items-center gap-1.5 whitespace-nowrap">
+                            <span class="font-bold text-[#005a36] shrink-0 w-[100px]">・対応・施術実績:</span>
+                            <span class="shrink-0 text-gray-700">延べ</span>
+                            <input type="text" class="w-20 border border-gray-300 rounded px-1.5 py-0.5 text-center bg-white font-bold text-xs" placeholder="10,000">
+                            <span class="shrink-0 text-gray-700">人・件以上</span>
                         </div>
                     </div>
 
                     <!-- 右列: チェック選択項目 -->
-                    <div class="space-y-1 text-gray-800">
-                        <label class="checkbox-label flex items-center gap-1"><input type="checkbox"> <span>店長・管理職・指導経験あり</span></label>
-                        <label class="checkbox-label flex items-center gap-1"><input type="checkbox"> <span>創業・独立・開業経験あり</span></label>
-                        <label class="checkbox-label flex items-center gap-1"><input type="checkbox"> <span>メディア掲載・受賞歴あり</span></label>
+                    <div class="space-y-1.5 text-gray-800 flex flex-col justify-center border-l md:border-l border-emerald-100/60 pl-2">
+                        <label class="checkbox-label flex items-center gap-1.5 whitespace-nowrap"><input type="checkbox"> <span>店長・管理職・指導経験あり</span></label>
+                        <label class="checkbox-label flex items-center gap-1.5 whitespace-nowrap"><input type="checkbox"> <span>創業・独立・開業経験あり</span></label>
+                        <label class="checkbox-label flex items-center gap-1.5 whitespace-nowrap"><input type="checkbox"> <span>メディア掲載・受賞歴あり</span></label>
                     </div>
                 </div>
 
