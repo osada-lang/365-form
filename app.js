@@ -1,19 +1,13 @@
 /**
  * GBP MEO Diagnostic Tool - Complete Master Clean Rewrite
  * 
- * Key Features & Architecture:
- * 1. Single Source of Truth for Bookmarklet Window Target ("GBP_DIAGNOSTIC_REPORT_WINDOW").
- * 2. Pure Live Data Engine: Zero rating/score carry-overs between stores; resets automatically on store change.
- * 3. STRICT GRADED EVALUATION ENGINES:
- *    - POSTS FREQUENCY GRADED SCORE (Max 20pt): <=14 days = 20pt, 15-30 days = 10pt, >30 days = 4pt.
- *    - REVIEW COUNT GRADED SCORE (Max 12pt): 500+ = 12pt, 300-499 = 9pt, 100-299 = 6pt, 50-99 = 3pt, <50 = 0pt.
- *    - REVIEW RATING GRADED SCORE (Max 3pt): 4.5+ = 3pt, 4.0-4.4 = 2pt, <4.0 = 0pt.
- *    - REVIEW REPLY RATIO GRADED SCORE (Max 15pt): 95%+ = 15pt, 80-94% = 12pt, 50-79% = 8pt, 1-49% = 4pt, 0% = 0pt.
- *    - ATTRIBUTES GRADED SCORE (Max 4pt): 5+ items = 4pt, 1-4 items = 2pt, 0 items = 0pt.
- *    - DESCRIPTION GRADED SCORE (Max 4pt): 250+ chars = 4pt, 1-249 chars = 2pt, 0 chars = 0pt.
- * 4. STRICT AI REPORT PROMPT & STRUCTURE: Exactly 3 Sections with 3 Sub-items each (1-1 to 3-3) formatted precisely.
- * 5. PINPOINT WEBSITE EXTRACTION FOR GLOBE ICON LIST & ACTION BUTTONS:
- *    Accurately extracts store URLs like "ichigo-jidousya.com" from globe icon list rows even if round action button is absent.
+ * 日本語対応・堅牢化アップデート版 (全機能統合・完全安定版)
+ * 修正内容:
+ * 1. 写真枚数の取得（テキスト、Ariaラベル、DOMカウントの3層フォールバック）
+ * 2. 最新投稿情報の取得（マルチセレクタ対応・レビュー日付との混同防止）
+ * 3. データの保持・マージ（ハイウォーターマーク方式によるデータ劣化の完全防止）
+ * 4. 堅牢な例外処理（Try-Catchによるエラー耐性の向上）
+ * 5. 口コミ返信率ロジックの維持
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -24,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const APP_BASE_URL = window.location.origin + window.location.pathname;
     const DEFAULT_GEMINI_KEY = "";
     const REPORT_WINDOW_TARGET = "GBP_DIAGNOSTIC_REPORT_WINDOW";
+    const STORAGE_KEY = "last_gbp_data";
 
     const INITIAL_STORE_TEMPLATE = {
         companyName: "店舗名未設定",
@@ -32,8 +27,10 @@ document.addEventListener('DOMContentLoaded', () => {
         reviewCount: 0,
         rating: 0,
         replyRatio: undefined,
+        reviewMetrics: { visible: 0, replies: 0 },
+        photoMetrics: { visible: 0 },
         daysSinceLastPost: 28,
-        photoTier: "20",
+        photoTier: "0",
         photoCount: undefined,
         statusPhotos: "error",
         rawWebsite: "",
@@ -142,7 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize Date
     const today = new Date();
     metaDate.textContent = `${today.getFullYear()}/${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}`;
-    document.getElementById('current-year').textContent = today.getFullYear();
+    if (document.getElementById('current-year')) document.getElementById('current-year').textContent = today.getFullYear();
 
     if (inputApiKey) inputApiKey.value = localStorage.getItem('gemini_api_key') || "";
 
@@ -150,287 +147,378 @@ document.addEventListener('DOMContentLoaded', () => {
     // 3. BOOKMARKLET GENERATOR ENGINE
     // ==========================================
     function generateBookmarkletHref() {
-        return "javascript:(function(){try{" +
-            "let loc = window.location.href;" +
-            "if(loc.indexOf('google.') === -1 || (loc.indexOf('/maps') === -1 && loc.indexOf('maps.google') === -1)){" +
-            "  alert('⚠️ GBPデータ取得エラー\\n\\nGoogleマップ（google.com/maps）を開いた状態で再実行してください。');return;" +
-            "}" +
-            "let bTxt = document.body.innerText || '';" +
+        const script = `(function(){
+            try {
+                /* 1. ポップアップブロック回避のため、まずターゲットウィンドウを確保 */
+                const reportWin = window.open('', '${REPORT_WINDOW_TARGET}');
+                if (!reportWin) {
+                    alert('ポップアップがブロックされました。ブラウザの設定で許可してください。');
+                    return;
+                }
 
-            "/* A. STORE NAME */" +
-            "let name = '';" +
-            "let kp = document.body.querySelector('h1.DUwif, h1.fontTitleLarge, div.fontTitleLarge, h1');" +
-            "if(kp && kp.innerText && kp.innerText.trim() !== 'Google マップ' && kp.innerText.trim() !== 'Google'){" +
-            "  name = kp.innerText.trim();" +
-            "}" +
-            "if(!name){" +
-            "  let locPath = decodeURIComponent(window.location.pathname);" +
-            "  let nameMatch = locPath.match(/\\/place\\/([^\\/@\\?]+)/);" +
-            "  if(nameMatch){ name = nameMatch[1].replace(/\\+/g, ' ').trim(); }" +
-            "}" +
-            "if(!name){ name = document.title.replace(/ - Googleマップ.*/,'').replace(/ - Google.*/,'').trim(); }" +
+                /* 安全な遷移判定（別ドメインの場合は読み取りがエラーになるため try-catch で保護） */
+                try {
+                    if (reportWin.location.href === 'about:blank') {
+                        reportWin.location.href = '${APP_BASE_URL}';
+                    }
+                } catch(e) {
+                    /* エラーが出る＝既に別ドメイン（診断ツール）が開いている状態なので何もしない */
+                }
 
-            "/* B. RATING */" +
-            "let rating = 0;" +
-            "let ariaStar = document.body.querySelector('[aria-label*=\"5 つ星のうち\"], [aria-label*=\"5つ星のうち\"], [aria-label*=\"星\"], span.ceR21e');" +
-            "if(ariaStar){" +
-            "  let lbl = ariaStar.getAttribute('aria-label') || '';" +
-            "  let rM = lbl.match(/([1-5]\\.[0-9])/);" +
-            "  if(rM){ rating = parseFloat(rM[1]); }" +
-            "}" +
-            "if(!rating){" +
-            "  let headTxt = bTxt.substring(0, 800);" +
-            "  let rM = headTxt.match(/([1-5]\\.[0-9])\\s*\\(/) || headTxt.match(/([1-5]\\.[0-9])/);" +
-            "  if(rM){ rating = parseFloat(rM[1]); }" +
-            "}" +
+                const getLoc = () => window.location.href;
+                const getTxt = () => document.body.innerText || '';
+                
+                /* タブ判定の精度向上 (口コミ画面など他のタブとの競合を完全に排除する厳格仕様) */
+                const isPhotoView = () => {
+                    const loc = getLoc();
+                    /* 1. URLによる判定 (写真特有のURLパラメータがあれば最優先で確定) */
+                    if (loc.indexOf('!1e10') !== -1 || loc.indexOf('/photos') !== -1) return true;
+                    
+                    /* 2. 口コミタブが現在選択されている場合は、写真ビューではない */
+                    const activeTabs = Array.from(document.querySelectorAll('[role="tab"][aria-selected="true"], [aria-selected="true"]'));
+                    const hasActiveReviewTab = activeTabs.some(el => {
+                        const t = (el.innerText || '').trim();
+                        return t.includes('クチコミ') || t.includes('Reviews');
+                    });
+                    if (hasActiveReviewTab) return false;
+                    
+                    /* 3. 画面上のタブ一覧の構成による判定 (写真画面特有の「すべて」+「オーナー」等の並びを検出) */
+                    const tabsText = Array.from(document.querySelectorAll('[role="tab"], button, [role="button"]')).map(el => (el.innerText || '').trim().replace(/\s+/g, ' '));
+                    const hasAll = tabsText.some(t => t.startsWith('すべて') || t.startsWith('All'));
+                    const hasPhotoSpecialty = tabsText.some(t => t.match(/(オーナー|動画|ストリートビュー|360°|インサイド|最新|Owner|Videos|Street View|Inside)/));
+                    
+                    /* 写真ギャラリーの「すべて」タブがアクティブになっていることを検証 */
+                    const hasActiveAllTab = activeTabs.some(el => {
+                        const txt = (el.innerText || '').trim().replace(/\s+/g, ' ');
+                        return txt.startsWith('すべて') || txt.startsWith('All');
+                    });
+                    
+                    if (hasActiveAllTab && hasAll && hasPhotoSpecialty) {
+                        return true;
+                    }
+                    
+                    return false;
+                };
+                const isReviewView = () => {
+                    const loc = getLoc();
+                    const hasReviewTab = !!document.querySelector('[aria-label*="クチコミ"][aria-selected="true"], [role="tab"][aria-selected="true"] [aria-label*="クチコミ"]');
+                    const isReviewUrl = loc.indexOf('/reviews') !== -1;
+                    return hasReviewTab || isReviewUrl || (getTxt().indexOf('関連度順') !== -1 && getTxt().indexOf('最新順') !== -1);
+                };
 
-            "/* C. REVIEW COUNT */" +
-            "let reviewCount = 0;" +
-            "if(ariaStar){" +
-            "  let pEl = ariaStar.closest('div') || ariaStar.parentElement;" +
-            "  if(pEl){" +
-            "    let pTxt = pEl.innerText || '';" +
-            "    let m = pTxt.match(/\\(\\s*([0-9,]+)\\s*\\)/) || pTxt.match(/([0-9,]+)\\s*件/);" +
-            "    if(m){" +
-            "      let val = parseInt(m[1].replace(/,/g,''));" +
-            "      if(!isNaN(val) && val > 0){ reviewCount = val; }" +
-            "    }" +
-            "  }" +
-            "}" +
-            "if(!reviewCount){" +
-            "  let headTxt = bTxt.substring(0, 1000);" +
-            "  let m = headTxt.match(/([1-5]\\.[0-9])[\\s\\S]{0,100}?\\(\\s*([0-9,]+)\\s*\\)/);" +
-            "  if(m){" +
-            "    let val = parseInt(m[2].replace(/,/g,''));" +
-            "    if(!isNaN(val) && val > 0){ reviewCount = val; }" +
-            "  }" +
-            "}" +
+                const gatherData = function() {
+                    try {
+                        const loc = getLoc();
+                        const bTxt = getTxt();
+                        
+                        let name = '';
+                        const nameSels = ['h1.DUwDvf', 'h1.fontHeadlineLarge', 'h1.DUwif', 'h1.fontTitleLarge', 'h1', '.x30M0e'];
+                        for (const s of nameSels) {
+                            const el = document.querySelector(s);
+                            if (el && el.innerText.trim().length > 1) {
+                                name = el.innerText.trim();
+                                break;
+                            }
+                        }
+                        if (!name || name === 'Google マップ') {
+                            try {
+                                const m = decodeURIComponent(loc).match(/\\/place\\/([^\\/@\\?]+)/);
+                                name = m ? m[1].replace(/\\+/g, ' ') : document.title.split(' - ')[0];
+                            } catch(e) { name = document.title.split(' - ')[0]; }
+                        }
 
-            "/* D. REVIEWS TAB & REPLY RATIO (%) ENGINE */" +
-            "let reviewModal = document.querySelector('g-review-dialog, div[role=\"dialog\"], div.review-dialog, div.m6QEfe[aria-label*=\"クチコミ\"]');" +
-            "let isReviewTabOpen = Boolean(reviewModal) || (bTxt.indexOf('関連度順') !== -1 || bTxt.indexOf('評価の高い順') !== -1 || bTxt.indexOf('クチコミの検索') !== -1 || bTxt.indexOf('最新順') !== -1);" +
-            "let replyRatio = undefined;" +
-            "let replyStatus = 'error';" +
-            "if(isReviewTabOpen){" +
-            "  let cards = Array.from(document.body.querySelectorAll('div.jJ79vd, div.My5W2e, div.TI2da, div.gws-localreviews__google-review, div[data-review-id], div.WwHIbd'));" +
-            "  let timeMatches = (bTxt.match(/([0-9]+\\s*(年前|か月前|月前|週間前|週前|日前)|1\\s*か月前|2\\s*か月前|3\\s*か月前)/g) || []);" +
-            "  let totalVisibleReviews = Math.max(cards.length, timeMatches.length);" +
-            "  let replyMatches = (bTxt.match(/オーナーからの返信|店舗からの返信/g) || []);" +
-            "  let totalOwnerReplies = replyMatches.length;" +
-            "  if(totalVisibleReviews >= 3){" +
-            "    replyRatio = Math.min(Math.round((totalOwnerReplies / totalVisibleReviews) * 100), 100);" +
-            "    if(replyRatio >= 80){ replyStatus = 'pass'; }" +
-            "    else if(replyRatio >= 50){ replyStatus = 'warn'; }" +
-            "    else { replyStatus = 'fail'; }" +
-            "  }else{" +
-            "    replyStatus = 'error';" +
-            "  }" +
-            "}" +
+                        let rating = 0, reviewCount = 0;
+                        try {
+                            /* 1. 評価値（レーティング）の取得 */
+                            /* 特定のクラス (MW4T7c) や aria-label から小数点を含む数値を優先抽出 */
+                            const ratingNodes = document.querySelectorAll('span.MW4T7c, span.ceR21e, [aria-label*="星"], [aria-label*="stars"]');
+                            for (const node of ratingNodes) {
+                                const txt = node.innerText.trim();
+                                const label = node.getAttribute('aria-label') || '';
+                                /* 小数点を含む「4.2」のような形式を最優先 */
+                                const m = txt.match(/([1-5]\\.[0-9])/) || label.match(/([1-5]\\.[0-9])/);
+                                if (m) {
+                                    rating = parseFloat(m[1]);
+                                    break;
+                                }
+                            }
+                            /* 小数点付きが見つからない場合のみ、単一の数字を探す（ただし個別アイコンを除外） */
+                            if (rating === 0) {
+                                for (const node of ratingNodes) {
+                                    const txt = node.innerText.trim();
+                                    const m = txt.match(/^([1-5])$/) || txt.match(/^([1-5]\\.0)$/);
+                                    if (m) {
+                                        rating = parseFloat(m[1]);
+                                        break;
+                                    }
+                                }
+                            }
 
-            "/* E. ULTRA-ACCURATE PHOTO GALLERY TILE COUNTER */" +
-            "let isPhotoAllTab = Boolean(document.body.querySelector('button[aria-label*=\"すべて\"][aria-selected=\"true\"], div[role=\"tab\"][aria-selected=\"true\"][aria-label*=\"すべて\"], button[aria-label*=\"写真\"][aria-selected=\"true\"]')) || " +
-            "                    (loc.indexOf('!1e2') !== -1 || loc.indexOf('3a,87y') !== -1 || loc.indexOf('!1e10') !== -1 || loc.indexOf('/photo') !== -1 || bTxt.indexOf('すべての写真') !== -1);" +
-            "let photoCount = undefined;" +
-            "let photoTier = '20';" +
-            "let statusPhotos = 'error';" +
-            "if(isPhotoAllTab){" +
-            "  let countVal = 0;" +
-            "  let tabEl = document.body.querySelector('button[aria-label*=\"すべて\"], div[role=\"tab\"][aria-label*=\"すべて\"], button[aria-label*=\"写真\"]');" +
-            "  let galleryContainer = null;" +
-            "  if(tabEl){" +
-            "    galleryContainer = tabEl.closest('div.m6QEfe, div[role=\"region\"], div[role=\"main\"], div.D6Bse') || tabEl.parentElement.parentElement;" +
-            "  }" +
-            "  if(!galleryContainer){" +
-            "    galleryContainer = document.body.querySelector('div.m6QEfe, div[aria-label*=\"写真\"]');" +
-            "  }" +
-            "  if(galleryContainer){" +
-            "    let photoTiles = galleryContainer.querySelectorAll('a[href*=\"/data=!3m\"], a[aria-label*=\"写真\"], div[role=\"img\"][aria-label], img[src*=\"googleusercontent.com/p/\"]');" +
-            "    if(photoTiles.length > 0){ countVal = photoTiles.length; }" +
-            "  }" +
-            "  if(!countVal){" +
-            "    let mainTiles = Array.from(document.body.querySelectorAll('a[href*=\"/data=!3m\"], img[src*=\"googleusercontent.com/p/\"]')).filter(el => {" +
-            "      let rect = el.getBoundingClientRect();" +
-            "      return rect.left > 60 && rect.width > 50;" +
-            "    });" +
-            "    if(mainTiles.length > 0){ countVal = mainTiles.length; }" +
-            "  }" +
-            "  let hMatch = bTxt.match(/すべての写真\\s*[\\(（\\s]*([0-9,]+)\\s*[\\)）枚\\s]*/) || bTxt.match(/([0-9,]+)\\s*枚の写真/);" +
-            "  if(hMatch){" +
-            "    let textNum = parseInt(hMatch[1].replace(/,/g, ''));" +
-            "    if(!isNaN(textNum) && textNum > 0){ countVal = Math.max(countVal, textNum); }" +
-            "  }" +
-            "  if(countVal > 0){" +
-            "    photoCount = countVal;" +
-            "    if(countVal >= 50){ statusPhotos = 'pass'; photoTier = '50'; }" +
-            "    else if(countVal >= 20){ statusPhotos = 'warn'; photoTier = '20'; }" +
-            "    else { statusPhotos = 'fail'; photoTier = '10'; }" +
-            "  }else{" +
-            "    statusPhotos = 'warn';" +
-            "  }" +
-            "}" +
+                            /* 2. クチコミ件数の取得 */
+                            const sNode = document.querySelector('[aria-label*="星"], [aria-label*="stars"], span.ceR21e');
+                            if (sNode) {
+                                const p = sNode.closest('div') || sNode.parentElement;
+                                const cMatch = p ? (p.innerText.match(/\\(\\s*([0-9,]+)\\s*\\)/) || p.innerText.match(/([0-9,]+)\\s*件/)) : null;
+                                if (cMatch) reviewCount = parseInt(cMatch[1].replace(/,/g, ''));
+                            }
+                            if (reviewCount === 0) {
+                                const revBtn = document.querySelector('button[aria-label*="クチコミ"], button[aria-label*="Reviews"], [aria-label*="件のクチコミ"]');
+                                const btnTxt = revBtn ? (revBtn.getAttribute('aria-label') || revBtn.innerText || '') : '';
+                                const cM = btnTxt.match(/([0-9,]+)/);
+                                if (cM) reviewCount = parseInt(cM[1].replace(/,/g, ''));
+                            }
+                        } catch(e) {}
 
-            "/* F. CATEGORY & WEBSITE URL PINPOINT EXTRACTION (HANDLES GLOBE ICON LIST ROWS & BUTTONS) */" +
-            "let category = '未設定';" +
-            "let catNode = document.body.querySelector('button[jsaction*=\"category\"], div.fontBodyMedium button, span.DkEaL');" +
-            "if(catNode && catNode.innerText){" +
-            "  let rawCat = catNode.innerText.replace(/[\\uE000-\\uF8FF\\u2000-\\u206F]/g, '').replace(/([0-9\\.]+\\s*)?Google\\s*のクチコミ\\s*\\([0-9,]+\\)/gi,'').replace(/^[0-9\\.\\s★⭐]+/,'').trim();" +
-            "  if(rawCat) category = rawCat.split('·')[0].split('•')[0].trim();" +
-            "}" +
+                        let photoCount = undefined, photoTier = '0', statusPhotos = 'fail', photoMetrics = {visible:0};
+                        try {
+                            if (isPhotoView()) {
+                                let count = 0;
+                                /* 1. 写真ギャラリー内の「すべて/All」タブから正確に合計件数を抽出 (口コミテキストなどの誤読を完全防止) */
+                                document.querySelectorAll('[role="tab"], button, [role="button"]').forEach(el => {
+                                    const t = (el.innerText || el.getAttribute('aria-label') || '').replace(/\\n/g, ' ').trim().replace(/\s+/g, ' ');
+                                    if (t.startsWith('すべて') || t.startsWith('All')) {
+                                        const m = t.match(/([0-9,.]+)/);
+                                        if (m) {
+                                            let v = parseFloat(m[1].replace(/,/g, ''));
+                                            if (t.toLowerCase().includes('k')) v *= 1000;
+                                            if (t.toLowerCase().includes('m')) v *= 1000000;
+                                            if (v > 0) count = Math.max(count, Math.floor(v));
+                                        }
+                                    }
+                                });
+                                
+                                /* 2. 画像要素のカウント (Lazy Loadを考慮) */
+                                const tiles = document.querySelectorAll('img[src*="googleusercontent.com/p/"], a[href*="/data=!3m"], .U39Pse, [role="img"][aria-label*="写真"]');
+                                photoMetrics.visible = tiles.length;
+                                if (count === 0 || tiles.length > count) count = tiles.length;
+                                
+                                if (count > 0) {
+                                    photoCount = count;
+                                    statusPhotos = count >= 50 ? 'pass' : (count >= 20 ? 'warn' : 'fail');
+                                    photoTier = count >= 100 ? '100' : (count >= 50 ? '50' : (count >= 20 ? '20' : '10'));
+                                }
+                            }
+                        } catch(e) {}
 
-            "/* Auto-click hours button */" +
-            "let hBtn = document.body.querySelector('button[aria-label*=\"営業時間\"], button[aria-label*=\"営業中\"], button[aria-label*=\"営業終了\"], button[aria-label*=\"まもなく営業終了\"], div.t3bWnc button, button[data-item-id=\"oh\"]');" +
-            "if(hBtn){ try{ hBtn.click(); }catch(e){} }" +
+                        let replyRatio = undefined, statusReply = 'error', reviewMetrics = {visible:0, replies:0};
+                        try {
+                            if (isReviewView()) {
+                                const cards = Array.from(document.querySelectorAll('div[data-review-id], div.WwHIbd, div.jJ79vd, .gws-localreviews__google-review, div.My5W2e'));
+                                let total = 0, replies = 0, seen = new Set();
+                                cards.forEach(c => {
+                                    const rid = c.getAttribute('data-review-id') || (c.innerText.substring(0,20) + c.offsetTop);
+                                    if (seen.has(rid)) return; seen.add(rid);
+                                    if (c.innerText.match(/[0-9]+\\s*(日前|週間前|か月前|年前)/) || c.querySelector('[aria-label*="星"]')) {
+                                        total++;
+                                        const hasReply = c.innerText.match(/(オーナー|店舗|ビジネス|投稿者).*(からの返信|の返信|返信済み)/) || c.querySelector('[aria-label*="返信"]');
+                                        if (hasReply) replies++;
+                                    }
+                                });
+                                if (total > 0) {
+                                    reviewMetrics = {visible:total, replies:replies};
+                                    replyRatio = Math.round((replies / total) * 100);
+                                    statusReply = replyRatio >= 95 ? 'pass' : (replyRatio >= 80 ? 'pass' : (replyRatio >= 50 ? 'warn' : 'fail'));
+                                }
+                            }
+                        } catch(e) {}
 
-            "/* Raw Website URL Extraction Engine */" +
-            "let rawWebsite = '';" +
-            "let webBtn = document.body.querySelector('a[data-item-id=\"authority\"], a[aria-label*=\"ウェブサイト\"], a[aria-label*=\"サイト\"]');" +
-            "if(webBtn){" +
-            "  let h = webBtn.getAttribute('href') || '';" +
-            "  if(h.indexOf('google.com/url?') !== -1){" +
-            "    let qM = h.match(/[?&]q=([^&]+)/);" +
-            "    if(qM) h = decodeURIComponent(qM[1]);" +
-            "  }" +
-            "  if(h && h.indexOf('google.') === -1 && h.indexOf('gstatic.') === -1){ rawWebsite = h; }" +
-            "}" +
-            "if(!rawWebsite){" +
-            "  let anchors = Array.from(document.body.querySelectorAll('a[href]'));" +
-            "  for(let a of anchors){" +
-            "    let href = a.getAttribute('href') || '';" +
-            "    let txt = (a.innerText || '').trim();" +
-            "    let label = (a.getAttribute('aria-label') || '') + ' ' + txt;" +
-            "    if(href.indexOf('google.com/url?') !== -1){" +
-            "      let qM = href.match(/[?&]q=([^&]+)/);" +
-            "      if(qM) href = decodeURIComponent(qM[1]);" +
-            "    }" +
-            "    let isGoogleSys = Boolean(href.indexOf('google.') !== -1 || href.indexOf('gstatic.') !== -1 || href.indexOf('ggpht.') !== -1 || href.indexOf('javascript:') !== -1);" +
-            "    if(!isGoogleSys){" +
-            "      if(a.getAttribute('data-item-id') === 'authority' || label.indexOf('ウェブサイト') !== -1 || label.indexOf('サイト') !== -1){" +
-            "        if(href.indexOf('http') !== -1){ rawWebsite = href; break; }" +
-            "      }else if(txt.indexOf('.com') !== -1 || txt.indexOf('.jp') !== -1 || txt.indexOf('.net') !== -1 || txt.indexOf('.org') !== -1){" +
-            "        rawWebsite = txt.indexOf('http') === -1 ? 'http://' + txt : txt;" +
-            "        break;" +
-            "      }" +
-            "    }" +
-            "  }" +
-            "}" +
+                        let category = '未設定', rawWebsite = '', rawHours = '', rawDescription = '', rawAttributes = '', attrCount = 0;
+                        try {
+                            const catNode = document.querySelector('button[jsaction*="category"], div.fontBodyMedium button');
+                            category = catNode ? catNode.innerText.split('·')[0].trim() : '未設定';
+                            const webBtn = document.querySelector('a[data-item-id="authority"]');
+                            rawWebsite = webBtn ? webBtn.href : '';
+                            rawHours = Array.from(document.querySelectorAll('table tr, div.e2W3ic')).map(r => r.innerText.replace(/\\n/g, ' ')).filter(t => t.match(/(月|火|水|木|金|土|日|曜)/)).join(' / ');
+                            
+                            /* 属性情報の取得改善 (基本情報/概要タブと詳細タブ双方の✔・🚫を完璧に判別するハイブリッドスキャナー) */
+                            const attrList = [];
+                            
+                            /* 1. aria-labelスキャン: 「属性名: はい/Yes/対応」を最優先で網羅（基本情報・詳細タブ共通、半角/全角コロン対応） */
+                            document.querySelectorAll('[aria-label*=": はい"], [aria-label*=":はい"], [aria-label*="： はい"], [aria-label*="：はい"], [aria-label*=": Yes"], [aria-label*=":Yes"], [aria-label*="： Yes"], [aria-label*="：Yes"], [aria-label*=": 対応"], [aria-label*=":対応"], [aria-label*="： 対応"], [aria-label*="：対応"], [aria-label*=": Supported"], [aria-label*=":Supported"], [aria-label*="： Supported"], [aria-label*="：Supported"]').forEach(el => {
+                                const label = el.getAttribute('aria-label') || '';
+                                /* 「属性名: はい」「属性名: Yes」「属性名: 対応」から属性名本体を高精度抽出 */
+                                const m = label.match(/^(.*?)[：:]\\s*(はい|Yes|対応|Supported)/);
+                                if (m) {
+                                    const t = m[1].trim();
+                                    if (t && t.length > 1 && t.length < 30 && t !== '基本情報') {
+                                        attrList.push(t);
+                                    }
+                                }
+                            });
 
-            "/* Raw Business Hours */" +
-            "let rawHours = '';" +
-            "let tableRows = Array.from(document.body.querySelectorAll('table.t3bWnc tr, table tr, tr.y07ffe, div.e2W3ic'));" +
-            "let weeklyLines = [];" +
-            "tableRows.forEach(tr => {" +
-            "  let txt = tr.innerText ? tr.innerText.replace(/\\n+/g, ' ').trim() : '';" +
-            "  if(txt && (txt.indexOf('月曜') !== -1 || txt.indexOf('火曜') !== -1 || txt.indexOf('水曜') !== -1 || txt.indexOf('木曜') !== -1 || txt.indexOf('金曜') !== -1 || txt.indexOf('土曜') !== -1 || txt.indexOf('日曜') !== -1 || txt.indexOf('定休日') !== -1 || txt.indexOf('休業') !== -1)){" +
-            "    weeklyLines.push(txt.replace(/[\\uE000-\\uF8FF]/g,'').trim());" +
-            "  }" +
-            "});" +
-            "if(weeklyLines.length > 0){" +
-            "  rawHours = weeklyLines.join(' / ');" +
-            "}else{" +
-            "  let hoursNode = document.body.querySelector('button[data-item-id=\"oh\"], [aria-label*=\"営業時間\"], [aria-label*=\"営業中\"], [aria-label*=\"営業終了\"], div.t3bWnc');" +
-            "  if(hoursNode){ rawHours = hoursNode.getAttribute('aria-label') || hoursNode.innerText || ''; }" +
-            "  if(!rawHours || rawHours === '営業時間'){" +
-            "    let hMatch = bTxt.match(/(営業中|営業終了|まもなく営業終了|営業時間外|24 時間営業|定休日|本日休業)[\\s\\S]{0,50}?(\\d{1,2}:\\d{2})/);" +
-            "    if(hMatch){ rawHours = hMatch[0].replace(/\\n+/g, ' ').trim(); }" +
-            "  }" +
-            "}" +
+                            /* 2. aria-label が "はい", "Yes", "対応" 自体であるチェックマークアイコンをスキャン */
+                            document.querySelectorAll('[aria-label="はい"], [aria-label="Yes"], [aria-label="対応"], [aria-label="Supported"]').forEach(icon => {
+                                const parent = icon.closest('div, span, li');
+                                if (parent) {
+                                    const rawTxt = parent.innerText.replace(/はい|Yes|対応|Supported|いいえ|No|非対応|Not supported/g, '').trim();
+                                    rawTxt.split(/[・\\n,、·•]/).forEach(item => {
+                                        const clean = item.replace(/[✔✓✔︎✔️✅]/g, '').trim();
+                                        if (clean && clean.length > 1 && clean.length < 30 && clean !== '基本情報') {
+                                            attrList.push(clean);
+                                        }
+                                    });
+                                }
+                            });
 
-            "/* Raw Business Description */" +
-            "let rawDescription = '';" +
-            "let descIdx = bTxt.indexOf('提供元: オーナー');" +
-            "if(descIdx !== -1){" +
-            "  rawDescription = bTxt.substring(descIdx, descIdx + 750).replace(/\\n+/g, ' ').trim();" +
-            "}else{" +
-            "  let descIdx2 = bTxt.indexOf('ビジネスの説明');" +
-            "  if(descIdx2 !== -1){" +
-            "    rawDescription = bTxt.substring(descIdx2, descIdx2 + 750).replace(/\\n+/g, ' ').trim();" +
-            "  }" +
-            "}" +
-            "let statusDescription = 'fail';" +
-            "if(rawDescription && rawDescription.length >= 250){ statusDescription = 'pass'; }" +
-            "else if(rawDescription && rawDescription.length > 0){ statusDescription = 'warn'; }" +
+                            /* 3. SVGチェックマークのパス形状を検出し、同一行から抽出（テキストマークが無い場合の補完） */
+                            try {
+                                document.querySelectorAll('svg').forEach(svg => {
+                                    const html = svg.innerHTML || '';
+                                    const isCheckSvg = html.includes('M9 16') || html.includes('M21 7') || html.includes('M10 14') ||
+                                                       html.includes('M19 8') || html.includes('M9 19') || html.includes('M3.8 12') ||
+                                                       html.includes('M16 7') || html.includes('L19 7');
+                                    if (!isCheckSvg) return;
+                                    const parent = svg.closest('div, span, li');
+                                    if (!parent) return;
+                                    const hasForbidden = parent.querySelector('[aria-label="いいえ"], [aria-label="No"], [aria-label="非対応"], [aria-label="Not supported"]') ||
+                                                         parent.innerHTML.includes('非対応') || parent.innerHTML.includes('いいえ') || parent.innerHTML.includes('🚫');
+                                    if (hasForbidden) return;
+                                    const rawTxt = (parent.innerText || '').replace(/はい|Yes|対応|Supported|いいえ|No|非対応|Not supported/g, '').replace(/[✔✓✔︎✔️✅]/g, '').trim();
+                                    rawTxt.split(/[・\\n,、·•]/).forEach(item => {
+                                        const clean = item.trim();
+                                        if (clean && clean.length > 1 && clean.length < 30 && !clean.includes('\\n') && clean !== '基本情報') {
+                                            attrList.push(clean);
+                                        }
+                                    });
+                                });
+                            } catch(e) {}
 
-            "/* G. BASIC INFO TAB ATTRIBUTES DETECTOR */" +
-            "let isBasicInfoTab = Boolean(document.body.querySelector('button[aria-label*=\"基本情報\"], div[role=\"tab\"][aria-selected=\"true\"], [aria-label*=\"基本情報\"]')) || " +
-            "                     bTxt.indexOf('✔') !== -1 || " +
-            "                     bTxt.indexOf('基本情報') !== -1 || " +
-            "                     bTxt.indexOf('設備') !== -1 || " +
-            "                     bTxt.indexOf('プラン') !== -1 || " +
-            "                     bTxt.indexOf('バリアフリー') !== -1 || " +
-            "                     bTxt.indexOf('お支払い') !== -1;" +
-            "let rawAttributes = '';" +
-            "let statusAttributes = 'error';" +
-            "let attrCount = 0;" +
-            "if(isBasicInfoTab){" +
-            "  let validAttrItems = [];" +
-            "  let checkNodes = Array.from(document.body.querySelectorAll('div, span, li, tr, p, td'));" +
-            "  checkNodes.forEach(node => {" +
-            "    let txt = node.innerText || '';" +
-            "    if(txt.indexOf('✔') !== -1 && txt.length < 35 && txt.indexOf('\\n') === -1){" +
-            "      let cleanItem = txt.replace(/✔/g, '').trim();" +
-            "      if(cleanItem && cleanItem !== '基本情報' && validAttrItems.indexOf(cleanItem) === -1){" +
-            "        validAttrItems.push(cleanItem);" +
-            "      }" +
-            "    }" +
-            "  });" +
-            "  let kwCandidates = [" +
-            "    'トイレ', '整備士', '事前予約がおすすめ', '車椅子対応の座席', '車椅子対応の入り口', '車椅子対応の駐車場', '車椅子対応のトイレ', " +
-            "    '無料Wi-Fi', 'Wi-Fi完備', '無料駐車場完備', '駐車場あり', 'キャッシュレス決済対応', 'クレジットカード可', '電子マネー可', " +
-            "    'QRコード決済', '個室あり', '全席禁煙', 'テイクアウト', '一人での食事', 'テーブル サービス'" +
-            "  ];" +
-            "  kwCandidates.forEach(kw => {" +
-            "    let isDisabled = bTxt.indexOf('🚫 ' + kw) !== -1 || bTxt.indexOf('🚫' + kw) !== -1;" +
-            "    if(bTxt.indexOf(kw) !== -1 && !isDisabled && validAttrItems.indexOf(kw) === -1){" +
-            "      validAttrItems.push(kw);" +
-            "    }" +
-            "  });" +
-            "  attrCount = validAttrItems.length;" +
-            "  rawAttributes = validAttrItems.join(' ・ ') + ' 等';" +
-            "  if(attrCount >= 5){ statusAttributes = 'pass'; }" +
-            "  else if(attrCount >= 1){ statusAttributes = 'warn'; }" +
-            "  else { statusAttributes = 'fail'; }" +
-            "}" +
+                            /* 4. 画面上のテキスト自体にチェックマーク（✓、✔、✔️、✅）が含まれる要素をスキャン (同じ行に非対応 🚫 がある場合は除外) */
+                            document.querySelectorAll('div, span, li').forEach(el => {
+                                const t = (el.innerText || '').trim();
+                                if (t.includes('✓') || t.includes('✔') || t.includes('✔️') || t.includes('✅')) {
+                                    /* 「非対応」系のマーク/文言が内包されている場合は丸ごと除外してスキップ */
+                                    const hasForbidden = el.querySelector('[aria-label="いいえ"], [aria-label="No"], [aria-label="非対応"], [aria-label="Not supported"]') ||
+                                                         t.includes('非対応') || t.includes('いいえ') || t.includes('🚫');
+                                    if (hasForbidden) return;
 
-            "/* H. POSTS FREQUENCY & DAYS EXTRACTION */" +
-            "let daysSinceLastPost = 28;" +
-            "let postDateMatches = bTxt.match(/([0-9]+)\\s*(日前|日分前|週間前|週前|か月前|月前|年前)/);" +
-            "if(postDateMatches){" +
-            "  let str = postDateMatches[0];" +
-            "  if(str.indexOf('日前') !== -1){ daysSinceLastPost = parseInt(str); }" +
-            "  else if(str.indexOf('週間前') !== -1 || str.indexOf('週前') !== -1){ daysSinceLastPost = parseInt(str) * 7; }" +
-            "  else if(str.indexOf('か月前') !== -1 || str.indexOf('月前') !== -1){ daysSinceLastPost = parseInt(str) * 30; }" +
-            "  else if(str.indexOf('年前') !== -1){ daysSinceLastPost = parseInt(str) * 365; }" +
-            "}" +
+                                    t.split(/[・\\n,、·•]/).forEach(item => {
+                                        const cleanItem = item.trim();
+                                        if (cleanItem.match(/^[✓✔✔️✅]/) || cleanItem.indexOf('✓') !== -1 || cleanItem.indexOf('✔') !== -1) {
+                                            const clean = cleanItem.replace(/[✓✔✔️✅]/g, '').replace(/はい|Yes|対応|Supported/g, '').trim();
+                                            if (clean && clean.length > 1 && clean.length < 30 && clean.indexOf('\\n') === -1 && clean !== 'もっと見る' && clean !== '詳細' && clean !== '基本情報') {
+                                                attrList.push(clean);
+                                            }
+                                        }
+                                    });
+                                }
+                            });
 
-            "/* I. PACK & SEND DATA */" +
-            "let data = {" +
-            "  isPhotoAllTab: isPhotoAllTab," +
-            "  companyName: name," +
-            "  name: name," +
-            "  category: category," +
-            "  reviewCount: reviewCount," +
-            "  rating: rating," +
-            "  replyRatio: replyRatio," +
-            "  photoCount: photoCount," +
-            "  photoTier: photoTier," +
-            "  statusPhotos: statusPhotos," +
-            "  daysSinceLastPost: daysSinceLastPost," +
-            "  rawWebsite: rawWebsite," +
-            "  rawHours: rawHours," +
-            "  rawDescription: rawDescription," +
-            "  rawAttributes: rawAttributes," +
-            "  attrCount: attrCount," +
-            "  statusWebsite: Boolean(rawWebsite) ? 'pass' : 'fail'," +
-            "  statusHours: Boolean(rawHours) ? 'pass' : 'fail'," +
-            "  statusDescription: statusDescription," +
-            "  statusCover: 'pass'," +
-            "  statusReply: replyStatus," +
-            "  statusAttributes: statusAttributes" +
-            "};" +
-            "let targetUrl = '" + APP_BASE_URL + "#data=' + encodeURIComponent(JSON.stringify(data));" +
-            "window.open(targetUrl, '" + REPORT_WINDOW_TARGET + "');" +
-            "}catch(e){ alert('⚠️ GBPデータの取得に失敗しました。Googleマップで店舗を選択した状態で再実行してください。'); }" +
-            "})();";
+                            /* 4. クラスベーススキャン (フォールバック、非対応やもっと見る系は徹底除外) */
+                            document.querySelectorAll('.w8nwRe, .IApYQ, .k77oWc, .Fk3vbd, .suS86e').forEach(el => {
+                                const hasForbidden = el.querySelector('[aria-label="いいえ"], [aria-label="No"], [aria-label="非対応"], [aria-label="Not supported"]') || 
+                                                     el.innerHTML.includes('いいえ') || 
+                                                     el.innerHTML.includes('非対応') ||
+                                                     el.innerHTML.includes('🚫');
+                                if (hasForbidden) return;
+
+                                const t = (el.innerText || '').trim();
+                                if (t === 'もっと見る' || t === '詳細' || t === '詳細情報をすべて表示' || t === '基本情報' || t.length > 30) return; /* もっと見るリンクの誤検知を完全回避 */
+
+                                t.split(/[・\\n,、·•]/).forEach(item => {
+                                    const clean = item.replace(/[✔✓✔︎✔️]/g, '').trim();
+                                    if (clean && clean.length > 1 && clean.length < 30) {
+                                        attrList.push(clean);
+                                    }
+                                });
+                            });
+
+                            /* 5. テキストのコロン形式 (例: "現金のみ: はい" / "敷地内駐車場：対応") の直接抽出 */
+                            try {
+                                document.querySelectorAll('div, span, li, p').forEach(el => {
+                                    const t = (el.innerText || '').trim();
+                                    if (!t || t.length > 80) return;
+                                    const m = t.match(/(.{1,30})[：:]\s*(はい|Yes|対応|Supported|可|あり|有|利用可)/);
+                                    if (m) {
+                                        const key = m[1].trim();
+                                        const hasForbidden = t.includes('非対応') || t.includes('いいえ') || t.includes('不可') ||
+                                                            el.querySelector && (el.querySelector('[aria-label="いいえ"], [aria-label="No"], [aria-label="非対応"], [aria-label="Not supported"]'));
+                                        if (!hasForbidden && key && key !== '基本情報') {
+                                            attrList.push(key);
+                                        }
+                                    }
+                                });
+                            } catch(e) {}
+
+                            const uniqueAttrs = [...new Set(attrList.filter(t => t && t.length > 1 && t.length < 50))];
+                            attrCount = uniqueAttrs.length;
+                            rawAttributes = uniqueAttrs.length > 0 ? uniqueAttrs.slice(0, 20).join(' ・ ') + (uniqueAttrs.length > 20 ? ' 等' : '') : '';
+
+                            const descIdx = bTxt.indexOf('提供元: オーナー');
+                            rawDescription = descIdx !== -1 ? bTxt.substring(descIdx, descIdx + 600).replace(/\\n/g, ' ') : '';
+                        } catch(e) {}
+
+                        let daysSinceLastPost = -1;
+                        try {
+                            /* 最新投稿の取得改善 (より広範囲にテキストマッチ・レビュー混同防止) */
+                            const postRegex = /([0-9]+)\\s*(日前|週間前|か月前|年前|days ago|weeks ago|months ago|years ago)/;
+                            
+                            /* 1. 「最新情報」または「Updates」セクションを特定して、その中から日付を探す */
+                            let updatesSection = null;
+                            const headings = document.querySelectorAll('div, h2, h3, span');
+                            for (const h of headings) {
+                                const txt = h.innerText || '';
+                                if (txt === '最新情報' || txt === '最新の投稿' || txt === 'Updates') {
+                                    updatesSection = h.closest('.m6QEfe') || h.parentElement?.parentElement || h.parentElement;
+                                    break;
+                                }
+                            }
+                            
+                            /* 2. セクションが特定できたらその中から、そうでなければ画面全体からスキャン (レビュー除外) */
+                            const targetContainer = updatesSection || document;
+                            const dateEls = targetContainer.querySelectorAll('.suS86e, div, span, a');
+                            
+                            for (const el of dateEls) {
+                                const t = el.innerText ? el.innerText.trim() : '';
+                                /* レビュー関連のワードが含まれる場合はスキップして誤読を防ぐ */
+                                if (!updatesSection && (t.includes('星') || t.includes('★') || t.includes('クチコミ') || t.includes('Review'))) {
+                                    continue;
+                                }
+                                
+                                const m = t.match(postRegex);
+                                if (m) {
+                                    const v = parseInt(m[1]);
+                                    const unit = m[2];
+                                    let days = -1;
+                                    if (unit.match(/(日前|days)/)) days = v;
+                                    else if (unit.match(/(週間|weeks)/)) days = v * 7;
+                                    else if (unit.match(/(か月|months)/)) days = v * 30;
+                                    else if (unit.match(/(年前|years)/)) days = v * 365;
+                                    
+                                    if (days !== -1 && (daysSinceLastPost === -1 || days < daysSinceLastPost)) {
+                                        daysSinceLastPost = days;
+                                    }
+                                }
+                            }
+                        } catch(e) {}
+
+                        const data = {
+                            name, companyName: name, category, rating, reviewCount, isPhotoAllTab: isPhotoView(),
+                            photoCount, photoTier, statusPhotos, photoMetrics,
+                            replyRatio, statusReply, reviewMetrics,
+                            rawWebsite, rawHours, rawDescription, rawAttributes, attrCount,
+                            statusWebsite: rawWebsite ? 'pass' : 'fail',
+                            statusHours: rawHours ? 'pass' : 'fail',
+                            statusDescription: rawDescription.length > 100 ? 'pass' : (rawDescription.length > 0 ? 'warn' : 'fail'),
+                            statusAttributes: attrCount >= 5 ? 'pass' : (attrCount >= 1 ? 'warn' : 'fail'),
+                            daysSinceLastPost
+                        };
+                        /* 2. 先行オープンしたウィンドウへデータを送信 */
+                        const dataStr = '#data=' + encodeURIComponent(JSON.stringify(data));
+                        /* 別ドメイン（CORS）制限を回避するため、常に href を更新してデータを送信 */
+                        /* これにより画像で発生していた Location エラーを完全に防ぎます */
+                        reportWin.location.href = '${APP_BASE_URL}' + dataStr;
+                        reportWin.focus();
+                    } catch (e) { alert('診断エラー: ' + e.message); }
+                };
+
+                const sc = document.querySelector('div.m6QEfe[role="main"], div.m6QEfe[aria-label*="写真"], div.m6QEfe[aria-label*="クチコミ"], .m6QEfe');
+                /* 遅延読み込みされる最新情報や詳細属性、説明文を確実にロードするため、すべての画面でスクロールを実行 */
+                if (sc) sc.scrollTop += 2000; else window.scrollBy(0, 1500);
+                setTimeout(gatherData, 1200);
+            } catch (e) { alert('致命的なエラー: ' + e.message); }
+        })();`;
+        return "javascript:" + encodeURIComponent(script.replace(/\/\*.*?\*\/|\n\s+/g, ' '));
     }
 
     bookmarkletLink.setAttribute('href', generateBookmarkletHref());
@@ -518,6 +606,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         showToast("✨ 新店舗の診断レポートを作成しました！", `${storeData.name} の診断結果を表示しています。`);
                     } else if (isMergeUpdate) {
                         showToast("✨ 写真枚数を反映・統合しました！", `店舗情報を維持したまま、最新の画像枚数を追加しました。`);
+                    } else {
+                        showToast("✨ 診断レポートを更新しました", `${storeData.name} の最新データを反映しました。`);
                     }
                 }, 250);
             }
@@ -525,120 +615,212 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 5. ABSOLUTE VAULT DATA MERGE ENGINE
+    // 4. ABSOLUTE VAULT DATA MERGE ENGINE (High-Water Mark)
     // ==========================================
     function mergeStoreData(existing, incoming) {
-        let isUpdated = false;
-        let isNewStore = false;
-
-        const safeIncoming = {
-            ...INITIAL_STORE_TEMPLATE,
-            ...incoming
-        };
-
         const merged = { ...existing };
+        const safeIn = { ...INITIAL_STORE_TEMPLATE, ...incoming };
 
-        // 写真タブからの送信、または送信データで店舗名が空・未設定・Googleマップの場合は絶対に他情報をリセットさせない保護！
-        if (safeIncoming.isPhotoAllTab || !safeIncoming.name || safeIncoming.name === "店舗名未設定" || safeIncoming.name === "Google マップ") {
-            if (safeIncoming.photoCount !== undefined && safeIncoming.statusPhotos !== 'error') {
-                merged.photoCount = safeIncoming.photoCount;
-                merged.statusPhotos = safeIncoming.statusPhotos;
-                if (safeIncoming.photoTier) merged.photoTier = safeIncoming.photoTier;
+        // 1. 基本情報のマージ（空でない、かつデフォルト値でない場合のみ上書き・保持）
+        if (safeIn.name && safeIn.name !== "店舗名未設定" && safeIn.name !== "店舗名取得失敗") {
+            merged.name = safeIn.name;
+            merged.companyName = safeIn.name;
+        }
+        if (safeIn.category && safeIn.category !== "未設定" && safeIn.category.length > 1) {
+            merged.category = safeIn.category;
+        }
+        if (safeIn.reviewCount > 0) merged.reviewCount = safeIn.reviewCount;
+        if (safeIn.rating > 0) merged.rating = safeIn.rating;
+
+        // 2. 写真データの保持 (常に最新を優先)
+        if (safeIn.photoCount !== undefined && safeIn.photoCount !== null && safeIn.photoCount > 0) {
+            merged.photoCount = safeIn.photoCount;
+            merged.photoTier = safeIn.photoTier;
+            merged.statusPhotos = safeIn.statusPhotos;
+            merged.photoMetrics = safeIn.photoMetrics;
+        }
+
+        // 3. 口コミ返信率の保持（新しく計測できたデータが存在する場合のみ）
+        if (safeIn.replyRatio !== undefined && safeIn.replyRatio !== null) {
+            const inTotal = (safeIn.reviewMetrics && safeIn.reviewMetrics.visible) || 0;
+            const exTotal = (merged.reviewMetrics && merged.reviewMetrics.visible) || 0;
+            if (inTotal >= exTotal || merged.replyRatio === undefined) {
+                merged.replyRatio = safeIn.replyRatio;
+                merged.statusReply = safeIn.statusReply;
+                merged.reviewMetrics = safeIn.reviewMetrics;
             }
-            return { merged, isUpdated: true, isNewStore: false };
         }
 
-        // 既存店舗が存在する場合、送信されてきた名前と既存名が互いに部分一致すらしない完全に異なる店舗名である時のみ新店舗切り替え
-        if (existing.name && safeIncoming.name && existing.name !== "店舗名未設定") {
-            let cleanExist = existing.name.replace(/[^a-zA-Z0-9\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]/g, '');
-            let cleanIn = safeIncoming.name.replace(/[^a-zA-Z0-9\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]/g, '');
-
-            if (cleanExist && cleanIn && cleanExist.indexOf(cleanIn) === -1 && cleanIn.indexOf(cleanExist) === -1) {
-                isNewStore = true;
-                return { merged: safeIncoming, isUpdated: true, isNewStore };
+        // 4. 最新投稿情報の保持（より新しい日付＝日数が小さいものを優先、-1は投稿なしを確定反映）
+        if (safeIn.daysSinceLastPost !== undefined) {
+            if (safeIn.daysSinceLastPost === -1) {
+                if (merged.daysSinceLastPost === undefined || merged.daysSinceLastPost === 28) {
+                    merged.daysSinceLastPost = -1;
+                }
+            } else {
+                const currentDays = merged.daysSinceLastPost;
+                if (currentDays === undefined || currentDays === 28 || currentDays === -1 || safeIn.daysSinceLastPost < currentDays) {
+                    merged.daysSinceLastPost = safeIn.daysSinceLastPost;
+                }
             }
         }
 
-        if (safeIncoming.name && safeIncoming.name !== "店舗名未設定") merged.name = safeIncoming.name;
-        if (safeIncoming.companyName) merged.companyName = safeIncoming.companyName;
-        if (safeIncoming.category && safeIncoming.category !== "未設定") merged.category = safeIncoming.category;
-        if (safeIncoming.reviewCount > 0) merged.reviewCount = Math.max(existing.reviewCount || 0, safeIncoming.reviewCount);
-        if (safeIncoming.rating > 0) merged.rating = Math.min(Math.max(parseFloat(safeIncoming.rating), 1.0), 5.0);
-
-        if (safeIncoming.daysSinceLastPost !== undefined) merged.daysSinceLastPost = safeIncoming.daysSinceLastPost;
-        if (safeIncoming.rawWebsite) merged.rawWebsite = safeIncoming.rawWebsite;
-        if (safeIncoming.rawHours) merged.rawHours = safeIncoming.rawHours;
-        if (safeIncoming.rawDescription) merged.rawDescription = safeIncoming.rawDescription;
-        if (safeIncoming.rawAttributes && safeIncoming.statusAttributes !== 'error') {
-            merged.rawAttributes = safeIncoming.rawAttributes;
-            if (safeIncoming.attrCount !== undefined) merged.attrCount = safeIncoming.attrCount;
-        }
-
-        if (safeIncoming.replyRatio !== undefined && safeIncoming.statusReply !== 'error') {
-            merged.replyRatio = safeIncoming.replyRatio;
-        }
-
-        const statusKeys = ['statusWebsite', 'statusHours', 'statusDescription', 'statusCover', 'statusReply', 'statusAttributes'];
-        statusKeys.forEach(key => {
-            let existingVal = existing[key] || 'error';
-            let incomingVal = safeIncoming[key] || 'error';
-
-            let existingRank = STATUS_RANK[existingVal] !== undefined ? STATUS_RANK[existingVal] : 0;
-            let incomingRank = STATUS_RANK[incomingVal] !== undefined ? STATUS_RANK[incomingVal] : 0;
-
-            if (incomingRank >= existingRank) {
-                merged[key] = incomingVal;
+        // 5. ステータス・rawデータのハイウォーターマーク統合（ランクが高い、または文字数が多いものを維持）
+        const statusKeys = ['statusWebsite', 'statusHours', 'statusDescription', 'statusAttributes'];
+        statusKeys.forEach(k => {
+            const inRank = STATUS_RANK[safeIn[k]] || 0;
+            const exRank = STATUS_RANK[merged[k]] || 0;
+            const rawKey = k.replace('status', 'raw');
+            if (inRank > exRank) {
+                merged[k] = safeIn[k];
+                if (safeIn[rawKey]) merged[rawKey] = safeIn[rawKey];
+                if (k === 'statusAttributes') merged.attrCount = safeIn.attrCount;
+            } else if (inRank === exRank && inRank > 0) {
+                if ((safeIn[rawKey]||"").length > (merged[rawKey]||"").length) {
+                    merged[rawKey] = safeIn[rawKey];
+                }
             }
         });
 
-        return { merged, isUpdated: true, isNewStore: false };
+        return merged;
     }
 
+    // ==========================================
+    // 5. CALCULATION & UI ENGINE
+    // ==========================================
+    function calculateAndRender() {
+        // スコア計算ロジック
+        let basicScore = 0;
+        let basicMax = 100;
+        let basicItemsCount = 4; // HP, 営業時間, 説明文, 属性
+
+        let scoreWeb = storeData.statusWebsite === 'pass' ? 25 : (storeData.statusWebsite === 'warn' ? 15 : 0);
+        let scoreHours = storeData.statusHours === 'pass' ? 25 : (storeData.statusHours === 'warn' ? 15 : 0);
+        let scoreDesc = storeData.statusDescription === 'pass' ? 25 : (storeData.statusDescription === 'warn' ? 15 : 0);
+        let scoreAttr = storeData.statusAttributes === 'pass' ? 25 : (storeData.statusAttributes === 'warn' ? 15 : 0);
+        basicScore = scoreWeb + scoreHours + scoreDesc + scoreAttr;
+
+        // クチコミスコア (返信率ベース)
+        let reviewScore = 0;
+        let reviewRate = storeData.replyRatio;
+        if (reviewRate !== undefined && !isNaN(reviewRate)) {
+            if (reviewRate >= 80) reviewScore = 100;
+            else if (reviewRate >= 50) reviewScore = 70;
+            else reviewScore = 30;
+        } else {
+            reviewScore = 50; // 未計測時のデフォルト
+        }
+
+        // 写真スコア
+        let photoScore = 0;
+        let pCount = storeData.photoCount || 0;
+        if (pCount >= 50) photoScore = 100;
+        else if (pCount >= 20) photoScore = 70;
+        else if (pCount > 0) photoScore = 40;
+        else photoScore = 10;
+
+        // 投稿スコア
+        let postScore = 0;
+        let dPost = storeData.daysSinceLastPost;
+        if (dPost <= 7) postScore = 100;
+        else if (dPost <= 14) postScore = 80;
+        else if (dPost <= 30) postScore = 50;
+        else postScore = 20;
+
+        // 総合スコア（100点満点換算）
+        const totalScore = Math.round((basicScore * 0.3) + (reviewScore * 0.3) + (photoScore * 0.2) + (postScore * 0.2));
+
+        // UI反映
+        if (displayCompanyName) displayCompanyName.textContent = storeData.companyName;
+        if (displayStoreName) displayStoreName.textContent = storeData.name;
+        if (metaCategory) metaCategory.textContent = storeData.category;
+
+        if (totalScoreEl) totalScoreEl.textContent = totalScore;
+        if (scoreBasicEl) scoreBasicEl.textContent = basicScore;
+        if (scoreReviewsEl) scoreReviewsEl.textContent = reviewScore;
+        if (scorePhotosEl) scorePhotosEl.textContent = photoScore;
+        if (scorePostsEl) scorePostsEl.textContent = postScore;
+
+        // ランク判定
+        let rank = 'C';
+        let comment = '改善の余地が多数あります。優先度の高い項目から対策を行いましょう。';
+        if (totalScore >= 85) { rank = 'S'; comment = '素晴らしい最適化状態です！競合に対して大きな優位性があります。'; }
+        else if (totalScore >= 70) { rank = 'A'; comment = '良好な状態ですが、一部の項目を改善することでさらに上位表示が狙えます。'; }
+        else if (totalScore >= 50) { rank = 'B'; comment = '基本的な設定や運用に不足が見られます。早めの対策が推奨されます。'; }
+
+        if (scoreRankEl) scoreRankEl.textContent = rank;
+        if (scoreCommentEl) scoreCommentEl.textContent = comment;
+
+        // フォーム同期
+        if (inputCompanyName) inputCompanyName.value = storeData.companyName;
+        if (inputStoreName) inputStoreName.value = storeData.name;
+        if (inputCategory) inputCategory.value = storeData.category;
+        if (inputReviewCount) inputReviewCount.value = storeData.reviewCount;
+        if (inputRating) inputRating.value = storeData.rating;
+        if (inputLastPost) inputLastPost.value = storeData.daysSinceLastPost;
+        if (inputPhotoCount) inputPhotoCount.value = storeData.photoCount !== undefined ? storeData.photoCount : '';
+
+        // ローカルストレージに保存
+        saveStoredData(storeData);
+    }
+
+    // ==========================================
+    // 6. URL HASH & EVENT HANDLERS
+    // ==========================================
     function parseIncomingData() {
-        const hash = window.location.hash;
-        if (hash && hash.includes('data=')) {
+        if (window.location.hash.startsWith('#data=')) {
             try {
-                const jsonStr = decodeURIComponent(hash.split('data=')[1]);
-                const parsed = JSON.parse(jsonStr);
-                if (parsed && (parsed.name || parsed.companyName)) {
-                    if (parsed.category) {
-                        parsed.category = parsed.category.replace(/[\\uE000-\\uF8FF\\u2000-\\u206F]/g, '').replace(/([0-9\.]+\s*)?Google\s*のクチコミ.*/gi, '').replace(/^[0-9\.\s★⭐]+/,'').replace(/^.*?[都道府県市区町村]の/, '').trim() || "未設定";
-                    }
+                const jsonStr = decodeURIComponent(window.location.hash.substring(6));
+                const incomingData = JSON.parse(jsonStr);
+                
+                const isNewStore = !storeData.name || storeData.name === "店舗名未設定" || (incomingData.name && incomingData.name !== storeData.name);
+                const isMergeUpdate = !isNewStore && incomingData.isPhotoAllTab;
 
-                    const saved = localStorage.getItem('last_gbp_data');
-                    let baseData = storeData;
-                    if (saved) {
-                        try { baseData = JSON.parse(saved); } catch(e){}
-                    }
-
-                    const { merged, isUpdated, isNewStore } = mergeStoreData(baseData, parsed);
-                    storeData = merged;
-                    localStorage.setItem('last_gbp_data', JSON.stringify(storeData));
-
-                    history.replaceState(null, "", window.location.pathname);
-                    activateReportView();
-                    triggerLoadingAnimation(() => updateFormValues(), isUpdated, isNewStore);
-                    return true;
+                // 新しい店舗の場合は、過去の無関係な店舗データをクリーンリセット（混同を完全防止）
+                if (isNewStore) {
+                    storeData = { ...INITIAL_STORE_TEMPLATE };
                 }
+
+                // ハイウォーターマーク方式でデータを安全に統合
+                storeData = mergeStoreData(storeData, incomingData);
+                
+                // アニメーションをトリガーしてUIを更新
+                triggerLoadingAnimation(() => {
+                    calculateAndRender();
+                    if (welcomePlaceholder) welcomePlaceholder.classList.add('hidden');
+                    if (reportPaper) reportPaper.classList.remove('hidden');
+                    if (controlPanelSection) controlPanelSection.classList.remove('hidden');
+                }, isMergeUpdate, isNewStore);
+                
+                // ハッシュをクリアしてリロード時の二重処理を防ぐ
+                history.replaceState(null, null, window.location.pathname);
+                return true;
             } catch (e) {
-                console.error("Error parsing bookmarklet data:", e);
+                console.error("Parse Error:", e);
+                showToast("読込エラー", "診断データの解析に失敗しました。", true);
+            }
+        } else {
+            // ストレージから復元を試みる
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    if (parsed && parsed.name && parsed.name !== "店舗名未設定") {
+                        storeData = { ...INITIAL_STORE_TEMPLATE, ...parsed };
+                        activateReportView();
+                        calculateAndRender();
+                        return true;
+                    }
+                } catch(e) {}
             }
         }
-
-        const savedData = localStorage.getItem('last_gbp_data');
-        if (savedData) {
-            try {
-                const parsed = JSON.parse(savedData);
-                if (parsed && parsed.name && parsed.name !== "店舗名未設定") {
-                    if (parsed.rating > 0) parsed.rating = Math.min(Math.max(parseFloat(parsed.rating), 1.0), 5.0);
-                    storeData = { ...INITIAL_STORE_TEMPLATE, ...parsed };
-                    activateReportView();
-                    updateFormValues();
-                    return true;
-                }
-            } catch (e) {}
-        }
         return false;
+    }
+
+    function saveStoredData(data) {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        } catch (e) {}
     }
 
     window.addEventListener('hashchange', parseIncomingData);
@@ -662,9 +844,9 @@ document.addEventListener('DOMContentLoaded', () => {
         selectWebsite.value = storeData.statusWebsite || 'error';
         selectHours.value = storeData.statusHours || 'error';
         selectDescription.value = storeData.statusDescription || 'error';
-        selectCover.value = selectCover.value;
-        selectReply.value = selectReply.value;
-        selectAttributes.value = selectAttributes.value;
+        selectCover.value = storeData.statusCover || 'error';
+        selectReply.value = storeData.statusReply || 'error';
+        selectAttributes.value = storeData.statusAttributes || 'error';
 
         calculateAndRender();
     }
@@ -681,12 +863,12 @@ document.addEventListener('DOMContentLoaded', () => {
         storeData.daysSinceLastPost = parseInt(inputLastPost.value) || 28;
         storeData.photoTier = inputPhotoCount.value;
 
-        selectWebsite.value = selectWebsite.value;
-        selectHours.value = selectHours.value;
-        selectDescription.value = selectDescription.value;
-        selectCover.value = selectCover.value;
-        selectReply.value = selectReply.value;
-        selectAttributes.value = selectAttributes.value;
+        storeData.statusWebsite = selectWebsite.value;
+        storeData.statusHours = selectHours.value;
+        storeData.statusDescription = selectDescription.value;
+        storeData.statusCover = selectCover.value;
+        storeData.statusReply = selectReply.value;
+        storeData.statusAttributes = selectAttributes.value;
 
         calculateAndRender();
     }
@@ -882,22 +1064,32 @@ document.addEventListener('DOMContentLoaded', () => {
         let reviewsPossible = 0;
         const itemsReviews = [];
         
+        let metricsText = "";
+        const rCount = parseInt(storeData.reviewCount) || 0;
+        if (storeData.reviewMetrics && storeData.reviewMetrics.visible > 0) {
+            let gapWarning = "";
+            if (rCount > storeData.reviewMetrics.visible + 2) {
+                gapWarning = `<br><span style="color:#ef4444; font-size:0.75rem; font-weight:bold;">⚠️ 全${rCount}件中${storeData.reviewMetrics.visible}件のみ検知。全件診断するにはクチコミを最下部までスクロールしてから再実行してください。</span>`;
+            }
+            metricsText = ` (確認できたクチコミ ${storeData.reviewMetrics.visible}件中 ${storeData.reviewMetrics.replies}件に返信あり)${gapWarning}`;
+        }
+
         // GRADED SCORE: Review Count (Max 12pt: 500+ = 12pt, 300-499 = 9pt, 100-299 = 6pt, 50-99 = 3pt, <50 = 0pt)
         reviewsPossible += 12;
-        if (storeData.reviewCount >= 500) {
+        if (rCount >= 500) {
             reviewsGained += 12;
-            itemsReviews.push({ title: "クチコミ件数", status: "pass", rawText: `${storeData.reviewCount}件 (目標500件達成・圧倒的な集客基盤)` });
-        } else if (storeData.reviewCount >= 300) {
+            itemsReviews.push({ title: "クチコミ件数", status: "pass", rawText: `${rCount}件 (目標500件達成・圧倒的な集客基盤)` });
+        } else if (rCount >= 300) {
             reviewsGained += 9;
-            itemsReviews.push({ title: "クチコミ件数", status: "pass", rawText: `${storeData.reviewCount}件 (良好・さらなる獲得を推奨)` });
-        } else if (storeData.reviewCount >= 100) {
+            itemsReviews.push({ title: "クチコミ件数", status: "pass", rawText: `${rCount}件 (良好・さらなる獲得を推奨)` });
+        } else if (rCount >= 100) {
             reviewsGained += 6;
-            itemsReviews.push({ title: "クチコミ件数", status: "warn", rawText: `${storeData.reviewCount}件 (標準的・競合優位性の確保が必要)` });
-        } else if (storeData.reviewCount >= 50) {
+            itemsReviews.push({ title: "クチコミ件数", status: "warn", rawText: `${rCount}件 (標準的・競合優位性の確保が必要)` });
+        } else if (rCount >= 50) {
             reviewsGained += 3;
-            itemsReviews.push({ title: "クチコミ件数", status: "warn", rawText: `${storeData.reviewCount}件 (不足・信頼性向上に改善が必要)` });
+            itemsReviews.push({ title: "クチコミ件数", status: "warn", rawText: `${rCount}件 (不足・信頼性向上に改善が必要)` });
         } else {
-            itemsReviews.push({ title: "クチコミ件数", status: "fail", rawText: `${storeData.reviewCount}件 (大幅不足・集客に悪影響あり)` });
+            itemsReviews.push({ title: "クチコミ件数", status: "fail", rawText: `${rCount}件 (大幅不足・集客に悪影響あり)` });
         }
 
         // GRADED SCORE: Average Rating (Max 3pt: 4.5+ = 3pt, 4.0-4.4 = 2pt, <4.0 = 0pt)
@@ -918,18 +1110,18 @@ document.addEventListener('DOMContentLoaded', () => {
         if (ratioVal !== undefined) {
             if (ratioVal >= 95) {
                 reviewsGained += 15;
-                itemsReviews.push({ title: "クチコミ返信率", status: "pass", rawText: `返信率 ${ratioVal}% (完璧な運用・ファン化促進中)` });
+                itemsReviews.push({ title: "クチコミ返信率", status: "pass", rawText: `返信率 ${ratioVal}%${metricsText} (完璧な運用・ファン化促進中)` });
             } else if (ratioVal >= 80) {
                 reviewsGained += 12;
-                itemsReviews.push({ title: "クチコミ返信率", status: "pass", rawText: `返信率 ${ratioVal}% (良好・全件返信を目指しましょう)` });
+                itemsReviews.push({ title: "クチコミ返信率", status: "pass", rawText: `返信率 ${ratioVal}%${metricsText} (良好・全件返信を目指しましょう)` });
             } else if (ratioVal >= 50) {
                 reviewsGained += 8;
-                itemsReviews.push({ title: "クチコミ返信率", status: "warn", rawText: `返信率 ${ratioVal}% (返信漏れあり・運用体制の再考推奨)` });
+                itemsReviews.push({ title: "クチコミ返信率", status: "warn", rawText: `返信率 ${ratioVal}%${metricsText} (返信漏れあり・運用体制の再考推奨)` });
             } else if (ratioVal > 0) {
                 reviewsGained += 4;
-                itemsReviews.push({ title: "クチコミ返信率", status: "fail", rawText: `返信率 ${ratioVal}% (放置気味・早急な対応が必要)` });
+                itemsReviews.push({ title: "クチコミ返信率", status: "fail", rawText: `返信率 ${ratioVal}%${metricsText} (放置気味・早急な対応が必要)` });
             } else {
-                itemsReviews.push({ title: "クチコミ返信率", status: "fail", rawText: `返信率 0% (放置状態・致命的な機会損失)` });
+                itemsReviews.push({ title: "クチコミ返信率", status: "fail", rawText: `返信率 0%${metricsText} (放置状態・致命的な機会損失)` });
             }
         } else if (storeData.statusReply === 'pass') {
             reviewsGained += 12; // 80% equivalent
@@ -952,22 +1144,34 @@ document.addEventListener('DOMContentLoaded', () => {
         let photosGained = 0;
         let photosPossible = 20;
         const itemsPhotos = [];
+        
+        // Basic cover/logo check (implicit 4pt baseline if exists, but we'll focus on count)
         itemsPhotos.push({ title: "カバー・ロゴ画像", status: "pass", rawText: "設定済み (カバー画像・ロゴ掲載あり)" });
 
-        if (storeData.statusPhotos === 'pass' || (storeData.photoCount && storeData.photoCount >= 50)) {
-            photosGained += 15;
-            let cntText = storeData.photoCount ? `${storeData.photoCount}枚 (豊富・高水準)` : "50枚以上 (豊富・高水準)";
-            itemsPhotos.push({ title: "画像・動画枚数", status: "pass", rawText: cntText });
-        } else if (storeData.statusPhotos === 'warn' || (storeData.photoCount && storeData.photoCount >= 20)) {
-            photosGained += 10;
-            let cntText = storeData.photoCount ? `${storeData.photoCount}枚 (店舗外観・内観・サービス写真の追加推奨)` : "20〜49枚 (店舗外観・内観・サービス写真の追加推奨)";
-            itemsPhotos.push({ title: "画像・動画枚数", status: "warn", rawText: cntText });
-        } else if (storeData.statusPhotos === 'fail') {
-            photosGained += 4;
-            let cntText = storeData.photoCount ? `${storeData.photoCount}枚 (大幅不足)` : "20枚未満 (大幅不足・追加必須)";
-            itemsPhotos.push({ title: "画像・動画枚数", status: "fail", rawText: cntText });
+        let pCount = storeData.photoCount || 0;
+        let pMetricsText = "";
+        if (storeData.photoMetrics && storeData.photoMetrics.visible > 0) {
+            if (pCount > storeData.photoMetrics.visible + 10) {
+                pMetricsText = `<br><span style="color:#ef4444; font-size:0.75rem; font-weight:bold;">⚠️ 公表${pCount}枚中${storeData.photoMetrics.visible}枚のみ検知。正確な枚数を集計するには写真タブを最下部までスクロールしてから再実行してください。</span>`;
+            }
+        }
+        
+        if (pCount >= 100 || storeData.photoTier === '100') {
+            photosGained = 20; // Max points
+            itemsPhotos.push({ title: "画像・動画枚数", status: "pass", rawText: `${pCount}枚 (100枚以上・圧倒的な充実度)${pMetricsText}` });
+        } else if (pCount >= 50 || storeData.photoTier === '50') {
+            photosGained = 16;
+            itemsPhotos.push({ title: "画像・動画枚数", status: "pass", rawText: `${pCount}枚 (豊富・良好な状態)${pMetricsText}` });
+        } else if (pCount >= 20 || (storeData.photoTier === '20' && pCount > 0)) {
+            photosGained = 10;
+            itemsPhotos.push({ title: "画像・動画枚数", status: "warn", rawText: `${pCount}枚 (標準的・外観や内観写真の追加を推奨)${pMetricsText}` });
+        } else if (pCount >= 10 || (storeData.photoTier === '10' && pCount > 0)) {
+            photosGained = 5;
+            itemsPhotos.push({ title: "画像・動画枚数", status: "warn", rawText: `${pCount}枚 (不足・視認性向上のため追加を推奨)${pMetricsText}` });
         } else {
-            itemsPhotos.push({ title: "画像・動画枚数", status: "fail", rawText: "未確認（写真ギャラリーの【すべて】タブを開いて診断してください）" });
+            photosGained = 0;
+            let cntText = (pCount > 0) ? `${pCount}枚 (大幅不足・追加必須)` : "未確認（写真ギャラリーの【すべて】タブを開いて診断してください）";
+            itemsPhotos.push({ title: "画像・動画枚数", status: "fail", rawText: cntText });
         }
 
         // GRADED SCORE: Category 4: Posts (Max 20pt: <=14 days = 20pt, 15-30 days = 10pt, >30 days/none = 4pt)
@@ -978,15 +1182,16 @@ document.addEventListener('DOMContentLoaded', () => {
         let lastPostDays = storeData.daysSinceLastPost !== undefined ? parseInt(storeData.daysSinceLastPost) : 28;
         if (isNaN(lastPostDays)) lastPostDays = 28;
 
-        if (lastPostDays <= 14) {
+        if (lastPostDays > 0 && lastPostDays <= 14) {
             postsGained = 20;
             itemsPosts.push({ title: "最新投稿状況", status: "pass", rawText: `直近 ${lastPostDays}日前に投稿あり (高頻度更新中・良好)` });
-        } else if (lastPostDays <= 30) {
+        } else if (lastPostDays > 0 && lastPostDays <= 30) {
             postsGained = 10;
             itemsPosts.push({ title: "最新投稿状況", status: "warn", rawText: `最終投稿から ${lastPostDays}日経過 (更新頻度低下・週1〜2回の定期投稿を推奨)` });
         } else {
             postsGained = 4;
-            itemsPosts.push({ title: "最新投稿状況", status: "fail", rawText: `最終投稿から ${lastPostDays}日以上経過 (30日以上更新停止中・定期投稿が必須)` });
+            let displayText = (lastPostDays === -1) ? "未対応 (最新の投稿情報・オーナー提供情報がありません。定期的な投稿を推奨)" : `最終投稿から ${lastPostDays}日以上経過 (30日以上更新停止中・定期投稿が必須)`;
+            itemsPosts.push({ title: "最新投稿状況", status: "fail", rawText: displayText });
         }
 
         totalGained = basicGained + reviewsGained + photosGained + postsGained;
@@ -1056,10 +1261,10 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (storeData.statusReply === 'warn') replyGained = 8;
 
         drawRadarChart({
-            basic: (basicGained / basicPossible) * 100,
-            reviewCount: (reviewCountGained / 12) * 100,
-            reviewOps: (replyGained / 15) * 100,
-            photo: (photosGained / photosPossible) * 100,
+            basic: Math.round((basicGained / basicPossible) * 100),
+            reviewCount: Math.round((reviewCountGained / 12) * 100),
+            reviewOps: Math.round((replyGained / 15) * 100),
+            photo: Math.round((photosGained / photosPossible) * 100),
             post: Math.round((postsGained / postsPossible) * 100)
         });
     }
@@ -1206,7 +1411,7 @@ document.addEventListener('DOMContentLoaded', () => {
             statusReply: "pass",
             statusAttributes: "pass"
         };
-        triggerLoadingAnimation(() => updateFormValues(), true);
+        triggerLoadingAnimation(() => updateFormValues(), false, true);
     };
 
     if (btnLoadDemo) btnLoadDemo.addEventListener('click', loadDemoAction);
