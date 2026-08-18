@@ -286,14 +286,12 @@
                     <span class="text-[9px] text-red-500 font-bold bg-red-50 px-1 py-0.2 rounded border border-red-200 shrink-0">必須</span>
                 </h3>
                 <p class="text-gray-500 mb-1 text-[8.5px] leading-tight">
-                    (例) 店舗名、看板メニュー、代表的なサービス名など
+                    (例) 店舗名、看板メニュー、代表的なサービス名など（3つまで）
                 </p>
                 <div class="space-y-0.5 text-[10px]">
                     <div class="flex items-center gap-0.5"><span>1.</span><input type="text" class="input-inline"></div>
                     <div class="flex items-center gap-0.5"><span>2.</span><input type="text" class="input-inline"></div>
                     <div class="flex items-center gap-0.5"><span>3.</span><input type="text" class="input-inline"></div>
-                    <div class="flex items-center gap-0.5"><span>4.</span><input type="text" class="input-inline"></div>
-                    <div class="flex items-center gap-0.5"><span>5.</span><input type="text" class="input-inline"></div>
                 </div>
             </div>
 
@@ -370,8 +368,8 @@
             </div>
         </div>
 
-        <!-- Row 2: ⑤〜⑧ (4 Columns) -->
-        <div class="grid grid-cols-1 md:grid-cols-4 print:grid-cols-4 gap-2 text-[11px] mb-2">
+        <!-- Row 2: ⑤〜⑦ (3 Columns) -->
+        <div class="grid grid-cols-1 md:grid-cols-3 print:grid-cols-3 gap-2 text-[11px] mb-2">
             <!-- ⑤ 毎投稿最後に表示されるフッター情報 (旧③) -->
             <div class="border border-gray-300 rounded p-1.5 bg-white flex flex-col justify-between">
                 <div>
@@ -404,23 +402,11 @@
                 </div>
             </div>
 
-            <!-- ⑦ AIへの指示事項（自由記入） -->
+            <!-- ⑦ 毎日の最新情報自動投稿の希望時間帯 -->
             <div class="border border-gray-300 rounded p-1.5 bg-white flex flex-col justify-between">
                 <div>
                     <h3 class="font-bold text-[#005a36] mb-0.5 text-xs flex items-center gap-1">
                         <span class="text-sm">⑦</span>
-                        AIへの指示事項（自由記入）
-                    </h3>
-                    <p class="text-gray-500 mb-0.5 text-[8.5px] leading-tight">AIが作成する文章について、特に意識してほしいことや、伝えたい思いなどをご自由にご記入ください。</p>
-                </div>
-                <textarea rows="2.5" class="w-full border border-gray-200 rounded p-1 text-[10px]" placeholder="自由記入欄"></textarea>
-            </div>
-
-            <!-- ⑧ 毎日の最新情報自動投稿の希望時間帯 -->
-            <div class="border border-gray-300 rounded p-1.5 bg-white flex flex-col justify-between">
-                <div>
-                    <h3 class="font-bold text-[#005a36] mb-0.5 text-xs flex items-center gap-1">
-                        <span class="text-sm">⑧</span>
                         毎日の最新情報自動投稿の希望時間帯
                     </h3>
                     <p class="text-gray-500 mb-1 text-[8px] leading-tight">
