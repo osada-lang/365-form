@@ -489,11 +489,50 @@
                 <span>権威性・人物像</span>
                 <span class="text-[10px] font-normal text-emerald-100">（代表者・オーナーの経歴・資格・実績）</span>
             </h2>
-            <div class="p-3">
-                <p class="text-xs text-gray-700 font-bold mb-1.5">
-                    オーナー・スタッフの業界経験年数、得意分野、保有資格、これまでの実績や背景をご記入ください。（AIが文章に専門性と信頼性を与えるために活用します）
+            <div class="p-3 space-y-2.5">
+                <p class="text-xs text-gray-700 font-bold">
+                    該当する項目にチェック・数字を入力してください。（AIが文章に専門性と信頼性を与えるために活用します）
                 </p>
-                <textarea rows="8" class="w-full p-2.5 border border-gray-200 rounded text-xs leading-relaxed" placeholder="（記入例）業界歴15年、延べ10,000人以上の施術実績。〇〇認定スペシャリスト保有。大手店舗での店長経験を経て独立。メディア掲載・受賞歴あり..."></textarea>
+
+                <!-- 1. 基本項目（数字・チェック選択） -->
+                <div class="grid grid-cols-1 md:grid-cols-2 print:grid-cols-2 gap-2 bg-emerald-50/30 p-2.5 rounded border border-emerald-100 text-xs">
+                    <!-- 左列: 経験年数・実績 -->
+                    <div class="space-y-1.5">
+                        <div class="flex items-center gap-1">
+                            <span class="font-bold text-[#005a36] shrink-0">・業界経験年数:</span>
+                            <span>約</span>
+                            <input type="text" class="w-12 border border-gray-300 rounded px-1 py-0.5 text-center bg-white font-bold" placeholder="15">
+                            <span>年</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <span class="font-bold text-[#005a36] shrink-0">・対応・施術実績:</span>
+                            <span>延べ</span>
+                            <input type="text" class="w-20 border border-gray-300 rounded px-1 py-0.5 text-center bg-white font-bold" placeholder="10,000">
+                            <span>人・件以上</span>
+                        </div>
+                    </div>
+
+                    <!-- 右列: チェック選択項目 -->
+                    <div class="space-y-1 text-gray-800">
+                        <label class="checkbox-label flex items-center gap-1"><input type="checkbox"> <span>店長・管理職・指導経験あり</span></label>
+                        <label class="checkbox-label flex items-center gap-1"><input type="checkbox"> <span>創業・独立・開業経験あり</span></label>
+                        <label class="checkbox-label flex items-center gap-1"><input type="checkbox"> <span>メディア掲載・受賞歴あり</span></label>
+                    </div>
+                </div>
+
+                <!-- 2. 保有資格・アピールポイント -->
+                <div class="text-xs space-y-1">
+                    <div class="flex items-center gap-1">
+                        <label class="checkbox-label flex items-center gap-1 shrink-0 font-bold text-gray-800"><input type="checkbox"> <span>保有資格・認定:</span></label>
+                        <input type="text" class="w-full border border-gray-300 rounded px-2 py-1 text-xs bg-white" placeholder="例：〇〇認定スペシャリスト、国家資格など（複数可）">
+                    </div>
+                </div>
+
+                <!-- 3. 補足・得意分野・その他実績（自由記述枠） -->
+                <div>
+                    <span class="font-bold text-gray-700 text-xs block mb-1">【得意分野・補足プロフィール】（自由記述）</span>
+                    <textarea rows="4" class="w-full p-2 border border-gray-200 rounded text-xs leading-relaxed" placeholder="例：得意な施術・サービス内容、これまで最も情熱を注いできた分野、お客様とのエピソードなど自由にご記入ください。"></textarea>
+                </div>
             </div>
         </div>
 
