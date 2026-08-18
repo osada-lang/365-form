@@ -381,28 +381,29 @@
             </div>
 
             <!-- ③ 投稿の雰囲気・トーン -->
-            <div class="border border-gray-300 rounded p-1.5 bg-white">
-                <h3 class="font-bold text-[#005a36] mb-0.5 text-xs flex items-center gap-1">
-                    <span class="text-sm">③</span>
-                    投稿の雰囲気・トーン
-                </h3>
-                <p class="text-gray-500 mb-0.5 text-[8.5px]">（該当するものに✓）</p>
-                <div class="space-y-0.5 text-[9.5px]">
-                    <label class="checkbox-label block"><input type="checkbox"> 高級感・上質</label>
-                    <label class="checkbox-label block"><input type="checkbox"> 親しみやすい・カジュアル</label>
-                    <label class="checkbox-label block"><input type="checkbox"> 元気・明るい</label>
-                    <label class="checkbox-label block"><input type="checkbox"> 丁寧・落ち着いた</label>
-                    <label class="checkbox-label block"><input type="checkbox"> 専門的・信頼感</label>
-                    <label class="checkbox-label block"><input type="checkbox"> 温かい・優しい</label>
-                    <label class="checkbox-label block"><input type="checkbox"> シンプル・ナチュラル</label>
-                    <label class="checkbox-label block"><input type="checkbox"> ユーモア・楽しい</label>
-                    <div class="mt-0.5 flex items-center gap-0.5">
-                        <label class="checkbox-label whitespace-nowrap"><input type="checkbox"> その他 (</label>
-                        <input type="text" class="input-inline text-[9.5px]">
-                        <span>)</span>
+            <div class="border border-gray-300 rounded p-1.5 bg-white flex flex-col justify-between">
+                <div>
+                    <h3 class="font-bold text-[#005a36] mb-0.5 text-xs flex items-center gap-1">
+                        <span class="text-sm">③</span>
+                        投稿の雰囲気・トーン
+                    </h3>
+                    <p class="text-gray-500 mb-0.5 text-[8.5px]">（該当するものに✓）</p>
+                    <div class="space-y-0.5 text-[9.5px]">
+                        <label class="checkbox-label block"><input type="checkbox"> 高級感・上質</label>
+                        <label class="checkbox-label block"><input type="checkbox"> 親しみやすい・カジュアル</label>
+                        <label class="checkbox-label block"><input type="checkbox"> 元気・明るい</label>
+                        <label class="checkbox-label block"><input type="checkbox"> 丁寧・落ち着いた</label>
+                        <label class="checkbox-label block"><input type="checkbox"> 専門的・信頼感</label>
+                        <label class="checkbox-label block"><input type="checkbox"> 温かい・優しい</label>
+                        <label class="checkbox-label block"><input type="checkbox"> シンプル・ナチュラル</label>
+                        <label class="checkbox-label block"><input type="checkbox"> ユーモア・楽しい</label>
+                        <label class="checkbox-label block"><input type="checkbox"> その他</label>
                     </div>
                 </div>
-                <p class="text-[8.5px] text-gray-400 mt-0.5">(具体的なイメージがあればご記入ください)</p>
+                <div class="mt-1.5">
+                    <p class="text-[8.5px] text-gray-500 mb-0.5 font-bold">【その他・具体的なイメージ】</p>
+                    <textarea rows="3" class="w-full border border-gray-200 rounded p-1 text-[9px]" placeholder="自由記述欄（具体的なトーン・雰囲気のイメージ等）"></textarea>
+                </div>
             </div>
 
             <!-- ④ よくある質問・お客様から聞かれること -->
