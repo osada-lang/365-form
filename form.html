@@ -283,21 +283,20 @@
             </p>
         </div>
 
-        <!-- Row 1: ①, ④, ⑤ / ② / ③ (3 Columns) -->
-        <div class="grid grid-cols-1 md:grid-cols-3 print:grid-cols-3 gap-3 text-[11px] mb-3 items-stretch">
-            <!-- Col 1: ① メインキーワード + ④ ボタン用URL + ⑤ 希望時間帯 (スタック配置) -->
-            <div class="flex flex-col justify-between gap-2">
-                <!-- ① 毎投稿に必ず入れたいメインキーワード -->
-                <div class="border border-gray-300 rounded p-2.5 bg-white">
+        <!-- Row 1: ① メインキーワード / ② サブキーワード (横広がり) / ③ 雰囲気・トーン -->
+        <div class="grid grid-cols-1 md:grid-cols-12 print:grid-cols-12 gap-2.5 mb-2.5 items-stretch text-[11px]">
+            <!-- Col 1 (3/12): ① メインキーワード -->
+            <div class="col-span-12 md:col-span-3 print:col-span-3 border border-gray-300 rounded p-2.5 bg-white flex flex-col justify-between">
+                <div>
                     <h3 class="font-bold text-[#005a36] mb-1 text-xs flex items-center justify-between gap-1">
                         <span class="flex items-center gap-1">
                             <span class="text-sm">①</span>
-                            毎投稿に必ず入れたいメインキーワード
+                            毎投稿メインキーワード
                         </span>
                         <span class="text-[9px] text-red-500 font-bold bg-red-50 px-1 py-0.2 rounded border border-red-200 shrink-0">必須</span>
                     </h3>
-                    <p class="text-gray-500 mb-1 text-[8.5px] leading-tight">
-                        (例) 店舗名、看板メニュー、代表的なサービス名など（3つまで）
+                    <p class="text-gray-500 mb-1.5 text-[8.5px] leading-tight">
+                        店舗名、看板メニュー、代表サービスなど（3つまで）
                     </p>
                     <div class="space-y-1.5 text-[10px]">
                         <div class="flex items-center gap-1"><span>1.</span><input type="text" class="input-inline"></div>
@@ -305,9 +304,67 @@
                         <div class="flex items-center gap-1"><span>3.</span><input type="text" class="input-inline"></div>
                     </div>
                 </div>
+            </div>
 
-                <!-- ④ 投稿時のボタン用URL -->
-                <div class="border border-gray-300 rounded p-2.5 bg-white">
+            <!-- Col 2 (5/12): ② 任意で選ぶサブキーワード (横3列×3行 = 9個) -->
+            <div class="col-span-12 md:col-span-5 print:col-span-5 border border-gray-300 rounded p-2.5 bg-white flex flex-col justify-between">
+                <div>
+                    <h3 class="font-bold text-[#005a36] mb-1 text-xs flex items-center justify-between gap-1">
+                        <span class="flex items-center gap-1">
+                            <span class="text-sm">②</span>
+                            任意で選ぶサブキーワード
+                        </span>
+                        <span class="text-[9px] text-gray-500 font-bold bg-gray-50 px-1 py-0.2 rounded border border-gray-200 shrink-0">任意</span>
+                    </h3>
+                    <p class="text-gray-500 mb-1.5 text-[8.5px] leading-tight">
+                        宣伝したいメニューやサービスをご記入ください。（ランダム配置）
+                    </p>
+                    <div class="grid grid-cols-3 gap-1.5 text-[10px]">
+                        <div class="flex items-center gap-0.5"><span>1.</span><input type="text" class="input-inline"></div>
+                        <div class="flex items-center gap-0.5"><span>2.</span><input type="text" class="input-inline"></div>
+                        <div class="flex items-center gap-0.5"><span>3.</span><input type="text" class="input-inline"></div>
+                        <div class="flex items-center gap-0.5"><span>4.</span><input type="text" class="input-inline"></div>
+                        <div class="flex items-center gap-0.5"><span>5.</span><input type="text" class="input-inline"></div>
+                        <div class="flex items-center gap-0.5"><span>6.</span><input type="text" class="input-inline"></div>
+                        <div class="flex items-center gap-0.5"><span>7.</span><input type="text" class="input-inline"></div>
+                        <div class="flex items-center gap-0.5"><span>8.</span><input type="text" class="input-inline"></div>
+                        <div class="flex items-center gap-0.5"><span>9.</span><input type="text" class="input-inline"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Col 3 (4/12): ③ 投稿の雰囲気・トーン -->
+            <div class="col-span-12 md:col-span-4 print:col-span-4 border border-gray-300 rounded p-2.5 bg-white flex flex-col justify-between">
+                <div>
+                    <h3 class="font-bold text-[#005a36] mb-1 text-xs flex items-center gap-1">
+                        <span class="text-sm">③</span>
+                        投稿の雰囲気・トーン
+                    </h3>
+                    <p class="text-gray-500 mb-1 text-[8.5px]">（該当するものに✓）</p>
+                    <div class="grid grid-cols-2 gap-x-2 gap-y-1 text-[9.5px]">
+                        <label class="checkbox-label block"><input type="checkbox"> 高級感・上質</label>
+                        <label class="checkbox-label block"><input type="checkbox"> 親しみ・カジュアル</label>
+                        <label class="checkbox-label block"><input type="checkbox"> 元気・明るい</label>
+                        <label class="checkbox-label block"><input type="checkbox"> 丁寧・落ち着いた</label>
+                        <label class="checkbox-label block"><input type="checkbox"> 専門的・信頼感</label>
+                        <label class="checkbox-label block"><input type="checkbox"> 温かい・優しい</label>
+                        <label class="checkbox-label block"><input type="checkbox"> シンプル・自然</label>
+                        <label class="checkbox-label block"><input type="checkbox"> ユーモア・楽しい</label>
+                        <label class="checkbox-label col-span-2 block"><input type="checkbox"> その他</label>
+                    </div>
+                </div>
+                <div class="mt-1.5">
+                    <p class="text-[8.5px] text-gray-500 mb-0.5 font-bold">【その他・具体的なイメージ】</p>
+                    <textarea rows="2" class="w-full border border-gray-200 rounded p-1 text-[9px]" placeholder="自由記述欄"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 2: ④ 投稿時のボタン用URL / ⑤ 自動投稿の希望時間帯 (2 Columns) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 print:grid-cols-2 gap-2.5 mb-2.5 text-[11px]">
+            <!-- ④ 投稿時のボタン用URL -->
+            <div class="border border-gray-300 rounded p-2.5 bg-white flex flex-col justify-between">
+                <div>
                     <h3 class="font-bold text-[#005a36] mb-1 text-xs flex items-center gap-1">
                         <span class="text-sm">④</span>
                         投稿時のボタン用URL
@@ -315,99 +372,52 @@
                     <p class="text-gray-500 mb-1 text-[8.5px] leading-tight">
                         「詳細」ボタン等の遷移先URLをご記入ください。
                     </p>
-                    <textarea rows="3" class="w-full border border-gray-200 rounded p-1.5 text-[9.5px] leading-tight" placeholder="https://"></textarea>
                 </div>
+                <textarea rows="2" class="w-full border border-gray-200 rounded p-1.5 text-[9.5px] leading-tight" placeholder="https://"></textarea>
+            </div>
 
-                <!-- ⑤ 毎日の最新情報自動投稿の希望時間帯 -->
-                <div class="border border-gray-300 rounded p-2.5 bg-white">
+            <!-- ⑤ 毎日の最新情報自動投稿の希望時間帯 -->
+            <div class="border border-gray-300 rounded p-2.5 bg-white flex flex-col justify-between">
+                <div>
                     <h3 class="font-bold text-[#005a36] mb-1 text-xs flex items-center gap-1">
                         <span class="text-sm">⑤</span>
                         自動投稿の希望時間帯
                     </h3>
-                    <select class="w-full bg-gray-50 border border-gray-300 rounded px-1.5 py-1 text-[9.5px] font-medium text-gray-800 outline-none focus:border-[#005a36]">
-                        <option value="">希望なし (正午に投稿)</option>
-                        <option value="0">0時頃</option>
-                        <option value="1">1時頃</option>
-                        <option value="2">2時頃</option>
-                        <option value="3">3時頃</option>
-                        <option value="4">4時頃</option>
-                        <option value="5">5時頃</option>
-                        <option value="6">6時頃</option>
-                        <option value="7">7時頃</option>
-                        <option value="8">8時頃</option>
-                        <option value="9">9時頃</option>
-                        <option value="10">10時頃</option>
-                        <option value="11">11時頃</option>
-                        <option value="12">12時頃</option>
-                        <option value="13">13時頃</option>
-                        <option value="14">14時頃</option>
-                        <option value="15">15時頃</option>
-                        <option value="16">16時頃</option>
-                        <option value="17">17時頃</option>
-                        <option value="18">18時頃</option>
-                        <option value="19">19時頃</option>
-                        <option value="20">20時頃</option>
-                        <option value="21">21時頃</option>
-                        <option value="22">22時頃</option>
-                        <option value="23">23時頃</option>
-                    </select>
+                    <p class="text-gray-500 mb-1 text-[8.5px] leading-tight">
+                        最新情報記事をGoogleに自動投稿する希望時間帯を選択してください。
+                    </p>
                 </div>
-            </div>
-
-            <!-- ② 任意で２〜３語ランダムピックアップするサブキーワード -->
-            <div class="border border-gray-300 rounded p-2.5 bg-white">
-                <h3 class="font-bold text-[#005a36] mb-1 text-xs flex items-center justify-between gap-1">
-                    <span class="flex items-center gap-1">
-                        <span class="text-sm">②</span>
-                        任意で選ぶサブキーワード
-                    </span>
-                    <span class="text-[9px] text-gray-500 font-bold bg-gray-50 px-1 py-0.2 rounded border border-gray-200 shrink-0">任意</span>
-                </h3>
-                <p class="text-gray-500 mb-1.5 text-[8.5px] leading-tight">
-                    宣伝したいメニューやサービスをご記入ください。
-                </p>
-                <div class="space-y-1.5 text-[10px]">
-                    <div class="flex items-center gap-1"><span>1.</span><input type="text" class="input-inline"></div>
-                    <div class="flex items-center gap-1"><span>2.</span><input type="text" class="input-inline"></div>
-                    <div class="flex items-center gap-1"><span>3.</span><input type="text" class="input-inline"></div>
-                    <div class="flex items-center gap-1"><span>4.</span><input type="text" class="input-inline"></div>
-                    <div class="flex items-center gap-1"><span>5.</span><input type="text" class="input-inline"></div>
-                    <div class="flex items-center gap-1"><span>6.</span><input type="text" class="input-inline"></div>
-                    <div class="flex items-center gap-1"><span>7.</span><input type="text" class="input-inline"></div>
-                    <div class="flex items-center gap-1"><span>8.</span><input type="text" class="input-inline"></div>
-                    <div class="flex items-center gap-1"><span>9.</span><input type="text" class="input-inline"></div>
-                    <div class="flex items-center gap-1"><span>10.</span><input type="text" class="input-inline"></div>
-                </div>
-            </div>
-
-            <!-- ③ 投稿の雰囲気・トーン -->
-            <div class="border border-gray-300 rounded p-2.5 bg-white flex flex-col justify-between">
-                <div>
-                    <h3 class="font-bold text-[#005a36] mb-1 text-xs flex items-center gap-1">
-                        <span class="text-sm">③</span>
-                        投稿の雰囲気・トーン
-                    </h3>
-                    <p class="text-gray-500 mb-1 text-[8.5px]">（該当するものに✓）</p>
-                    <div class="space-y-1.5 text-[10px]">
-                        <label class="checkbox-label block"><input type="checkbox"> 高級感・上質</label>
-                        <label class="checkbox-label block"><input type="checkbox"> 親しみやすい・カジュアル</label>
-                        <label class="checkbox-label block"><input type="checkbox"> 元気・明るい</label>
-                        <label class="checkbox-label block"><input type="checkbox"> 丁寧・落ち着いた</label>
-                        <label class="checkbox-label block"><input type="checkbox"> 専門的・信頼感</label>
-                        <label class="checkbox-label block"><input type="checkbox"> 温かい・優しい</label>
-                        <label class="checkbox-label block"><input type="checkbox"> シンプル・ナチュラル</label>
-                        <label class="checkbox-label block"><input type="checkbox"> ユーモア・楽しい</label>
-                        <label class="checkbox-label block"><input type="checkbox"> その他</label>
-                    </div>
-                </div>
-                <div class="mt-2">
-                    <p class="text-[8.5px] text-gray-500 mb-0.5 font-bold">【その他・具体的なイメージ】</p>
-                    <textarea rows="4" class="w-full border border-gray-200 rounded p-1.5 text-[9px]" placeholder="自由記述欄（具体的なトーン・雰囲気のイメージ等）"></textarea>
-                </div>
+                <select class="w-full bg-gray-50 border border-gray-300 rounded px-2 py-1 text-[10px] font-medium text-gray-800 outline-none focus:border-[#005a36]">
+                    <option value="">希望なし (正午に投稿)</option>
+                    <option value="0">0時頃</option>
+                    <option value="1">1時頃</option>
+                    <option value="2">2時頃</option>
+                    <option value="3">3時頃</option>
+                    <option value="4">4時頃</option>
+                    <option value="5">5時頃</option>
+                    <option value="6">6時頃</option>
+                    <option value="7">7時頃</option>
+                    <option value="8">8時頃</option>
+                    <option value="9">9時頃</option>
+                    <option value="10">10時頃</option>
+                    <option value="11">11時頃</option>
+                    <option value="12">12時頃</option>
+                    <option value="13">13時頃</option>
+                    <option value="14">14時頃</option>
+                    <option value="15">15時頃</option>
+                    <option value="16">16時頃</option>
+                    <option value="17">17時頃</option>
+                    <option value="18">18時頃</option>
+                    <option value="19">19時頃</option>
+                    <option value="20">20時頃</option>
+                    <option value="21">21時頃</option>
+                    <option value="22">22時頃</option>
+                    <option value="23">23時頃</option>
+                </select>
             </div>
         </div>
 
-        <!-- Row 2: ⑥ 毎投稿最後に表示されるフッター情報 (広々1カラム) -->
+        <!-- Row 3: ⑥ 毎投稿最後に表示されるフッター情報 (広々1カラム) -->
         <div class="border border-gray-300 rounded p-2.5 bg-white">
             <h3 class="font-bold text-[#005a36] mb-1 text-xs flex items-center gap-1">
                 <span class="text-sm">⑥</span>
@@ -416,7 +426,7 @@
             <p class="text-gray-500 mb-1 text-[8.5px] leading-tight">
                 店舗住所、アクセス方法、電話番号、予約時の注意書きなど、AI生成テキストの最下部に必ず毎回挿入したい情報をご記入ください。
             </p>
-            <textarea rows="7" class="w-full border border-gray-200 rounded p-2 text-[10px] leading-relaxed" placeholder="自由記入欄（店舗住所、アクセス方法、電話番号、定休日、駐車場情報、注意書き等）"></textarea>
+            <textarea rows="6.5" class="w-full border border-gray-200 rounded p-2 text-[10px] leading-relaxed" placeholder="自由記入欄（店舗住所、アクセス方法、電話番号、定休日、駐車場情報、注意書き等）"></textarea>
         </div>
     </div>
 
