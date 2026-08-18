@@ -53,6 +53,15 @@
             .page-break {
                 page-break-before: always;
             }
+            textarea {
+                border: 1px solid #d1d5db !important;
+                background-color: #ffffff !important;
+                resize: none !important;
+                overflow: hidden !important;
+                white-space: pre-wrap !important;
+                word-break: break-all !important;
+                height: auto !important;
+            }
         }
 
         /* Form Controls Styling */
@@ -358,11 +367,11 @@
                 <div class="space-y-1 mt-1 flex-grow flex flex-col">
                     <div class="flex-grow">
                         <span class="font-bold text-gray-500 text-[8.5px]">【よくある質問】（複数入力可）</span>
-                        <textarea rows="3" class="w-full border border-gray-200 rounded p-1 text-[9px]" placeholder="例：&#10;Q1. 駐車場はありますか？&#10;Q2. 予約は必須ですか？"></textarea>
+                        <textarea rows="4" class="w-full border border-gray-200 rounded p-1 text-[9px]" placeholder="例：&#10;Q1. 駐車場はありますか？&#10;Q2. 予約は必須ですか？"></textarea>
                     </div>
                     <div class="flex-grow mt-1">
                         <span class="font-bold text-[#005a36] text-[8.5px]">【それに対する解答】（複数入力可）</span>
-                        <textarea rows="3" class="w-full border border-gray-200 rounded p-1 text-[9px]" placeholder="例：&#10;A1. 3台分ございます。&#10;A2. 当日のご予約も承っております。"></textarea>
+                        <textarea rows="4" class="w-full border border-gray-200 rounded p-1 text-[9px]" placeholder="例：&#10;A1. 3台分ございます。&#10;A2. 当日のご予約も承っております。"></textarea>
                     </div>
                 </div>
             </div>
@@ -382,7 +391,7 @@
                     </p>
                 </div>
                 <div class="text-[10px] mt-auto">
-                    <textarea rows="3" class="w-full border border-gray-200 rounded p-1 text-[9.5px]" placeholder="自由記入欄（店舗住所、アクセス方法、電話番号、注意書き等）"></textarea>
+                    <textarea rows="5" class="w-full border border-gray-200 rounded p-1 text-[9.5px]" placeholder="自由記入欄（店舗住所、アクセス方法、電話番号、注意書き等）"></textarea>
                 </div>
             </div>
 
@@ -768,5 +777,14 @@
         </div>
     </div>
 
+    <!-- Auto-resize Textarea Script -->
+    <script>
+        document.addEventListener('input', function (e) {
+            if (e.target.tagName.toLowerCase() === 'textarea') {
+                e.target.style.height = 'auto';
+                e.target.style.height = (e.target.scrollHeight + 2) + 'px';
+            }
+        });
+    </script>
 </body>
 </html>
