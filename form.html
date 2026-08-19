@@ -870,8 +870,17 @@
                 </p>
                 <div class="border border-gray-300 rounded-lg overflow-hidden bg-gray-900 shadow-inner relative text-center">
                     <img src="./picture/detail_button_sample.png" alt="詳細ボタンの表示例" class="w-full max-h-[380px] object-contain mx-auto">
-                    <div class="absolute bottom-2 left-3 bg-[#005a36] text-white font-bold text-[10px] px-2.5 py-1 rounded-md shadow-lg animate-pulse border border-emerald-300 flex items-center gap-1">
-                        <span>👇 一番下の「詳細」ボタンがこれです</span>
+                    
+                    <!-- 赤枠ハイライト ＆ 矢印ラベル -->
+                    <div class="absolute bottom-1.5 left-2 flex items-center gap-1.5 z-10">
+                        <!-- 「詳細」文字をクッキリ囲む赤枠 (背景半透明で文字を隠さない) -->
+                        <div class="border-2 border-red-500 rounded px-3 py-1 bg-red-500/20 shadow-lg animate-pulse ring-2 ring-red-400/40">
+                            <span class="opacity-0 font-bold text-[11px]">詳細</span>
+                        </div>
+                        <!-- 右隣に配置する矢印指示バッジ -->
+                        <div class="bg-red-600 text-white font-bold text-[10px] px-2.5 py-0.5 rounded-md shadow-lg border border-red-300 flex items-center gap-1 whitespace-nowrap">
+                            <span>� ここが「詳細」ボタンです</span>
+                        </div>
                     </div>
                 </div>
             </div>
