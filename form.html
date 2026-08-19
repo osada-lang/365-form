@@ -868,18 +868,16 @@
                     Googleマップ（GBP）に投稿された記事の<strong class="text-[#005a36] font-bold">一番左下</strong>に表示されるリンクボタンです。<br>
                     タップすると設定したURL（集客用LPや予約サイト等）へ直接遷移します。
                 </p>
-                <div class="border border-gray-300 rounded-lg overflow-hidden bg-gray-900 shadow-inner relative text-center">
-                    <img src="./picture/detail_button_sample.png" alt="詳細ボタンの表示例" class="w-full max-h-[380px] object-contain mx-auto">
-                    
-                    <!-- 赤枠ハイライト ＆ 矢印ラベル -->
-                    <div class="absolute bottom-1.5 left-2 flex items-center gap-1.5 z-10">
-                        <!-- 「詳細」文字をクッキリ囲む赤枠 (背景半透明で文字を隠さない) -->
-                        <div class="border-2 border-red-500 rounded px-3 py-1 bg-red-500/20 shadow-lg animate-pulse ring-2 ring-red-400/40">
-                            <span class="opacity-0 font-bold text-[11px]">詳細</span>
-                        </div>
-                        <!-- 右隣に配置する矢印指示バッジ -->
-                        <div class="bg-red-600 text-white font-bold text-[10px] px-2.5 py-0.5 rounded-md shadow-lg border border-red-300 flex items-center gap-1 whitespace-nowrap">
-                            <span>� ここが「詳細」ボタンです</span>
+                <div class="border border-gray-300 rounded-lg overflow-hidden bg-gray-900 shadow-inner text-center p-2">
+                    <div class="inline-block relative max-w-full">
+                        <img src="./picture/detail_button_sample.png" alt="詳細ボタンの表示例" class="max-h-[380px] w-auto object-contain block mx-auto rounded">
+                        
+                        <!-- 「詳細」文字をピンポイントで囲む赤枠 (枠線のみで文字を隠さない) -->
+                        <div class="absolute bottom-[2.2%] left-[2.8%] w-[8%] h-[4.2%] border-2 border-red-500 rounded bg-red-500/20 shadow-md animate-pulse ring-2 ring-red-400/50 pointer-events-none"></div>
+
+                        <!-- 最初の緑テイスト案内バッジ (#005a36、白文字、指差し絵文字) -->
+                        <div class="absolute bottom-[1.8%] left-[12%] bg-[#005a36] text-white font-bold text-[10.5px] px-2.5 py-1 rounded-md shadow-xl border border-emerald-300/80 flex items-center gap-1 whitespace-nowrap">
+                            <span>👈 ここが「詳細」ボタンです</span>
                         </div>
                     </div>
                 </div>
