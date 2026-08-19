@@ -149,10 +149,18 @@ document.addEventListener('DOMContentLoaded', () => {
     function generateBookmarkletHref() {
         const script = `(function(){
             try {
-                /* 1. ポップアップブロック回避のため、まずターゲットウィンドウを確保 */
+                /* 二重実行の防止 */
+                if (window.__gbp_running) {
+                    alert('現在診断を実行中です。完了まで少々お待ちください。');
+                    return;
+                }
+                window.__gbp_running = true;
+
+                /* 1. ポップアップブロック回避のため、まずターゲットウィンドウを最優先・同期で確保 */
                 const reportWin = window.open('', '${REPORT_WINDOW_TARGET}');
                 if (!reportWin) {
-                    alert('ポップアップがブロックされました。ブラウザの設定で許可してください。');
+                    window.__gbp_running = false;
+                    alert('ポップアップがブロックされました。ブラウザのアドレスバー付近でポップアップを許可に設定し、再度ブックマークレットをクリックしてください。');
                     return;
                 }
 
@@ -162,7 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         reportWin.location.href = '${APP_BASE_URL}';
                     }
                 } catch(e) {
-                    /* エラーが出る＝既に別ドメイン（診断ツール）が開いている状態なので何もしない */
+                    /* エラーが出る＝既に別ドメイン（診断ツール）が開いている状態 */
                 }
 
                 const getLoc = () => window.location.href;
@@ -505,20 +513,29 @@ document.addEventListener('DOMContentLoaded', () => {
                         };
                         /* 2. 先行オープンしたウィンドウへデータを送信 */
                         const dataStr = '#data=' + encodeURIComponent(JSON.stringify(data));
-                        /* 別ドメイン（CORS）制限を回避するため、常に href を更新してデータを送信 */
-                        /* これにより画像で発生していた Location エラーを完全に防ぎます */
-                        reportWin.location.href = '${APP_BASE_URL}' + dataStr;
-                        reportWin.focus();
-                    } catch (e) { alert('診断エラー: ' + e.message); }
+                        if (reportWin && !reportWin.closed) {
+                            reportWin.location.href = '${APP_BASE_URL}' + dataStr;
+                            reportWin.focus();
+                        } else {
+                            alert('診断結果の表示ウィンドウが閉じたため送信できませんでした。');
+                        }
+                    } catch (e) {
+                        alert('診断エラー: ' + e.message);
+                    } finally {
+                        window.__gbp_running = false;
+                    }
                 };
 
                 const sc = document.querySelector('div.m6QEfe[role="main"], div.m6QEfe[aria-label*="写真"], div.m6QEfe[aria-label*="クチコミ"], .m6QEfe');
                 /* 遅延読み込みされる最新情報や詳細属性、説明文を確実にロードするため、すべての画面でスクロールを実行 */
                 if (sc) sc.scrollTop += 2000; else window.scrollBy(0, 1500);
                 setTimeout(gatherData, 1200);
-            } catch (e) { alert('致命的なエラー: ' + e.message); }
+            } catch (e) {
+                window.__gbp_running = false;
+                alert('致命的なエラー: ' + e.message);
+            }
         })();`;
-        return "javascript:" + encodeURIComponent(script.replace(/\/\*.*?\*\/|\n\s+/g, ' '));
+        return "javascript:" + encodeURIComponent(script.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\s+/g, ' '));
     }
 
     bookmarkletLink.setAttribute('href', generateBookmarkletHref());
