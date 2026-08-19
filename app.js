@@ -180,32 +180,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 const isPhotoView = () => {
                     const loc = getLoc();
                     /* 1. URLによる判定 (写真特有のURLパラメータがあれば最優先で確定) */
-                    if (loc.indexOf('!1e10') !== -1 || loc.indexOf('/photos') !== -1) return true;
+                    if (loc.indexOf('!1e10') !== -1 || loc.indexOf('/photos') !== -1 || loc.indexOf('!1e3') !== -1) return true;
                     
                     /* 2. 口コミタブが現在選択されている場合は、写真ビューではない */
-                    const activeTabs = Array.from(document.querySelectorAll('[role="tab"][aria-selected="true"], [aria-selected="true"]'));
-                    const hasActiveReviewTab = activeTabs.some(el => {
-                        const t = (el.innerText || '').trim();
-                        return t.includes('クチコミ') || t.includes('Reviews');
-                    });
-                    if (hasActiveReviewTab) return false;
+                    if (isReviewView()) return false;
                     
-                    /* 3. 画面上のタブ一覧の構成による判定 (写真画面特有の「すべて」+「オーナー」等の並びを検出) */
-                    const tabsText = Array.from(document.querySelectorAll('[role="tab"], button, [role="button"]')).map(el => (el.innerText || '').trim().replace(/\s+/g, ' '));
-                    const hasAll = tabsText.some(t => t.startsWith('すべて') || t.startsWith('All'));
-                    const hasPhotoSpecialty = tabsText.some(t => t.match(/(オーナー|動画|ストリートビュー|360°|インサイド|最新|Owner|Videos|Street View|Inside)/));
-                    
-                    /* 写真ギャラリーの「すべて」タブがアクティブになっていることを検証 */
-                    const hasActiveAllTab = activeTabs.some(el => {
-                        const txt = (el.innerText || '').trim().replace(/\s+/g, ' ');
-                        return txt.startsWith('すべて') || txt.startsWith('All');
+                    /* 3. 写真ギャラリーまたは「すべて/写真」タブがアクティブであることを判別 */
+                    const activeTabs = Array.from(document.querySelectorAll('[role="tab"][aria-selected="true"], [aria-selected="true"], button.hhT3vf, div.G1hh3b'));
+                    const hasActivePhotoTab = activeTabs.some(el => {
+                        const t = (el.innerText || el.getAttribute('aria-label') || '').trim();
+                        return (t.includes('すべて') || t.includes('All') || t.includes('写真') || t.includes('Photos')) && !t.includes('クチコミ') && !t.includes('Reviews');
                     });
                     
-                    if (hasActiveAllTab && hasAll && hasPhotoSpecialty) {
-                        return true;
-                    }
+                    const tabsText = Array.from(document.querySelectorAll('[role="tab"], button, [role="button"]')).map(el => (el.innerText || el.getAttribute('aria-label') || '').trim());
+                    const hasAll = tabsText.some(t => t.includes('すべて') || t.includes('All') || t.includes('写真'));
+                    const tiles = document.querySelectorAll('img[src*="googleusercontent.com/p/"], a[href*="/data=!3m"], .U39Pse, [role="img"][aria-label*="写真"]');
                     
-                    return false;
+                    return hasActivePhotoTab || (hasAll && tiles.length >= 2);
                 };
                 const isReviewView = () => {
                     const loc = getLoc();
@@ -282,10 +273,11 @@ document.addEventListener('DOMContentLoaded', () => {
                             if (isPhotoView()) {
                                 let count = 0;
                                 /* 1. 写真ギャラリー内の「すべて/All」タブから正確に合計件数を抽出 (口コミテキストなどの誤読を完全防止) */
-                                document.querySelectorAll('[role="tab"], button, [role="button"]').forEach(el => {
-                                    const t = (el.innerText || el.getAttribute('aria-label') || '').replace(/\\n/g, ' ').trim().replace(/\s+/g, ' ');
-                                    if (t.startsWith('すべて') || t.startsWith('All')) {
-                                        const m = t.match(/([0-9,.]+)/);
+                                document.querySelectorAll('[role="tab"], button, [role="button"], div, span, a').forEach(el => {
+                                    const t = (el.innerText || el.getAttribute('aria-label') || '').replace(/
+/g, ' ').trim().replace(/s+/g, ' ');
+                                    if (t.match(/(すべて|All|写真|Photos)/i) && !t.includes('クチコミ') && !t.includes('Reviews') && !t.includes('星') && !t.includes('star')) {
+                                        const m = t.match(/([0-9,.]+)s*(?:枚|件)?/) || t.match(/(?:すべて|All|写真|Photos)D*([0-9,.]+)/i);
                                         if (m) {
                                             let v = parseFloat(m[1].replace(/,/g, ''));
                                             if (t.toLowerCase().includes('k')) v *= 1000;
@@ -294,7 +286,6 @@ document.addEventListener('DOMContentLoaded', () => {
                                         }
                                     }
                                 });
-                                
                                 /* 2. 画像要素のカウント (Lazy Loadを考慮) */
                                 const tiles = document.querySelectorAll('img[src*="googleusercontent.com/p/"], a[href*="/data=!3m"], .U39Pse, [role="img"][aria-label*="写真"]');
                                 photoMetrics.visible = tiles.length;
@@ -444,6 +435,22 @@ document.addEventListener('DOMContentLoaded', () => {
                                         if (!hasForbidden && key && key !== '基本情報') {
                                             attrList.push(key);
                                         }
+                                    }
+                                });
+                            } catch(e) {}
+
+                            /* 6. 属性キーワード直接スキャン (構造非依存・完全網羅フォールバック) */
+                            try {
+                                const kwList = [
+                                    'クレジットカード', 'VISA', 'Mastercard', 'JCB', 'American Express', 'Diners Club', '電子マネー', '交通系ICカード', 'iD', 'QUICPay', 'QRコード決済', 'PayPay', 'd払い', '楽天ペイ', 'au PAY', '現金のみ',
+                                    '車椅子対応', 'バリアフリー', '車椅子対応の入り口', '車椅子対応のトイレ', '車椅子対応の駐車場', '車椅子対応のエレベーター', '車椅子対応の座席',
+                                    '駐車場あり', '無料駐車場', '有料駐車場', '敷地内駐車場', '近隣駐車場',
+                                    'テイクアウト', 'デリバリー', '宅配', '個室あり', '全席禁煙', '禁煙', '喫煙所', 'Wi-Fi', '無料Wi-Fi',
+                                    '要予約', '予約必須', '子供可', 'ファミリー向け', 'キッズスペース', 'ベビーカーOK', 'ペット可', 'ドライブスルー'
+                                ];
+                                kwList.forEach(k => {
+                                    if (bTxt.includes(k) && !bTxt.includes('非対応' + k) && !bTxt.includes('🚫' + k) && !bTxt.includes('いいえ' + k)) {
+                                        attrList.push(k);
                                     }
                                 });
                             } catch(e) {}
@@ -688,10 +695,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const inRank = STATUS_RANK[safeIn[k]] || 0;
             const exRank = STATUS_RANK[merged[k]] || 0;
             const rawKey = k.replace('status', 'raw');
+            
+            // 属性情報特有の劣化防止保護
+            if (k === 'statusAttributes') {
+                if ((safeIn.attrCount || 0) > (merged.attrCount || 0) || inRank > exRank) {
+                    merged.statusAttributes = safeIn.statusAttributes;
+                    merged.rawAttributes = safeIn.rawAttributes;
+                    merged.attrCount = safeIn.attrCount;
+                }
+                return;
+            }
+
             if (inRank > exRank) {
                 merged[k] = safeIn[k];
                 if (safeIn[rawKey]) merged[rawKey] = safeIn[rawKey];
-                if (k === 'statusAttributes') merged.attrCount = safeIn.attrCount;
             } else if (inRank === exRank && inRank > 0) {
                 if ((safeIn[rawKey]||"").length > (merged[rawKey]||"").length) {
                     merged[rawKey] = safeIn[rawKey];
