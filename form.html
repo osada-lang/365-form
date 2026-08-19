@@ -134,7 +134,7 @@
 
     <!-- 印刷 / PDF化 固定ボタン -->
     <div class="no-print fixed top-4 right-4 z-50 flex gap-2">
-        <button onclick="window.print()" class="bg-[#005a36] hover:bg-[#004225] text-white font-bold py-2.5 px-6 rounded-lg shadow-xl flex items-center gap-2 transition-all transform hover:scale-105">
+        <button onclick="handlePrint()" class="bg-[#005a36] hover:bg-[#004225] text-white font-bold py-2.5 px-6 rounded-lg shadow-xl flex items-center gap-2 transition-all transform hover:scale-105">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
             印刷 / PDF化
         </button>
@@ -844,12 +844,51 @@
         </div>
     </div>
 
-    <!-- Auto-resize Textarea Script -->
+    <!-- Auto-resize Textarea & LINE Print Script -->
     <script>
         document.addEventListener('input', function (e) {
             if (e.target.tagName.toLowerCase() === 'textarea') {
                 e.target.style.height = 'auto';
                 e.target.style.height = (e.target.scrollHeight + 2) + 'px';
+            }
+        });
+
+        // LINE Browser & Print Handler
+        function isLineBrowser() {
+            const ua = navigator.userAgent || '';
+            return /Line/i.test(ua);
+        }
+
+        function handlePrint() {
+            if (isLineBrowser()) {
+                const confirmOpen = confirm(
+                    "LINEアプリ内ブラウザでは印刷機能が制限されているため、標準のブラウザ（Safari / Chrome等）に移動します。\n\n「OK」を押すと標準ブラウザが起動し、自動的に印刷画面が表示されます。"
+                );
+                if (confirmOpen) {
+                    const currentUrl = new URL(window.location.href);
+                    currentUrl.searchParams.set('openExternalBrowser', '1');
+                    currentUrl.searchParams.set('autoPrint', 'true');
+                    window.location.href = currentUrl.toString();
+                }
+                return;
+            }
+            window.print();
+        }
+
+        // Auto-Print when opened in default browser from LINE
+        window.addEventListener('load', function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('autoPrint') === 'true') {
+                // Remove query parameters from URL without page reload
+                const cleanUrl = new URL(window.location.href);
+                cleanUrl.searchParams.delete('autoPrint');
+                cleanUrl.searchParams.delete('openExternalBrowser');
+                window.history.replaceState({}, document.title, cleanUrl.toString());
+
+                // Trigger print dialog after layout/fonts settle
+                setTimeout(function () {
+                    window.print();
+                }, 800);
             }
         });
     </script>
