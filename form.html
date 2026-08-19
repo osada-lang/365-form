@@ -366,17 +366,23 @@
         <!-- Row 3: ④ 投稿時のボタン用URL / ⑤ 自動投稿の希望時間帯 (2 Columns) -->
         <div class="grid grid-cols-1 md:grid-cols-2 print:grid-cols-2 gap-2.5 mb-2.5 text-[11px]">
             <!-- ④ 投稿時の詳細ボタン用URL -->
-            <div class="border border-gray-300 rounded p-2.5 bg-white flex flex-col justify-between">
+            <div class="border border-gray-300 rounded p-2 bg-white flex flex-col justify-between">
                 <div>
-                    <h3 class="font-bold text-[#005a36] mb-1 text-xs flex items-center gap-1">
-                        <span class="text-sm">④</span>
-                        投稿時の詳細ボタン用URL
-                    </h3>
-                    <p class="text-gray-500 mb-1 text-[8.5px] leading-tight">
-                        「詳細」ボタンの遷移先URLをご記入ください。
+                    <div class="flex justify-between items-start mb-0.5">
+                        <h3 class="font-bold text-[#005a36] text-xs flex items-center gap-1">
+                            <span class="text-sm">④</span>
+                            投稿時の詳細ボタン用URL
+                        </h3>
+                        <button type="button" onclick="openDetailModal()" class="text-[#005a36] font-bold text-[8.5px] bg-emerald-50 hover:bg-emerald-100 px-1.5 py-0.5 rounded border border-emerald-200 cursor-pointer flex items-center gap-0.5 shrink-0 transition-all">
+                            💡「詳細ボタン」表示例
+                        </button>
+                    </div>
+                    <p class="text-gray-600 text-[8.5px] leading-tight mb-1">
+                        「詳細」ボタン（投稿の一番下）の遷移先URLをご記入ください。<br>
+                        <span class="text-[#005a36] font-bold">📌 目的・コツ:</span> 信頼性を高める会社HPよりも、コンバージョン（予約・集客）に直接直結する**LP（ランディングページ）やWeb予約サイト**の設定が最も効果的です。
                     </p>
                 </div>
-                <textarea rows="2" class="w-full border border-gray-200 rounded p-1.5 text-[9.5px] leading-tight" placeholder="https://"></textarea>
+                <textarea rows="1.8" class="w-full border border-gray-200 rounded p-1 text-[9.5px] leading-tight" placeholder="https://"></textarea>
             </div>
 
             <!-- ⑤ 毎日の最新情報自動投稿の希望時間帯 -->
@@ -844,8 +850,51 @@
         </div>
     </div>
 
+    <!-- 「詳細ボタン」例画像 モーダル (パターンB) -->
+    <div id="detailModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-3 transition-all duration-300 no-print" onclick="closeDetailModal()">
+        <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full overflow-hidden transform transition-all p-4 border border-gray-200" onclick="event.stopPropagation()">
+            <!-- Header -->
+            <div class="flex justify-between items-center pb-2 border-b border-gray-200">
+                <div class="flex items-center gap-2">
+                    <span class="bg-[#005a36] text-white text-[10px] font-bold px-2 py-0.5 rounded">例ガイド</span>
+                    <h3 class="font-bold text-gray-800 text-sm">「詳細ボタン」の実際の表示位置イメージ</h3>
+                </div>
+                <button type="button" onclick="closeDetailModal()" class="text-gray-400 hover:text-gray-700 text-2xl font-bold p-1 leading-none transition-colors">&times;</button>
+            </div>
+            
+            <!-- Body -->
+            <div class="py-2.5 space-y-2">
+                <p class="text-xs text-gray-700 leading-relaxed font-medium">
+                    Googleマップ（GBP）に投稿された記事の<strong class="text-[#005a36] font-bold">一番左下</strong>に表示されるリンクボタンです。<br>
+                    タップすると設定したURL（集客用LPや予約サイト等）へ直接遷移します。
+                </p>
+                <div class="border border-gray-300 rounded-lg overflow-hidden bg-gray-900 shadow-inner relative text-center">
+                    <img src="./picture/detail_button_sample.png" alt="詳細ボタンの表示例" class="w-full max-h-[380px] object-contain mx-auto">
+                    <div class="absolute bottom-2 left-3 bg-[#005a36] text-white font-bold text-[10px] px-2.5 py-1 rounded-md shadow-lg animate-pulse border border-emerald-300 flex items-center gap-1">
+                        <span>👇 一番下の「詳細」ボタンがこれです</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="pt-2 border-t border-gray-100 text-right">
+                <button type="button" onclick="closeDetailModal()" class="bg-[#005a36] text-white text-xs font-bold px-5 py-1.5 rounded-md hover:bg-[#004225] transition-colors shadow">
+                    閉じる
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Auto-resize Textarea & LINE Print Script -->
     <script>
+        // Modal functions
+        function openDetailModal() {
+            document.getElementById('detailModal').classList.remove('hidden');
+        }
+        function closeDetailModal() {
+            document.getElementById('detailModal').classList.add('hidden');
+        }
+
         document.addEventListener('input', function (e) {
             if (e.target.tagName.toLowerCase() === 'textarea') {
                 e.target.style.height = 'auto';
