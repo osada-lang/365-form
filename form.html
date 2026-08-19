@@ -428,10 +428,15 @@
 
         <!-- Row 4: ⑥ 毎投稿最後に表示されるフッター情報 (広々1カラム) -->
         <div class="border border-gray-300 rounded p-2.5 bg-white">
-            <h3 class="font-bold text-[#005a36] mb-1 text-xs flex items-center gap-1">
-                <span class="text-sm">⑥</span>
-                毎投稿最後に表示されるフッター情報
-            </h3>
+            <div class="flex justify-between items-start mb-0.5">
+                <h3 class="font-bold text-[#005a36] text-xs flex items-center gap-1">
+                    <span class="text-sm">⑥</span>
+                    毎投稿最後に表示されるフッター情報
+                </h3>
+                <button type="button" onclick="openFooterModal()" class="text-[#005a36] font-bold text-[8.5px] bg-emerald-50 hover:bg-emerald-100 px-1.5 py-0.5 rounded border border-emerald-200 cursor-pointer flex items-center gap-0.5 shrink-0 transition-all">
+                    💡「フッター情報」表示例
+                </button>
+            </div>
             <p class="text-gray-500 mb-1 text-[8.5px] leading-tight">
                 店舗住所、アクセス方法、電話番号、予約時の注意書きなど、AI生成テキストの最下部に必ず毎回挿入したい情報をご記入ください。
             </p>
@@ -892,6 +897,47 @@
         </div>
     </div>
 
+    <!-- 「フッター情報」例画像 モーダル -->
+    <div id="footerModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-3 transition-all duration-300 no-print" onclick="closeFooterModal()">
+        <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full overflow-hidden transform transition-all p-4 border border-gray-200" onclick="event.stopPropagation()">
+            <!-- Header -->
+            <div class="flex justify-between items-center pb-2 border-b border-gray-200">
+                <div class="flex items-center gap-2">
+                    <span class="bg-[#005a36] text-white text-[10px] font-bold px-2 py-0.5 rounded">例ガイド</span>
+                    <h3 class="font-bold text-gray-800 text-sm">「フッター情報」の実際の表示位置イメージ</h3>
+                </div>
+                <button type="button" onclick="closeFooterModal()" class="text-gray-400 hover:text-gray-700 text-2xl font-bold p-1 leading-none transition-colors">&times;</button>
+            </div>
+            
+            <!-- Body -->
+            <div class="py-2.5 space-y-2">
+                <p class="text-xs text-gray-700 leading-relaxed font-medium">
+                    Googleマップ（GBP）に投稿される文章の<strong class="text-[#005a36] font-bold">最下部（破線 ------------------ で囲まれたエリア）</strong>に毎回固定で自動挿入される店舗情報・アクセス・注意事項等のエリアです。
+                </p>
+                <div class="border border-gray-300 rounded-lg overflow-hidden bg-gray-900 shadow-inner text-center p-2">
+                    <div class="inline-block relative max-w-full">
+                        <img src="./picture/detail_button_sample.png" alt="フッター情報の表示例" class="max-h-[380px] w-auto object-contain block mx-auto rounded">
+                        
+                        <!-- 「フッター情報」エリアをピンポイントで囲む赤枠 (------------------ で囲まれたエリア) -->
+                        <div class="absolute top-[76.2%] left-[2.0%] w-[58%] h-[18.2%] border-2 border-red-500 rounded bg-red-500/20 shadow-md animate-pulse ring-2 ring-red-400/50 pointer-events-none"></div>
+
+                        <!-- 最初の緑テイスト案内バッジ (#005a36、白文字、指差し絵文字) -->
+                        <div class="absolute top-[82%] left-[62%] bg-[#005a36] text-white font-bold text-[10.5px] px-2.5 py-1 rounded-md shadow-xl border border-emerald-300/80 flex items-center gap-1 whitespace-nowrap">
+                            <span>👈 ここが「フッター情報」エリアです</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="pt-2 border-t border-gray-100 text-right">
+                <button type="button" onclick="closeFooterModal()" class="bg-[#005a36] text-white text-xs font-bold px-5 py-1.5 rounded-md hover:bg-[#004225] transition-colors shadow">
+                    閉じる
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Auto-resize Textarea & LINE Print Script -->
     <script>
         // Modal functions
@@ -900,6 +946,13 @@
         }
         function closeDetailModal() {
             document.getElementById('detailModal').classList.add('hidden');
+        }
+
+        function openFooterModal() {
+            document.getElementById('footerModal').classList.remove('hidden');
+        }
+        function closeFooterModal() {
+            document.getElementById('footerModal').classList.add('hidden');
         }
 
         document.addEventListener('input', function (e) {
