@@ -61,7 +61,15 @@
                 box-shadow: none !important;
                 border-radius: 0 !important;
                 page-break-after: avoid !important;
+                break-after: avoid !important;
                 overflow: hidden !important; /* iOS Safari WebKitでの領域溢れによる余分な改ページを防止 */
+            }
+
+            /* iOS (iPhone/iPad Safari) 専用の印刷スケーリング分岐 */
+            @supports (-webkit-touch-callout: none) {
+                .sheet-container {
+                    zoom: 92% !important;
+                }
             }
 
             .no-print {
