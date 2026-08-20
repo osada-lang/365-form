@@ -32,27 +32,33 @@
         }
 
         @media print {
-            body {
-                background: #ffffff;
-                padding: 0;
-                margin: 0;
+            html, body {
+                width: 210mm !important;
+                background: #ffffff !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                overflow: visible !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
             }
+
             .sheet-container {
-                width: 210mm;
-                height: 297mm;
-                box-sizing: border-box;
-                margin: 0 auto;
-                padding: 10mm 12mm;
-                box-shadow: none;
-                border-radius: 0;
-                page-break-after: always;
+                width: 210mm !important;
+                height: 297mm !important;
+                max-height: 297mm !important;
+                box-sizing: border-box !important;
+                margin: 0 auto !important;
+                padding: 10mm 12mm !important;
+                box-shadow: none !important;
+                border-radius: 0 !important;
+                page-break-after: avoid !important;
+                overflow: hidden !important; /* iOS Safari WebKitでの領域溢れによる余分な改ページを防止 */
             }
-            .sheet-container:last-child {
-                page-break-after: auto;
-            }
+
             .no-print {
                 display: none !important;
             }
+
             input, textarea, select {
                 background: transparent !important;
                 border-color: #ccc !important;

@@ -32,27 +32,38 @@
         }
 
         @media print {
-            body {
-                background: #ffffff;
-                padding: 0;
-                margin: 0;
+            html, body {
+                width: 210mm !important;
+                background: #ffffff !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                overflow: visible !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
             }
+
             .sheet-container {
-                width: 210mm;
-                height: 297mm;
-                box-sizing: border-box;
-                margin: 0 auto;
-                padding: 8mm 10mm;
-                box-shadow: none;
-                border-radius: 0;
-                page-break-after: always;
+                width: 210mm !important;
+                height: 297mm !important;
+                max-height: 297mm !important;
+                box-sizing: border-box !important;
+                margin: 0 auto !important;
+                padding: 8mm 10mm !important;
+                box-shadow: none !important;
+                border-radius: 0 !important;
+                page-break-after: always !important;
+                page-break-inside: avoid !important;
+                overflow: hidden !important; /* iOS Safari WebKitでの領域溢れによる余分な改ページを防止 */
             }
-            .no-print {
+
+            .sheet-container:last-of-type {
+                page-break-after: avoid !important;
+            }
+
+            .no-print, .page-break {
                 display: none !important;
             }
-            .page-break {
-                page-break-before: always;
-            }
+
             textarea {
                 border: 1px solid #d1d5db !important;
                 background-color: #ffffff !important;
@@ -60,7 +71,6 @@
                 overflow: hidden !important;
                 white-space: pre-wrap !important;
                 word-break: break-all !important;
-                height: auto !important;
             }
         }
 
@@ -443,9 +453,6 @@
             <textarea rows="6.5" class="w-full border border-gray-200 rounded p-2 text-[10px] leading-relaxed" placeholder="自由記入欄（店舗住所、アクセス方法、電話番号、定休日、駐車場情報、注意書き等）"></textarea>
         </div>
     </div>
-
-    <!-- Page Break for Printing -->
-    <div class="page-break"></div>
 
     <!-- ===== PAGE 2 (新設：ブランドストーリー・エンティティ設計 ＆ 記入案内) ===== -->
     <div class="sheet-container">
