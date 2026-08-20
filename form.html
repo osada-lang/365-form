@@ -378,15 +378,15 @@
         </div>
 
         <!-- Row 2: ③ 投稿の雰囲気・トーン (全幅横長カード) -->
-        <div class="border border-gray-300 rounded p-2.5 bg-white mb-2.5 text-[11px]">
-            <h3 class="font-bold text-[#005a36] mb-1 text-xs flex items-center gap-1">
+        <div class="border border-gray-300 rounded p-2 bg-white mb-2 text-[11px]">
+            <h3 class="font-bold text-[#005a36] mb-0.5 text-xs flex items-center gap-1">
                 <span class="text-sm">③</span>
                 投稿の雰囲気・トーン
                 <span class="text-gray-500 font-normal text-[8.5px] ml-1">（該当するものに✓）</span>
             </h3>
-            <div class="grid grid-cols-1 md:grid-cols-12 print:grid-cols-12 gap-3 items-center mt-1">
+            <div class="grid grid-cols-1 md:grid-cols-12 print:grid-cols-12 gap-2 items-center mt-0.5">
                 <!-- 左側: チェックボックス (7/12) -->
-                <div class="col-span-12 md:col-span-7 print:col-span-7 grid grid-cols-3 gap-y-1.5 gap-x-1 text-[9.5px] whitespace-nowrap">
+                <div class="col-span-12 md:col-span-7 print:col-span-7 grid grid-cols-3 gap-y-1 gap-x-1 text-[9.5px] whitespace-nowrap">
                     <label class="checkbox-label block whitespace-nowrap"><input type="checkbox"> 高級感・上質</label>
                     <label class="checkbox-label block whitespace-nowrap"><input type="checkbox"> 親しみ・カジュアル</label>
                     <label class="checkbox-label block whitespace-nowrap"><input type="checkbox"> 元気・明るい</label>
@@ -398,15 +398,15 @@
                     <label class="checkbox-label block whitespace-nowrap"><input type="checkbox"> その他</label>
                 </div>
                 <!-- 右側: 具体的なイメージ記述 (5/12) -->
-                <div class="col-span-12 md:col-span-5 print:col-span-5 border-l md:border-l border-gray-200 pl-3">
+                <div class="col-span-12 md:col-span-5 print:col-span-5 border-l md:border-l border-gray-200 pl-2">
                     <p class="text-[8.5px] text-gray-500 mb-0.5 font-bold">【その他・具体的なイメージ】</p>
-                    <textarea rows="2.8" class="w-full border border-gray-200 rounded p-1.5 text-[9.5px] leading-snug" placeholder="自由記述欄（具体的なトーン・雰囲気のイメージ等）"></textarea>
+                    <textarea rows="1.8" class="w-full border border-gray-200 rounded p-1 text-[9.5px] leading-snug" placeholder="自由記述欄（具体的なトーン・雰囲気のイメージ等）"></textarea>
                 </div>
             </div>
         </div>
 
         <!-- Row 3: ④ 投稿時のボタン用URL / ⑤ 自動投稿の希望時間帯 (2 Columns) -->
-        <div class="grid grid-cols-1 md:grid-cols-2 print:grid-cols-2 gap-2.5 mb-2.5 text-[11px]">
+        <div class="grid grid-cols-1 md:grid-cols-2 print:grid-cols-2 gap-2 mb-2 text-[11px]">
             <!-- ④ 投稿時の詳細ボタン用URL -->
             <div class="border border-gray-300 rounded p-2 bg-white flex flex-col justify-between">
                 <div>
@@ -419,26 +419,26 @@
                             💡「詳細ボタン」表示例
                         </button>
                     </div>
-                    <p class="text-gray-600 text-[8.5px] leading-tight mb-1">
+                    <p class="text-gray-600 text-[8.5px] leading-tight mb-0.5">
                         「詳細」ボタン（投稿の一番下）の遷移先URLをご記入ください。<br>
-                        <span class="text-[#005a36] font-bold">📌 目的・コツ:</span> 信頼性を高める会社HPよりも、コンバージョン（予約・集客）に直接直結する**LP（ランディングページ）やWeb予約サイト**の設定が最も効果的です。
+                        <span class="text-[#005a36] font-bold">📌 目的・コツ:</span> 会社HPよりも、コンバージョン（予約・集客）に直結する**LPや予約サイト**の設定が最も効果的です。
                     </p>
                 </div>
-                <textarea rows="1.8" class="w-full border border-gray-200 rounded p-1 text-[9.5px] leading-tight" placeholder="https://"></textarea>
+                <textarea rows="1.5" class="w-full border border-gray-200 rounded p-1 text-[9.5px] leading-tight" placeholder="https://"></textarea>
             </div>
 
             <!-- ⑤ 毎日の最新情報自動投稿の希望時間帯 -->
-            <div class="border border-gray-300 rounded p-2.5 bg-white flex flex-col justify-between">
+            <div class="border border-gray-300 rounded p-2 bg-white flex flex-col justify-between">
                 <div>
-                    <h3 class="font-bold text-[#005a36] mb-1 text-xs flex items-center gap-1">
+                    <h3 class="font-bold text-[#005a36] mb-0.5 text-xs flex items-center gap-1">
                         <span class="text-sm">⑤</span>
                         自動投稿の希望時間帯
                     </h3>
-                    <p class="text-gray-500 mb-1 text-[8.5px] leading-tight">
+                    <p class="text-gray-500 mb-0.5 text-[8.5px] leading-tight">
                         最新情報記事をGoogleに自動投稿する希望時間帯を選択してください。
                     </p>
                 </div>
-                <select class="w-full bg-gray-50 border border-gray-300 rounded px-2 py-1 text-[10px] font-medium text-gray-800 outline-none focus:border-[#005a36]">
+                <select class="w-full bg-gray-50 border border-gray-300 rounded px-2 py-0.5 text-[10px] font-medium text-gray-800 outline-none focus:border-[#005a36]">
                     <option value="">希望なし (正午に投稿)</option>
                     <option value="0">0時頃</option>
                     <option value="1">1時頃</option>
@@ -469,7 +469,7 @@
         </div>
 
         <!-- Row 4: ⑥ 毎投稿最後に表示されるフッター情報 (広々1カラム) -->
-        <div class="border border-gray-300 rounded p-2.5 bg-white">
+        <div class="border border-gray-300 rounded p-2 bg-white">
             <div class="flex justify-between items-start mb-0.5">
                 <h3 class="font-bold text-[#005a36] text-xs flex items-center gap-1">
                     <span class="text-sm">⑥</span>
@@ -479,10 +479,10 @@
                     💡「フッター情報」表示例
                 </button>
             </div>
-            <p class="text-gray-500 mb-1 text-[8.5px] leading-tight">
+            <p class="text-gray-500 mb-0.5 text-[8.5px] leading-tight">
                 店舗住所、アクセス方法、電話番号、予約時の注意書きなど、AI生成テキストの最下部に必ず毎回挿入したい情報をご記入ください。
             </p>
-            <textarea rows="6.5" class="w-full border border-gray-200 rounded p-2 text-[10px] leading-relaxed" placeholder="自由記入欄（店舗住所、アクセス方法、電話番号、定休日、駐車場情報、注意書き等）"></textarea>
+            <textarea rows="3.5" class="w-full border border-gray-200 rounded p-1.5 text-[10px] leading-relaxed" placeholder="自由記入欄（店舗住所、アクセス方法、電話番号、定休日、駐車場情報、注意書き等）"></textarea>
         </div>
     </div>
 
@@ -507,39 +507,39 @@
         </div>
 
         <!-- Section 1: お店への想い・コンセプト・ストーリー -->
-        <div class="mb-3 border border-gray-300 rounded overflow-hidden bg-white">
-            <h2 class="bg-[#005a36] text-white font-bold px-3 py-1.5 text-xs flex items-center justify-between gap-2">
+        <div class="mb-2 border border-gray-300 rounded overflow-hidden bg-white">
+            <h2 class="bg-[#005a36] text-white font-bold px-3 py-1 text-xs flex items-center justify-between gap-2">
                 <div class="flex items-center gap-2">
                     <span>理念・ストーリー</span>
                     <span class="text-[10px] font-normal text-emerald-100">（お店への想い・コンセプト・創業ストーリー）</span>
                 </div>
                 <span class="text-[9px] text-red-500 font-bold bg-red-50 px-1.5 py-0.2 rounded border border-red-200 shrink-0">必須</span>
             </h2>
-            <div class="p-3">
-                <p class="text-xs text-gray-700 font-bold mb-1.5">
+            <div class="p-2">
+                <p class="text-xs text-gray-700 font-bold mb-1">
                     創業のきっかけ、お店にかける想い、お客様へ提供したい価値、こだわりや理念をご記入ください。
                 </p>
-                <textarea rows="8.5" class="w-full p-2.5 border border-gray-200 rounded text-xs leading-relaxed" placeholder="（記入例）〇〇の悩みを持つお客様を一人でも減らしたいという強い想いから創業しました。ただサービスを提供するだけでなく、一人ひとりに寄り添った親身なサポートを大切にしています..."></textarea>
+                <textarea rows="4" class="w-full p-2 border border-gray-200 rounded text-xs leading-relaxed" placeholder="（記入例）〇〇の悩みを持つお客様を一人でも減らしたいという強い想いから創業しました。ただサービスを提供するだけでなく、一人ひとりに寄り添った親身なサポートを大切にしています..."></textarea>
             </div>
         </div>
 
         <!-- Section 2: オーナー・代表者の経歴・実績・プロフィール -->
-        <div class="mb-3 border border-gray-300 rounded overflow-hidden bg-white">
-            <h2 class="bg-[#005a36] text-white font-bold px-3 py-1.5 text-xs flex items-center justify-between gap-2">
+        <div class="mb-2 border border-gray-300 rounded overflow-hidden bg-white">
+            <h2 class="bg-[#005a36] text-white font-bold px-3 py-1 text-xs flex items-center justify-between gap-2">
                 <div class="flex items-center gap-2">
                     <span>権威性・人物像</span>
                     <span class="text-[10px] font-normal text-emerald-100">（代表者・オーナーの経歴・資格・実績）</span>
                 </div>
             </h2>
-            <div class="p-2.5 space-y-2">
+            <div class="p-2 space-y-1.5">
                 <p class="text-xs text-gray-700 font-bold">
                     該当する項目にチェック・数字を入力してください。（AIが文章に専門性と信頼性を与えるために活用します）
                 </p>
 
                 <!-- 1. 基本項目（数字・チェック選択） -->
-                <div class="grid grid-cols-1 md:grid-cols-2 print:grid-cols-2 gap-2 bg-emerald-50/30 p-2 rounded border border-emerald-100 text-xs">
+                <div class="grid grid-cols-1 md:grid-cols-2 print:grid-cols-2 gap-2 bg-emerald-50/30 p-1.5 rounded border border-emerald-100 text-xs">
                     <!-- 左列: 経験年数・実績 -->
-                    <div class="space-y-1.5 flex flex-col justify-center">
+                    <div class="space-y-1 flex flex-col justify-center">
                         <div class="flex items-center gap-1.5 whitespace-nowrap">
                             <span class="font-bold text-[#005a36] shrink-0 w-[100px]">・業界経験年数:</span>
                             <span class="shrink-0 text-gray-700">約</span>
@@ -562,7 +562,7 @@
                     </div>
 
                     <!-- 右列: チェック選択項目 -->
-                    <div class="space-y-1 text-gray-800 flex flex-col justify-center border-l md:border-l border-emerald-100/60 pl-2">
+                    <div class="space-y-0.5 text-gray-800 flex flex-col justify-center border-l md:border-l border-emerald-100/60 pl-2">
                         <label class="checkbox-label flex items-center gap-1.5 whitespace-nowrap"><input type="checkbox"> <span>店長・管理職・指導経験あり</span></label>
                         <label class="checkbox-label flex items-center gap-1.5 whitespace-nowrap"><input type="checkbox"> <span>創業・独立・開業経験あり</span></label>
                         <label class="checkbox-label flex items-center gap-1.5 whitespace-nowrap"><input type="checkbox"> <span>メディア掲載・受賞歴あり</span></label>
@@ -580,36 +580,36 @@
                 <!-- 3. 補足・得意分野・その他実績（自由記述枠） -->
                 <div>
                     <span class="font-bold text-gray-700 text-xs block mb-0.5">【得意分野・補足プロフィール】（自由記述）</span>
-                    <textarea rows="3.5" class="w-full p-2 border border-gray-200 rounded text-xs leading-relaxed" placeholder="例：得意分野・サービス内容、こだわり、これまで最も情熱を注いできた領域、お客様とのエピソードなど自由にご記入ください。"></textarea>
+                    <textarea rows="2" class="w-full p-1.5 border border-gray-200 rounded text-xs leading-relaxed" placeholder="例：得意分野・サービス内容、こだわり、これまで最も情熱を注いできた領域、お客様とのエピソードなど自由にご記入ください。"></textarea>
                 </div>
             </div>
         </div>
 
         <!-- Section 3: よくある質問・聞かれること (店舗ナレッジ) -->
-        <div class="mb-3 border border-gray-300 rounded overflow-hidden bg-white">
-            <h2 class="bg-[#005a36] text-white font-bold px-3 py-1.5 text-xs flex items-center gap-2">
+        <div class="mb-2 border border-gray-300 rounded overflow-hidden bg-white">
+            <h2 class="bg-[#005a36] text-white font-bold px-3 py-1 text-xs flex items-center gap-2">
                 <span>よくある質問・聞かれること（FAQ）</span>
                 <span class="text-[10px] font-normal text-emerald-100">（店舗・サービスに関するQ&A）</span>
             </h2>
-            <div class="p-3">
-                <p class="text-xs text-gray-700 font-bold mb-1.5">
+            <div class="p-2">
+                <p class="text-xs text-gray-700 font-bold mb-1">
                     店舗についてお客様からよく聞かれる質問と回答をご記入ください。（AIが新着投稿や口コミ返信作成時に活用します）
                 </p>
-                <div class="grid grid-cols-1 md:grid-cols-2 print:grid-cols-2 gap-3 text-xs">
+                <div class="grid grid-cols-1 md:grid-cols-2 print:grid-cols-2 gap-2 text-xs">
                     <div>
-                        <span class="font-bold text-gray-600 text-[11px] block mb-1">【よくある質問】（複数可）</span>
-                        <textarea rows="6.5" class="w-full p-2.5 border border-gray-200 rounded text-xs leading-relaxed" placeholder="例：&#10;Q1. 駐車場はありますか？&#10;Q2. 予約は必須ですか？&#10;Q3. 子連れ利用は可能ですか？"></textarea>
+                        <span class="font-bold text-gray-600 text-[11px] block mb-0.5">【よくある質問】（複数可）</span>
+                        <textarea rows="3.5" class="w-full p-2 border border-gray-200 rounded text-xs leading-relaxed" placeholder="例：&#10;Q1. 駐車場はありますか？&#10;Q2. 予約は必須ですか？&#10;Q3. 子連れ利用は可能ですか？"></textarea>
                     </div>
                     <div>
-                        <span class="font-bold text-[#005a36] text-[11px] block mb-1">【それに対する回答】（複数可）</span>
-                        <textarea rows="6.5" class="w-full p-2.5 border border-gray-200 rounded text-xs leading-relaxed" placeholder="例：&#10;A1. 店舗裏に3台分ございます。&#10;A2. 当日予約も承っております。&#10;A3. キッズスペース完備のため大歓迎です。"></textarea>
+                        <span class="font-bold text-[#005a36] text-[11px] block mb-0.5">【それに対する回答】（複数可）</span>
+                        <textarea rows="3.5" class="w-full p-2 border border-gray-200 rounded text-xs leading-relaxed" placeholder="例：&#10;A1. 店舗裏に3台分ございます。&#10;A2. 当日予約も承っております。&#10;A3. キッズスペース完備のため大歓迎です。"></textarea>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- ===== Footer Section (移動してきた添付画像通りの独立4構造) ===== -->
-        <div class="mt-4 space-y-2 text-[9.5px]">
+        <div class="mt-2 space-y-1.5 text-[9.5px]">
             <!-- Top Row: 2 Separate Bordered Boxes -->
             <div class="grid grid-cols-1 md:grid-cols-12 print:grid-cols-12 gap-2 items-stretch">
                 <!-- Box 1 (Left): 記入のポイント -->
