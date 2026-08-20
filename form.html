@@ -27,6 +27,14 @@
             border-radius: 6px;
         }
 
+        @media screen and (max-width: 640px) {
+            .sheet-container {
+                padding: 12px 10px !important;
+                margin: 8px auto !important;
+                border-radius: 8px;
+            }
+        }
+
         @page {
             size: A4 portrait;
             margin: 0;
@@ -177,9 +185,9 @@
 <body class="p-2 md:p-6">
 
     <!-- 印刷 / PDF化 固定ボタン -->
-    <div class="no-print fixed top-4 right-4 z-50 flex gap-2">
-        <button onclick="handlePrint()" class="bg-[#005a36] hover:bg-[#004225] text-white font-bold py-2.5 px-6 rounded-lg shadow-xl flex items-center gap-2 transition-all transform hover:scale-105">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+    <div class="no-print fixed bottom-4 right-4 sm:top-4 sm:right-4 sm:bottom-auto z-50 flex gap-2">
+        <button onclick="handlePrint()" class="bg-[#005a36] hover:bg-[#004225] text-white font-bold py-2 px-4 sm:py-2.5 sm:px-6 text-sm sm:text-base rounded-lg shadow-xl flex items-center gap-1.5 sm:gap-2 transition-all transform hover:scale-105">
+            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
             印刷 / PDF化
         </button>
     </div>
@@ -188,21 +196,21 @@
     <div class="sheet-container">
         <!-- ===== Top Header: GBP情報設計シート ===== -->
         <div class="mb-3">
-            <div class="flex justify-between items-end gap-2 mb-2">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-2 mb-2">
                 <!-- Left Title & Subtitle -->
                 <div class="min-w-0">
-                    <div class="flex items-baseline gap-1.5 flex-nowrap whitespace-nowrap">
-                        <span class="text-2xl md:text-3xl font-black text-[#005a36] tracking-tight">365ボイス</span>
-                        <span class="text-2xl md:text-3xl font-black text-black tracking-tight">GBP情報設計シート</span>
-                        <span class="text-base md:text-lg font-bold text-black ml-1">Ver.1.0</span>
+                    <div class="flex items-baseline gap-1.5 flex-wrap sm:flex-nowrap">
+                        <span class="text-xl sm:text-2xl md:text-3xl font-black text-[#005a36] tracking-tight">365ボイス</span>
+                        <span class="text-xl sm:text-2xl md:text-3xl font-black text-black tracking-tight">GBP情報設計シート</span>
+                        <span class="text-sm sm:text-base md:text-lg font-bold text-black ml-1">Ver.1.0</span>
                     </div>
-                    <p class="text-xs text-gray-700 mt-1 whitespace-nowrap">
+                    <p class="text-[11px] sm:text-xs text-gray-700 mt-1">
                         Googleビジネスプロフィール（GBP）の基本情報を正確に整えるためにご記入ください。
                     </p>
                 </div>
 
                 <!-- Right Dedicated Box & Badge -->
-                <div class="flex flex-col items-end shrink-0 w-[180px]">
+                <div class="flex flex-col items-start sm:items-end shrink-0 w-full sm:w-[180px]">
                     <span class="bg-[#005a36] text-white font-bold text-[10px] px-2.5 py-0.5 rounded-full mb-1 whitespace-nowrap">365ボイス専用</span>
                     <table class="w-full border border-gray-400 text-xs border-collapse bg-white">
                         <tbody>
@@ -493,17 +501,17 @@
         <!-- Header Row -->
         <div class="mb-3">
             <div class="flex justify-between items-start mb-1 gap-2">
-                <!-- Left Title (1行表示) -->
-                <div class="flex items-baseline gap-1.5 flex-nowrap whitespace-nowrap">
-                    <span class="text-2xl md:text-3xl font-black text-[#005a36] tracking-tight">365ボイス</span>
-                    <span class="text-xl md:text-2xl inline-flex items-center text-[#005a36]">💬</span>
-                    <span class="text-lg md:text-[20px] font-black text-black tracking-tighter ml-0.5">ブランドストーリー ＆ 店舗の強み設計シート</span>
-                    <span class="text-base md:text-lg font-bold text-black ml-1">Ver.1.0</span>
+                <!-- Left Title -->
+                <div class="flex items-baseline gap-1.5 flex-wrap sm:flex-nowrap">
+                    <span class="text-xl sm:text-2xl md:text-3xl font-black text-[#005a36] tracking-tight">365ボイス</span>
+                    <span class="text-lg sm:text-xl md:text-2xl inline-flex items-center text-[#005a36]">💬</span>
+                    <span class="text-base sm:text-lg md:text-[20px] font-black text-black tracking-tighter ml-0.5">ブランドストーリー ＆ 店舗の強み設計シート</span>
+                    <span class="text-sm sm:text-base md:text-lg font-bold text-black ml-1">Ver.1.0</span>
                 </div>
             </div>
 
             <!-- Subtitle -->
-            <p class="text-xs text-gray-700 whitespace-nowrap">
+            <p class="text-xs text-gray-700">
                 AIにお店の独自ストーリーや店舗の強み（存在感・信頼性）を学習させ、魅力を最大限に引き出すための背景情報シートです。
             </p>
         </div>
