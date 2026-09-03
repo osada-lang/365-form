@@ -527,7 +527,7 @@
         </div>
     </div>
 
-    <!-- ===== PAGE 2 (新設：ブランドストーリー・エンティティ設計 ＆ 記入案内) ===== -->
+    <!-- ===== PAGE 2 (新設：ブランドストーリー設計シート) ===== -->
     <div class="sheet-container">
         <!-- Header Row -->
         <div class="mb-3">
@@ -536,19 +536,19 @@
                 <div class="flex items-baseline gap-1.5 flex-wrap sm:flex-nowrap">
                     <span class="text-xl sm:text-2xl md:text-3xl font-black text-[#005a36] tracking-tight">365ボイス</span>
                     <span class="text-lg sm:text-xl md:text-2xl inline-flex items-center text-[#005a36]">💬</span>
-                    <span class="text-base sm:text-lg md:text-[20px] font-black text-black tracking-tighter ml-0.5">ブランドストーリー ＆ 店舗の強み設計シート</span>
+                    <span class="text-base sm:text-lg md:text-[20px] font-black text-black tracking-tighter ml-0.5">ブランドストーリー設計シート</span>
                     <span class="text-sm sm:text-base md:text-lg font-bold text-black ml-1">Ver.1.0</span>
                 </div>
             </div>
 
             <!-- Subtitle -->
             <p class="text-xs text-gray-700">
-                AIにお店の独自ストーリーや店舗の強み（存在感・信頼性）を学習させ、魅力を最大限に引き出すための背景情報シートです。
+                AIにお店の創業理念や独自ストーリーを学習させ、魅力を最大限に引き出すための背景情報シートです。
             </p>
         </div>
 
         <!-- Section 1: お店への想い・コンセプト・ストーリー -->
-        <div class="mb-3 border border-gray-300 rounded overflow-hidden bg-white">
+        <div class="border border-gray-300 rounded overflow-hidden bg-white mb-2">
             <h2 class="bg-[#005a36] text-white font-bold px-3 py-1.5 text-xs flex items-center justify-between gap-2">
                 <div class="flex items-center gap-2">
                     <span>理念・ストーリー</span>
@@ -560,8 +560,29 @@
                 <p class="text-xs text-gray-700 font-bold mb-1.5">
                     創業のきっかけ、お店にかける想い、お客様へ提供したい価値、こだわりや理念をご記入ください。
                 </p>
-                <textarea rows="8.5" class="w-full p-2.5 border border-gray-200 rounded text-xs leading-relaxed" placeholder="（記入例）〇〇の悩みを持つお客様を一人でも減らしたいという強い想いから創業しました。ただサービスを提供するだけでなく、一人ひとりに寄り添った親身なサポートを大切にしています..."></textarea>
+                <textarea rows="42" class="w-full p-2.5 border border-gray-200 rounded text-xs leading-relaxed" placeholder="（記入例）〇〇の悩みを持つお客様を一人でも減らしたいという強い想いから創業しました。ただサービスを提供するだけでなく、一人ひとりに寄り添った親身なサポートを大切にしています..."></textarea>
             </div>
+        </div>
+    </div>
+
+    <!-- ===== PAGE 3 (新設：店舗の強み ＆ ナレッジ（FAQ）設計シート) ===== -->
+    <div class="sheet-container">
+        <!-- Header Row -->
+        <div class="mb-3">
+            <div class="flex justify-between items-start mb-1 gap-2">
+                <!-- Left Title -->
+                <div class="flex items-baseline gap-1.5 flex-wrap sm:flex-nowrap">
+                    <span class="text-xl sm:text-2xl md:text-3xl font-black text-[#005a36] tracking-tight">365ボイス</span>
+                    <span class="text-lg sm:text-xl md:text-2xl inline-flex items-center text-[#005a36]">💬</span>
+                    <span class="text-base sm:text-lg md:text-[20px] font-black text-black tracking-tighter ml-0.5">店舗の強み ＆ ナレッジ（FAQ）設計シート</span>
+                    <span class="text-sm sm:text-base md:text-lg font-bold text-black ml-1">Ver.1.0</span>
+                </div>
+            </div>
+
+            <!-- Subtitle -->
+            <p class="text-xs text-gray-700">
+                代表者の信頼性やよくある質問（FAQ）を学習させ、AIがより正確で説得力のある文章を作成するための背景情報シートです。
+            </p>
         </div>
 
         <!-- Section 2: オーナー・代表者の経歴・実績・プロフィール -->
@@ -621,7 +642,7 @@
                 <!-- 3. 補足・得意分野・その他実績（自由記述枠） -->
                 <div>
                     <span class="font-bold text-gray-700 text-xs block mb-0.5">【得意分野・補足プロフィール】（自由記述）</span>
-                    <textarea rows="3.5" class="w-full p-2 border border-gray-200 rounded text-xs leading-relaxed" placeholder="例：得意分野・サービス内容、こだわり、これまで最も情熱を注いできた領域、お客様とのエピソードなど自由にご記入ください。"></textarea>
+                    <textarea rows="6" class="w-full p-2 border border-gray-200 rounded text-xs leading-relaxed" placeholder="例：得意分野・サービス内容、こだわり、これまで最も情熱を注いできた領域、お客様とのエピソードなど自由にご記入ください。"></textarea>
                 </div>
             </div>
         </div>
@@ -639,11 +660,11 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 print:grid-cols-2 gap-3 text-xs">
                     <div>
                         <span class="font-bold text-gray-600 text-[11px] block mb-1">【よくある質問】（複数可）</span>
-                        <textarea rows="6.5" class="w-full p-2.5 border border-gray-200 rounded text-xs leading-relaxed" placeholder="例：&#10;Q1. 駐車場はありますか？&#10;Q2. 予約は必須ですか？&#10;Q3. 子連れ利用は可能ですか？"></textarea>
+                        <textarea rows="14" class="w-full p-2.5 border border-gray-200 rounded text-xs leading-relaxed" placeholder="例：&#10;Q1. 駐車場はありますか？&#10;Q2. 予約は必須ですか？&#10;Q3. 子連れ利用は可能ですか？"></textarea>
                     </div>
                     <div>
                         <span class="font-bold text-[#005a36] text-[11px] block mb-1">【それに対する回答】（複数可）</span>
-                        <textarea rows="6.5" class="w-full p-2.5 border border-gray-200 rounded text-xs leading-relaxed" placeholder="例：&#10;A1. 店舗裏に3台分ございます。&#10;A2. 当日予約も承っております。&#10;A3. キッズスペース完備のため大歓迎です。"></textarea>
+                        <textarea rows="14" class="w-full p-2.5 border border-gray-200 rounded text-xs leading-relaxed" placeholder="例：&#10;A1. 店舗裏に3台分ございます。&#10;A2. 当日予約も承っております。&#10;A3. キッズスペース完備のため大歓迎です。"></textarea>
                     </div>
                 </div>
             </div>
