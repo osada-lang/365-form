@@ -211,6 +211,10 @@
 
     <!-- 印刷 / PDF化 固定ボタン -->
     <div class="no-print fixed bottom-4 right-4 sm:top-4 sm:right-4 sm:bottom-auto z-50 flex gap-2">
+        <button onclick="clearFormData()" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-3 sm:py-2.5 sm:px-4 text-xs sm:text-sm rounded-lg shadow-md flex items-center gap-1.5 transition-all transform hover:scale-105">
+            <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+            入力をリセット
+        </button>
         <button onclick="handlePrint()" class="bg-[#005a36] hover:bg-[#004225] text-white font-bold py-2 px-4 sm:py-2.5 sm:px-6 text-sm sm:text-base rounded-lg shadow-xl flex items-center gap-1.5 sm:gap-2 transition-all transform hover:scale-105">
             <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
             印刷 / PDF化
@@ -834,8 +838,61 @@
             window.print();
         }
 
+        // --- localStorage-based Auto-Save / Auto-Restore Feature ---
+        function saveFormData() {
+            const inputs = document.querySelectorAll('input[type="text"], input[type="date"], textarea, input[type="checkbox"]');
+            inputs.forEach((input, index) => {
+                if (input.type === 'checkbox') {
+                    localStorage.setItem('form_input_' + index, input.checked);
+                } else {
+                    localStorage.setItem('form_input_' + index, input.value);
+                }
+            });
+        }
+
+        function loadFormData() {
+            const inputs = document.querySelectorAll('input[type="text"], input[type="date"], textarea, input[type="checkbox"]');
+            inputs.forEach((input, index) => {
+                const savedValue = localStorage.getItem('form_input_' + index);
+                if (savedValue !== null) {
+                    if (input.type === 'checkbox') {
+                        input.checked = (savedValue === 'true');
+                    } else {
+                        input.value = savedValue;
+                        if (input.tagName.toLowerCase() === 'textarea') {
+                            input.style.height = 'auto';
+                            input.style.height = (input.scrollHeight + 2) + 'px';
+                        }
+                    }
+                }
+            });
+        }
+
+        function clearFormData() {
+            if (confirm("入力した内容をすべて消去して、最初からやり直しますか？")) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+
+        // Trigger save on input and change events
+        document.addEventListener('input', function (e) {
+            if (['input', 'textarea'].includes(e.target.tagName.toLowerCase())) {
+                saveFormData();
+            }
+        });
+
+        document.addEventListener('change', function (e) {
+            if (e.target.type === 'checkbox') {
+                saveFormData();
+            }
+        });
+
         // Auto-Print when opened in default browser from LINE
         window.addEventListener('load', function () {
+            // Restore form data from localStorage
+            loadFormData();
+
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('autoPrint') === 'true') {
                 // Remove query parameters from URL without page reload
